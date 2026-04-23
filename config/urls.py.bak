@@ -1,0 +1,12 @@
+from django.contrib import admin
+from django.urls import path, include
+from django.http import HttpResponse
+
+def home(request):
+    return HttpResponse('<h1>Remote Team Manager API</h1><p>Use <a href="/admin/">/admin/</a> or <a href="/api/health/">/api/health/</a></p>')
+
+urlpatterns = [
+    path('', home),
+    path('admin/', admin.site.urls),
+    path('api/health/', include('apps.health.urls')),
+]
