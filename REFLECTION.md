@@ -1,6 +1,6 @@
 # Project Reflection
 
-**Student:** Your Name
+**Student:** Dieu Merci Niyonkuru
 **Project:** Remote Team Manager (#15)
 **Bootcamp:** Django Bootcamp 2025
 **Word count:** ~400 words
