@@ -516,3 +516,121 @@ class TestTaskFilters:
         assert res.status_code == 200
         assert len(res.data['data']) == 1
         assert res.data['data'][0]['priority'] == 'high'
+
+
+@pytest.mark.django_db
+class TestTimeLogEndpoints:
+
+    def setup_method(self):
+        from apps.projects.models import Project
+        from apps.tasks.models import Task
+        import datetime
+        self.client    = APIClient()
+        self.owner     = User.objects.create_user(
+            email='logowner@test.com', password='Test1234x',
+            first_name='Log', last_name='Owner'
+        )
+        self.manager   = User.objects.create_user(
+            email='logmgr@test.com', password='Test1234x',
+            first_name='Log', last_name='Manager'
+        )
+        self.developer = User.objects.create_user(
+            email='logdev@test.com', password='Test1234x',
+            first_name='Log', last_name='Dev'
+        )
+        self.workspace = Workspace.objects.create(
+            name='Log WS', owner=self.owner
+        )
+        WorkspaceMember.objects.create(
+            workspace=self.workspace, user=self.owner,
+            role=WorkspaceMember.Role.OWNER
+        )
+        WorkspaceMember.objects.create(
+            workspace=self.workspace, user=self.manager,
+            role=WorkspaceMember.Role.MANAGER
+        )
+        WorkspaceMember.objects.create(
+            workspace=self.workspace, user=self.developer,
+            role=WorkspaceMember.Role.DEVELOPER
+        )
+        self.project = Project.objects.create(
+            name='Log Project',
+            workspace=self.workspace,
+            created_by=self.owner
+        )
+        self.task = Task.objects.create(
+            project=self.project,
+            title='Loggable Task',
+            created_by=self.owner
+        )
+        self.base_url = (
+            f'/api/workspaces/{self.workspace.id}'
+            f'/projects/{self.project.id}'
+            f'/tasks/{self.task.id}/timelogs/'
+        )
+
+    def test_member_can_log_time(self):
+        self.client.force_authenticate(user=self.developer)
+        res = self.client.post(self.base_url, {
+            'hours': '2.50',
+            'description': 'Worked on feature',
+            'logged_at': '2026-04-26',
+        })
+        assert res.status_code == 201
+        assert float(res.data['data']['hours']) == 2.50
+
+    def test_developer_sees_only_own_logs(self):
+        from apps.tasks.models import TimeLog
+        import datetime
+        TimeLog.objects.create(
+            task=self.task, user=self.owner,
+            hours=3, logged_at=datetime.date.today()
+        )
+        TimeLog.objects.create(
+            task=self.task, user=self.developer,
+            hours=2, logged_at=datetime.date.today()
+        )
+        self.client.force_authenticate(user=self.developer)
+        res = self.client.get(self.base_url)
+        assert res.status_code == 200
+        assert len(res.data['data']) == 1
+
+    def test_manager_sees_all_logs(self):
+        from apps.tasks.models import TimeLog
+        import datetime
+        TimeLog.objects.create(
+            task=self.task, user=self.owner,
+            hours=3, logged_at=datetime.date.today()
+        )
+        TimeLog.objects.create(
+            task=self.task, user=self.developer,
+            hours=2, logged_at=datetime.date.today()
+        )
+        self.client.force_authenticate(user=self.manager)
+        res = self.client.get(self.base_url)
+        assert res.status_code == 200
+        assert len(res.data['data']) == 2
+
+    def test_owner_sees_all_logs(self):
+        from apps.tasks.models import TimeLog
+        import datetime
+        TimeLog.objects.create(
+            task=self.task, user=self.developer,
+            hours=1, logged_at=datetime.date.today()
+        )
+        self.client.force_authenticate(user=self.owner)
+        res = self.client.get(self.base_url)
+        assert res.status_code == 200
+        assert len(res.data['data']) == 1
+
+    def test_outsider_cannot_log_time(self):
+        outsider = User.objects.create_user(
+            email='logout@test.com', password='Test1234x',
+            first_name='Out', last_name='Sider'
+        )
+        self.client.force_authenticate(user=outsider)
+        res = self.client.post(self.base_url, {
+            'hours': '1.00',
+            'logged_at': '2026-04-26',
+        })
+        assert res.status_code == 403
