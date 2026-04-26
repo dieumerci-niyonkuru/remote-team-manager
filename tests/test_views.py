@@ -708,3 +708,98 @@ class TestActivityFeed:
         assert 'action' in item
         assert 'object_type' in item
         assert 'timestamp' in item
+
+
+@pytest.mark.django_db
+class TestMemberInvite:
+
+    def setup_method(self):
+        self.client = APIClient()
+        self.owner  = User.objects.create_user(
+            email='inviteowner@test.com', password='Test1234x',
+            first_name='Invite', last_name='Owner'
+        )
+        self.manager = User.objects.create_user(
+            email='invitemgr@test.com', password='Test1234x',
+            first_name='Invite', last_name='Manager'
+        )
+        self.new_user = User.objects.create_user(
+            email='newmember@test.com', password='Test1234x',
+            first_name='New', last_name='Member'
+        )
+        self.workspace = Workspace.objects.create(
+            name='Invite WS', owner=self.owner
+        )
+        WorkspaceMember.objects.create(
+            workspace=self.workspace, user=self.owner,
+            role=WorkspaceMember.Role.OWNER
+        )
+        WorkspaceMember.objects.create(
+            workspace=self.workspace, user=self.manager,
+            role=WorkspaceMember.Role.MANAGER
+        )
+        self.client.force_authenticate(user=self.owner)
+        self.members_url = f'/api/workspaces/{self.workspace.id}/members/'
+
+    def test_owner_can_invite_member(self):
+        res = self.client.post(self.members_url, {
+            'email': 'newmember@test.com',
+            'role': 'developer',
+        })
+        assert res.status_code == 201
+        assert res.data['data']['role'] == 'developer'
+
+    def test_manager_cannot_invite_member(self):
+        self.client.force_authenticate(user=self.manager)
+        res = self.client.post(self.members_url, {
+            'email': 'newmember@test.com',
+            'role': 'viewer',
+        })
+        assert res.status_code == 403
+
+    def test_cannot_invite_nonexistent_user(self):
+        res = self.client.post(self.members_url, {
+            'email': 'nobody@test.com',
+            'role': 'developer',
+        })
+        assert res.status_code == 400
+
+    def test_cannot_invite_existing_member(self):
+        res = self.client.post(self.members_url, {
+            'email': 'invitemgr@test.com',
+            'role': 'developer',
+        })
+        assert res.status_code == 400
+
+    def test_owner_can_list_members(self):
+        res = self.client.get(self.members_url)
+        assert res.status_code == 200
+        assert len(res.data['data']) == 2
+
+    def test_member_can_list_members(self):
+        self.client.force_authenticate(user=self.manager)
+        res = self.client.get(self.members_url)
+        assert res.status_code == 200
+
+    def test_outsider_cannot_list_members(self):
+        outsider = User.objects.create_user(
+            email='memout@test.com', password='Test1234x',
+            first_name='Out', last_name='Sider'
+        )
+        self.client.force_authenticate(user=outsider)
+        res = self.client.get(self.members_url)
+        assert res.status_code == 403
+
+    def test_owner_can_remove_member(self):
+        WorkspaceMember.objects.create(
+            workspace=self.workspace, user=self.new_user,
+            role=WorkspaceMember.Role.DEVELOPER
+        )
+        remove_url = f'/api/workspaces/{self.workspace.id}/members/{self.new_user.id}/'
+        res = self.client.delete(remove_url)
+        assert res.status_code == 200
+
+    def test_cannot_remove_owner(self):
+        remove_url = f'/api/workspaces/{self.workspace.id}/members/{self.owner.id}/'
+        res = self.client.delete(remove_url)
+        assert res.status_code == 400
