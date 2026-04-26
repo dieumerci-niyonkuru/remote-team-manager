@@ -176,3 +176,143 @@ class TestProjectEndpoints:
             f'/api/workspaces/{self.workspace.id}/projects/'
         )
         assert res.status_code == 403
+
+
+@pytest.mark.django_db
+class TestTaskEndpoints:
+
+    def setup_method(self):
+        from apps.projects.models import Project
+        self.client    = APIClient()
+        self.owner     = User.objects.create_user(
+            email='taskowner@test.com', password='Test1234x',
+            first_name='Owner', last_name='User'
+        )
+        self.manager   = User.objects.create_user(
+            email='taskmgr@test.com', password='Test1234x',
+            first_name='Manager', last_name='User'
+        )
+        self.developer = User.objects.create_user(
+            email='taskdev@test.com', password='Test1234x',
+            first_name='Dev', last_name='User'
+        )
+        self.viewer    = User.objects.create_user(
+            email='taskviewer@test.com', password='Test1234x',
+            first_name='Viewer', last_name='User'
+        )
+        self.workspace = Workspace.objects.create(
+            name='Task WS', owner=self.owner
+        )
+        WorkspaceMember.objects.create(
+            workspace=self.workspace, user=self.owner,
+            role=WorkspaceMember.Role.OWNER
+        )
+        WorkspaceMember.objects.create(
+            workspace=self.workspace, user=self.manager,
+            role=WorkspaceMember.Role.MANAGER
+        )
+        WorkspaceMember.objects.create(
+            workspace=self.workspace, user=self.developer,
+            role=WorkspaceMember.Role.DEVELOPER
+        )
+        WorkspaceMember.objects.create(
+            workspace=self.workspace, user=self.viewer,
+            role=WorkspaceMember.Role.VIEWER
+        )
+        self.project = Project.objects.create(
+            name='Task Project',
+            workspace=self.workspace,
+            created_by=self.owner
+        )
+        self.base_url = f'/api/workspaces/{self.workspace.id}/projects/{self.project.id}/tasks/'
+
+    def test_developer_can_create_task(self):
+        self.client.force_authenticate(user=self.developer)
+        res = self.client.post(self.base_url, {
+            'title': 'Dev Task',
+            'status': 'todo',
+            'priority': 'medium',
+        })
+        assert res.status_code == 201
+        assert res.data['data']['title'] == 'Dev Task'
+
+    def test_viewer_cannot_create_task(self):
+        self.client.force_authenticate(user=self.viewer)
+        res = self.client.post(self.base_url, {
+            'title': 'Viewer Task',
+            'status': 'todo',
+        })
+        assert res.status_code == 403
+
+    def test_any_member_can_list_tasks(self):
+        self.client.force_authenticate(user=self.viewer)
+        res = self.client.get(self.base_url)
+        assert res.status_code == 200
+
+    def test_manager_can_delete_task(self):
+        from apps.tasks.models import Task
+        task = Task.objects.create(
+            project=self.project,
+            title='Delete Me',
+            created_by=self.owner
+        )
+        self.client.force_authenticate(user=self.manager)
+        res = self.client.delete(f'{self.base_url}{task.id}/')
+        assert res.status_code == 200
+
+    def test_developer_cannot_delete_task(self):
+        from apps.tasks.models import Task
+        task = Task.objects.create(
+            project=self.project,
+            title='Cant Delete',
+            created_by=self.owner
+        )
+        self.client.force_authenticate(user=self.developer)
+        res = self.client.delete(f'{self.base_url}{task.id}/')
+        assert res.status_code == 403
+
+    def test_viewer_cannot_delete_task(self):
+        from apps.tasks.models import Task
+        task = Task.objects.create(
+            project=self.project,
+            title='Viewer Cant Delete',
+            created_by=self.owner
+        )
+        self.client.force_authenticate(user=self.viewer)
+        res = self.client.delete(f'{self.base_url}{task.id}/')
+        assert res.status_code == 403
+
+    def test_task_filter_by_status(self):
+        from apps.tasks.models import Task
+        Task.objects.create(
+            project=self.project, title='Todo Task',
+            status='todo', created_by=self.owner
+        )
+        Task.objects.create(
+            project=self.project, title='Done Task',
+            status='done', created_by=self.owner
+        )
+        self.client.force_authenticate(user=self.owner)
+        res = self.client.get(f'{self.base_url}?status=todo')
+        assert res.status_code == 200
+        assert all(t['status'] == 'todo' for t in res.data['data'])
+
+    def test_task_filter_by_priority(self):
+        from apps.tasks.models import Task
+        Task.objects.create(
+            project=self.project, title='High Task',
+            priority='high', created_by=self.owner
+        )
+        self.client.force_authenticate(user=self.owner)
+        res = self.client.get(f'{self.base_url}?priority=high')
+        assert res.status_code == 200
+        assert all(t['priority'] == 'high' for t in res.data['data'])
+
+    def test_outsider_cannot_access_tasks(self):
+        outsider = User.objects.create_user(
+            email='taskout@test.com', password='Test1234x',
+            first_name='Out', last_name='Sider'
+        )
+        self.client.force_authenticate(user=outsider)
+        res = self.client.get(self.base_url)
+        assert res.status_code == 403
