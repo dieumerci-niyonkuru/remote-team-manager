@@ -115,3 +115,64 @@ class TestWorkspaceEndpoints:
         self.client.force_authenticate(user=self.other)
         res = self.client.delete(f'/api/workspaces/{workspace.id}/')
         assert res.status_code == 403
+
+
+@pytest.mark.django_db
+class TestProjectEndpoints:
+
+    def setup_method(self):
+        self.client = APIClient()
+        self.owner = User.objects.create_user(
+            email='projowner@test.com', password='Test1234x',
+            first_name='Owner', last_name='User'
+        )
+        self.developer = User.objects.create_user(
+            email='projdev@test.com', password='Test1234x',
+            first_name='Dev', last_name='User'
+        )
+        self.workspace = Workspace.objects.create(
+            name='Project WS', owner=self.owner
+        )
+        WorkspaceMember.objects.create(
+            workspace=self.workspace, user=self.owner,
+            role=WorkspaceMember.Role.OWNER
+        )
+        WorkspaceMember.objects.create(
+            workspace=self.workspace, user=self.developer,
+            role=WorkspaceMember.Role.DEVELOPER
+        )
+        self.client.force_authenticate(user=self.owner)
+
+    def test_owner_can_create_project(self):
+        res = self.client.post(
+            f'/api/workspaces/{self.workspace.id}/projects/',
+            {'name': 'My Project', 'description': 'Test'}
+        )
+        assert res.status_code == 201
+        assert res.data['data']['name'] == 'My Project'
+
+    def test_developer_cannot_create_project(self):
+        self.client.force_authenticate(user=self.developer)
+        res = self.client.post(
+            f'/api/workspaces/{self.workspace.id}/projects/',
+            {'name': 'Dev Project'}
+        )
+        assert res.status_code == 403
+
+    def test_member_can_list_projects(self):
+        self.client.force_authenticate(user=self.developer)
+        res = self.client.get(
+            f'/api/workspaces/{self.workspace.id}/projects/'
+        )
+        assert res.status_code == 200
+
+    def test_outsider_cannot_list_projects(self):
+        outsider = User.objects.create_user(
+            email='outsider2@test.com', password='Test1234x',
+            first_name='Out', last_name='Sider'
+        )
+        self.client.force_authenticate(user=outsider)
+        res = self.client.get(
+            f'/api/workspaces/{self.workspace.id}/projects/'
+        )
+        assert res.status_code == 403
