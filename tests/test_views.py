@@ -420,3 +420,99 @@ class TestSubtaskAndProgress:
         self.client.force_authenticate(user=viewer)
         res = self.client.post(self.base_url, {'title': 'Viewer Subtask'})
         assert res.status_code == 403
+
+
+@pytest.mark.django_db
+class TestTaskFilters:
+
+    def setup_method(self):
+        from apps.projects.models import Project
+        from apps.tasks.models import Task
+        import datetime
+        self.client = APIClient()
+        self.owner  = User.objects.create_user(
+            email='filterowner@test.com', password='Test1234x',
+            first_name='Filter', last_name='Owner'
+        )
+        self.developer = User.objects.create_user(
+            email='filterdev@test.com', password='Test1234x',
+            first_name='Filter', last_name='Dev'
+        )
+        self.workspace = Workspace.objects.create(
+            name='Filter WS', owner=self.owner
+        )
+        WorkspaceMember.objects.create(
+            workspace=self.workspace, user=self.owner,
+            role=WorkspaceMember.Role.OWNER
+        )
+        WorkspaceMember.objects.create(
+            workspace=self.workspace, user=self.developer,
+            role=WorkspaceMember.Role.DEVELOPER
+        )
+        self.project = Project.objects.create(
+            name='Filter Project',
+            workspace=self.workspace,
+            created_by=self.owner
+        )
+        # Create tasks with different status/priority/assignee
+        Task.objects.create(
+            project=self.project, title='Todo Low',
+            status='todo', priority='low',
+            created_by=self.owner
+        )
+        Task.objects.create(
+            project=self.project, title='In Progress High',
+            status='in_progress', priority='high',
+            assignee=self.developer, created_by=self.owner
+        )
+        Task.objects.create(
+            project=self.project, title='Done Medium',
+            status='done', priority='medium',
+            created_by=self.owner,
+            due_date=datetime.date(2026, 12, 31)
+        )
+        self.client.force_authenticate(user=self.owner)
+        self.base_url = (
+            f'/api/workspaces/{self.workspace.id}'
+            f'/projects/{self.project.id}/tasks/'
+        )
+
+    def test_filter_by_status_todo(self):
+        res = self.client.get(f'{self.base_url}?status=todo')
+        assert res.status_code == 200
+        assert len(res.data['data']) == 1
+        assert res.data['data'][0]['title'] == 'Todo Low'
+
+    def test_filter_by_status_done(self):
+        res = self.client.get(f'{self.base_url}?status=done')
+        assert res.status_code == 200
+        assert all(t['status'] == 'done' for t in res.data['data'])
+
+    def test_filter_by_priority_high(self):
+        res = self.client.get(f'{self.base_url}?priority=high')
+        assert res.status_code == 200
+        assert len(res.data['data']) == 1
+        assert res.data['data'][0]['title'] == 'In Progress High'
+
+    def test_filter_by_assignee(self):
+        res = self.client.get(f'{self.base_url}?assignee={self.developer.id}')
+        assert res.status_code == 200
+        assert len(res.data['data']) == 1
+        assert res.data['data'][0]['title'] == 'In Progress High'
+
+    def test_filter_by_due_date(self):
+        res = self.client.get(f'{self.base_url}?due_date=2026-12-31')
+        assert res.status_code == 200
+        assert len(res.data['data']) == 1
+        assert res.data['data'][0]['title'] == 'Done Medium'
+
+    def test_no_filter_returns_all_tasks(self):
+        res = self.client.get(self.base_url)
+        assert res.status_code == 200
+        assert len(res.data['data']) == 3
+
+    def test_filter_by_status_in_progress(self):
+        res = self.client.get(f'{self.base_url}?status=in_progress')
+        assert res.status_code == 200
+        assert len(res.data['data']) == 1
+        assert res.data['data'][0]['priority'] == 'high'
