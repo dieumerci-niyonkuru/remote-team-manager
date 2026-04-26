@@ -2,7 +2,6 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
-from django_filters.rest_framework import DjangoFilterBackend
 from apps.workspaces.models import Workspace, WorkspaceMember
 from apps.projects.models import Project
 from apps.users.models import User
@@ -40,14 +39,10 @@ def task_list(request, workspace_pk, project_pk):
         return error_response('You are not a member of this workspace.', 403)
 
     if request.method == 'GET':
-        tasks = Task.objects.filter(project=project)
-        # Apply filters
+        tasks     = Task.objects.filter(project=project)
         filterset = TaskFilter(request.GET, queryset=tasks)
-        return success_response(
-            data=TaskSerializer(filterset.qs, many=True).data
-        )
+        return success_response(data=TaskSerializer(filterset.qs, many=True).data)
 
-    # Developer, Manager, Owner can create tasks
     if role == WorkspaceMember.Role.VIEWER:
         return error_response('Viewers cannot create tasks.', 403)
 
@@ -63,17 +58,10 @@ def task_list(request, workspace_pk, project_pk):
         except User.DoesNotExist:
             return error_response('Assignee not found.')
 
-    task = Task.objects.create(
-        project=project,
-        created_by=request.user,
-        assignee=assignee,
-        **serializer.validated_data
-    )
-    return success_response(
-        data=TaskSerializer(task).data,
-        message='Task created.',
-        status_code=201
-    )
+    task         = Task(project=project, created_by=request.user, assignee=assignee, **serializer.validated_data)
+    task._actor  = request.user
+    task.save()
+    return success_response(data=TaskSerializer(task).data, message='Task created.', status_code=201)
 
 
 @api_view(['GET', 'PATCH', 'DELETE'])
@@ -102,15 +90,14 @@ def task_detail(request, workspace_pk, project_pk, pk):
                 task.assignee = User.objects.get(id=assignee_id)
             except User.DoesNotExist:
                 return error_response('Assignee not found.')
+        task._actor = request.user
         serializer.save()
-        return success_response(
-            data=TaskSerializer(task).data,
-            message='Task updated.'
-        )
+        return success_response(data=TaskSerializer(task).data, message='Task updated.')
 
     if request.method == 'DELETE':
         if role not in [WorkspaceMember.Role.OWNER, WorkspaceMember.Role.MANAGER]:
             return error_response('Only Owner or Manager can delete tasks.', 403)
+        task._actor = request.user
         task.delete()
         return success_response(message='Task deleted.')
 
@@ -127,9 +114,7 @@ def subtask_list(request, workspace_pk, project_pk, task_pk):
         return error_response('You are not a member of this workspace.', 403)
 
     if request.method == 'GET':
-        return success_response(
-            data=SubtaskSerializer(task.subtasks.all(), many=True).data
-        )
+        return success_response(data=SubtaskSerializer(task.subtasks.all(), many=True).data)
 
     if role == WorkspaceMember.Role.VIEWER:
         return error_response('Viewers cannot create subtasks.', 403)
@@ -139,11 +124,7 @@ def subtask_list(request, workspace_pk, project_pk, task_pk):
         return Response({'data': None, 'message': serializer.errors}, status=400)
 
     subtask = serializer.save(task=task)
-    return success_response(
-        data=SubtaskSerializer(subtask).data,
-        message='Subtask created.',
-        status_code=201
-    )
+    return success_response(data=SubtaskSerializer(subtask).data, message='Subtask created.', status_code=201)
 
 
 @api_view(['PATCH', 'DELETE'])
@@ -164,10 +145,7 @@ def subtask_detail(request, workspace_pk, project_pk, task_pk, pk):
             return Response({'data': None, 'message': serializer.errors}, status=400)
         serializer.save()
         task.update_progress()
-        return success_response(
-            data=SubtaskSerializer(subtask).data,
-            message='Subtask updated.'
-        )
+        return success_response(data=SubtaskSerializer(subtask).data, message='Subtask updated.')
 
     subtask.delete()
     task.update_progress()
@@ -197,23 +175,17 @@ def timelog_list(request, workspace_pk, project_pk, task_pk):
         return Response({'data': None, 'message': serializer.errors}, status=400)
 
     log = serializer.save(task=task, user=request.user)
-    return success_response(
-        data=TimeLogSerializer(log).data,
-        message='Time logged.',
-        status_code=201
-    )
+    return success_response(data=TimeLogSerializer(log).data, message='Time logged.', status_code=201)
 
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def activity_feed(request, workspace_pk):
-    workspace = get_object_or_404(Workspace, pk=workspace_pk)
-    role      = get_user_role(workspace, request.user)
+    workspace  = get_object_or_404(Workspace, pk=workspace_pk)
+    role       = get_user_role(workspace, request.user)
 
     if role is None:
         return error_response('You are not a member of this workspace.', 403)
 
     activities = ActivityFeed.objects.filter(workspace=workspace)[:50]
-    return success_response(
-        data=ActivityFeedSerializer(activities, many=True).data
-    )
+    return success_response(data=ActivityFeedSerializer(activities, many=True).data)

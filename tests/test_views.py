@@ -634,3 +634,77 @@ class TestTimeLogEndpoints:
             'logged_at': '2026-04-26',
         })
         assert res.status_code == 403
+
+
+@pytest.mark.django_db
+class TestActivityFeed:
+
+    def setup_method(self):
+        from apps.projects.models import Project
+        self.client = APIClient()
+        self.owner  = User.objects.create_user(
+            email='actowner@test.com', password='Test1234x',
+            first_name='Act', last_name='Owner'
+        )
+        self.workspace = Workspace.objects.create(
+            name='Act WS', owner=self.owner
+        )
+        WorkspaceMember.objects.create(
+            workspace=self.workspace, user=self.owner,
+            role=WorkspaceMember.Role.OWNER
+        )
+        self.project = Project.objects.create(
+            name='Act Project',
+            workspace=self.workspace,
+            created_by=self.owner
+        )
+        self.client.force_authenticate(user=self.owner)
+        self.feed_url = f'/api/workspaces/{self.workspace.id}/activity/'
+
+    def test_activity_feed_returns_200(self):
+        res = self.client.get(self.feed_url)
+        assert res.status_code == 200
+
+    def test_creating_task_logs_activity(self):
+        from apps.tasks.models import ActivityFeed
+        task_url = (
+            f'/api/workspaces/{self.workspace.id}'
+            f'/projects/{self.project.id}/tasks/'
+        )
+        self.client.post(task_url, {
+            'title': 'Logged Task',
+            'status': 'todo',
+            'priority': 'medium',
+        })
+        count = ActivityFeed.objects.filter(
+            workspace=self.workspace,
+            action='created'
+        ).count()
+        assert count >= 1
+
+    def test_outsider_cannot_see_activity(self):
+        outsider = User.objects.create_user(
+            email='actout@test.com', password='Test1234x',
+            first_name='Out', last_name='Sider'
+        )
+        self.client.force_authenticate(user=outsider)
+        res = self.client.get(self.feed_url)
+        assert res.status_code == 403
+
+    def test_activity_feed_has_correct_fields(self):
+        from apps.tasks.models import ActivityFeed
+        ActivityFeed.objects.create(
+            workspace=self.workspace,
+            actor=self.owner,
+            action='created',
+            object_type='task',
+            object_id=self.workspace.id,
+            object_name='Test Task'
+        )
+        res = self.client.get(self.feed_url)
+        assert res.status_code == 200
+        item = res.data['data'][0]
+        assert 'actor' in item
+        assert 'action' in item
+        assert 'object_type' in item
+        assert 'timestamp' in item
