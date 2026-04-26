@@ -803,3 +803,88 @@ class TestMemberInvite:
         remove_url = f'/api/workspaces/{self.workspace.id}/members/{self.owner.id}/'
         res = self.client.delete(remove_url)
         assert res.status_code == 400
+
+
+@pytest.mark.django_db
+class TestEdgeCases:
+
+    def setup_method(self):
+        self.client = APIClient()
+        self.owner  = User.objects.create_user(
+            email='edgeowner@test.com', password='Test1234x',
+            first_name='Edge', last_name='Owner'
+        )
+        self.workspace = Workspace.objects.create(
+            name='Edge WS', owner=self.owner
+        )
+        WorkspaceMember.objects.create(
+            workspace=self.workspace, user=self.owner,
+            role=WorkspaceMember.Role.OWNER
+        )
+        self.client.force_authenticate(user=self.owner)
+
+    def test_health_check_returns_200(self):
+        from django.test import Client
+        c = Client()
+        res = c.get('/api/health/')
+        assert res.status_code == 200
+        data = res.json()
+        assert data['status'] == 'ok'
+
+    def test_register_with_mismatched_passwords_returns_400(self):
+        res = self.client.post('/api/auth/register/', {
+            'email': 'mismatch@test.com',
+            'first_name': 'Test',
+            'last_name': 'User',
+            'password': 'Test1234x',
+            'password2': 'Different1234x',
+        })
+        assert res.status_code == 400
+
+    def test_register_duplicate_email_returns_400(self):
+        User.objects.create_user(
+            email='duplicate@test.com', password='Test1234x',
+            first_name='Dup', last_name='User'
+        )
+        res = self.client.post('/api/auth/register/', {
+            'email': 'duplicate@test.com',
+            'first_name': 'Dup',
+            'last_name': 'User',
+            'password': 'Test1234x',
+            'password2': 'Test1234x',
+        })
+        assert res.status_code == 400
+
+    def test_create_workspace_empty_name_returns_400(self):
+        res = self.client.post('/api/workspaces/', {'name': ''})
+        assert res.status_code == 400
+
+    def test_unauthenticated_returns_401(self):
+        client = APIClient()
+        res = client.get('/api/workspaces/')
+        assert res.status_code == 401
+
+    def test_all_responses_have_data_and_message_fields(self):
+        res = self.client.get('/api/workspaces/')
+        assert res.status_code == 200
+        assert 'data' in res.data
+        assert 'message' in res.data
+
+    def test_nonexistent_workspace_returns_404(self):
+        import uuid
+        res = self.client.get(f'/api/workspaces/{uuid.uuid4()}/')
+        assert res.status_code == 404
+
+
+@pytest.mark.django_db
+class TestHealthCheck:
+
+    def test_health_check_returns_ok(self):
+        from django.test import Client
+        client = Client()
+        res = client.get('/api/health/')
+        assert res.status_code == 200
+        data = res.json()
+        assert data['status'] == 'ok'
+        assert 'timestamp' in data
+        assert 'version' in data
