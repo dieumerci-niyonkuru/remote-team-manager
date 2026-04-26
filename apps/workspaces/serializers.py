@@ -17,8 +17,8 @@ class WorkspaceSerializer(serializers.ModelSerializer):
 
     class Meta:
         model  = Workspace
-        fields = ['id', 'name', 'description', 'owner', 'member_count', 'created_at']
-        read_only_fields = ['id', 'owner', 'created_at']
+        fields = ['id', 'name', 'description', 'owner', 'member_count', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'owner', 'created_at', 'updated_at']
 
     def get_member_count(self, obj):
         return obj.members.count()
@@ -32,4 +32,10 @@ class CreateWorkspaceSerializer(serializers.ModelSerializer):
 
 class InviteMemberSerializer(serializers.Serializer):
     email = serializers.EmailField()
-    role  = serializers.ChoiceField(choices=WorkspaceMember.Role.choices)
+    role  = serializers.ChoiceField(
+        choices=[
+            WorkspaceMember.Role.MANAGER,
+            WorkspaceMember.Role.DEVELOPER,
+            WorkspaceMember.Role.VIEWER,
+        ]
+    )
