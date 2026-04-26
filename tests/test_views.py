@@ -316,3 +316,107 @@ class TestTaskEndpoints:
         self.client.force_authenticate(user=outsider)
         res = self.client.get(self.base_url)
         assert res.status_code == 403
+
+
+@pytest.mark.django_db
+class TestSubtaskAndProgress:
+
+    def setup_method(self):
+        from apps.projects.models import Project
+        from apps.tasks.models import Task
+        self.client = APIClient()
+        self.owner  = User.objects.create_user(
+            email='subowner@test.com', password='Test1234x',
+            first_name='Owner', last_name='User'
+        )
+        self.workspace = Workspace.objects.create(
+            name='Sub WS', owner=self.owner
+        )
+        WorkspaceMember.objects.create(
+            workspace=self.workspace, user=self.owner,
+            role=WorkspaceMember.Role.OWNER
+        )
+        self.project = Project.objects.create(
+            name='Sub Project',
+            workspace=self.workspace,
+            created_by=self.owner
+        )
+        self.task = Task.objects.create(
+            project=self.project,
+            title='Parent Task',
+            created_by=self.owner
+        )
+        self.client.force_authenticate(user=self.owner)
+        self.base_url = (
+            f'/api/workspaces/{self.workspace.id}'
+            f'/projects/{self.project.id}'
+            f'/tasks/{self.task.id}/subtasks/'
+        )
+
+    def test_create_subtask_returns_201(self):
+        res = self.client.post(self.base_url, {'title': 'Step 1'})
+        assert res.status_code == 201
+        assert res.data['data']['title'] == 'Step 1'
+        assert res.data['data']['is_completed'] == False
+
+    def test_list_subtasks_returns_200(self):
+        res = self.client.get(self.base_url)
+        assert res.status_code == 200
+
+    def test_complete_subtask_updates_progress(self):
+        from apps.tasks.models import Subtask, Task
+        s1 = Subtask.objects.create(task=self.task, title='Step 1')
+        s2 = Subtask.objects.create(task=self.task, title='Step 2')
+        s3 = Subtask.objects.create(task=self.task, title='Step 3')
+        s4 = Subtask.objects.create(task=self.task, title='Step 4')
+
+        # Complete 2 out of 4 = 50%
+        url = f'{self.base_url}{s1.id}/'
+        self.client.patch(url, {'is_completed': True})
+        url = f'{self.base_url}{s2.id}/'
+        self.client.patch(url, {'is_completed': True})
+
+        self.task.refresh_from_db()
+        assert self.task.progress == 50
+
+    def test_all_subtasks_done_progress_is_100(self):
+        from apps.tasks.models import Subtask, Task
+        s1 = Subtask.objects.create(task=self.task, title='Step 1')
+        s2 = Subtask.objects.create(task=self.task, title='Step 2')
+
+        self.client.patch(f'{self.base_url}{s1.id}/', {'is_completed': True})
+        self.client.patch(f'{self.base_url}{s2.id}/', {'is_completed': True})
+
+        self.task.refresh_from_db()
+        assert self.task.progress == 100
+
+    def test_no_subtasks_progress_stays_zero(self):
+        self.task.refresh_from_db()
+        assert self.task.progress == 0
+
+    def test_delete_subtask_updates_progress(self):
+        from apps.tasks.models import Subtask
+        s1 = Subtask.objects.create(task=self.task, title='Step 1', is_completed=True)
+        s2 = Subtask.objects.create(task=self.task, title='Step 2', is_completed=False)
+
+        self.task.update_progress()
+        self.task.refresh_from_db()
+        assert self.task.progress == 50
+
+        # Delete the incomplete one — now 1/1 = 100%
+        self.client.delete(f'{self.base_url}{s2.id}/')
+        self.task.refresh_from_db()
+        assert self.task.progress == 100
+
+    def test_viewer_cannot_create_subtask(self):
+        viewer = User.objects.create_user(
+            email='subviewer@test.com', password='Test1234x',
+            first_name='Viewer', last_name='User'
+        )
+        WorkspaceMember.objects.create(
+            workspace=self.workspace, user=viewer,
+            role=WorkspaceMember.Role.VIEWER
+        )
+        self.client.force_authenticate(user=viewer)
+        res = self.client.post(self.base_url, {'title': 'Viewer Subtask'})
+        assert res.status_code == 403
