@@ -37,6 +37,7 @@ DJANGO_APPS = [
 
 THIRD_PARTY_APPS = [
     'rest_framework',
+    'drf_spectacular',
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
@@ -187,3 +188,16 @@ CORS_ALLOWED_ORIGINS = config(
     default='http://localhost:3000',
     cast=Csv()
 )
+
+
+# ===========================
+# Swagger / API Docs
+# ===========================
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Remote Team Manager API',
+    'DESCRIPTION': 'Full REST API for managing remote teams, workspaces, projects and tasks.',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+}
+
+REST_FRAMEWORK['DEFAULT_SCHEMA_CLASS'] = 'drf_spectacular.openapi.AutoSchema'
