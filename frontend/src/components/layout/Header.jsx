@@ -72,51 +72,50 @@ export default function Header() {
       <header style={{ position: 'sticky', top: 0, zIndex: 100, background: 'rgba(var(--bg-rgb, 6,11,24),0.95)', backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(255,255,255,0.1)', transition: 'all 0.2s' }}>
         <div style={{ maxWidth: 1400, margin: '0 auto', padding: '0 20px', height: 64, display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
           {/* Logo */}
-          <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', flexShrink: 0 }}>
+          <Link to={isAuth ? "/dashboard" : "/"} style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', flexShrink: 0 }}>
             <div style={{ width: 34, height: 34, borderRadius: 10, background: 'linear-gradient(135deg,#3366ff,#6699ff)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 16, transition: 'transform 0.2s' }} className="hover-glow">R</div>
             <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: 'var(--text)', letterSpacing: '-0.02em' }}>Remote<span style={{ color: '#3366ff' }}>Team</span></span>
           </Link>
 
-          {/* Navigation + Dropdowns */}
+          {/* Navigation - Show different links based on auth status */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', position: 'relative' }} ref={dropdownRef}>
-            <NavLink to="/" active={isActive('/')}>{t.home}</NavLink>
-            <NavLink to="/#features" active={false}>{t.features}</NavLink>
-
-            {/* Solutions Dropdown */}
-            <div onMouseEnter={() => setOpenDropdown('solutions')} onMouseLeave={() => setOpenDropdown(null)} style={{ position: 'relative' }}>
-              <button className="nav-dropdown-btn" style={{ background: 'transparent', border: 'none', padding: '6px 12px', borderRadius: 8, fontSize: 13, fontWeight: 500, color: openDropdown === 'solutions' ? '#3366ff' : 'var(--text2)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
-                {t.solutions} <span style={{ fontSize: 10, transition: 'transform 0.2s', transform: openDropdown === 'solutions' ? 'rotate(180deg)' : 'none' }}>▼</span>
-              </button>
-              {openDropdown === 'solutions' && (
-                <div className="dropdown-menu" style={{ position: 'absolute', top: '100%', left: 0, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, boxShadow: 'var(--shadow-lg)', minWidth: 180, zIndex: 200, padding: '8px 0', marginTop: 4 }}>
-                  {solutionItems.map(item => (
-                    <div key={item.label} onClick={() => handleDropdownClick(item.path, false)} className="dropdown-item" style={{ padding: '8px 16px', fontSize: 13, cursor: 'pointer' }}>
-                      {item.label}
+            {!isAuth ? (
+              // Public nav
+              <>
+                <NavLink to="/" active={isActive('/')}>{t.home}</NavLink>
+                <NavLink to="/#features" active={false}>{t.features}</NavLink>
+                <div onMouseEnter={() => setOpenDropdown('solutions')} onMouseLeave={() => setOpenDropdown(null)} style={{ position: 'relative' }}>
+                  <button className="nav-dropdown-btn" style={{ background: 'transparent', border: 'none', padding: '6px 12px', borderRadius: 8, fontSize: 13, fontWeight: 500, color: openDropdown === 'solutions' ? '#3366ff' : 'var(--text2)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    {t.solutions} <span style={{ fontSize: 10, transition: 'transform 0.2s', transform: openDropdown === 'solutions' ? 'rotate(180deg)' : 'none' }}>▼</span>
+                  </button>
+                  {openDropdown === 'solutions' && (
+                    <div className="dropdown-menu" style={{ position: 'absolute', top: '100%', left: 0, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, boxShadow: 'var(--shadow-lg)', minWidth: 180, zIndex: 200, padding: '8px 0', marginTop: 4 }}>
+                      {solutionItems.map(item => (
+                        <div key={item.label} onClick={() => handleDropdownClick(item.path, false)} className="dropdown-item" style={{ padding: '8px 16px', fontSize: 13, cursor: 'pointer' }}>
+                          {item.label}
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
                 </div>
-              )}
-            </div>
-
-            {/* Resources Dropdown */}
-            <div onMouseEnter={() => setOpenDropdown('resources')} onMouseLeave={() => setOpenDropdown(null)} style={{ position: 'relative' }}>
-              <button className="nav-dropdown-btn" style={{ background: 'transparent', border: 'none', padding: '6px 12px', borderRadius: 8, fontSize: 13, fontWeight: 500, color: openDropdown === 'resources' ? '#3366ff' : 'var(--text2)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
-                {t.resources} <span style={{ fontSize: 10, transition: 'transform 0.2s', transform: openDropdown === 'resources' ? 'rotate(180deg)' : 'none' }}>▼</span>
-              </button>
-              {openDropdown === 'resources' && (
-                <div className="dropdown-menu" style={{ position: 'absolute', top: '100%', left: 0, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, boxShadow: 'var(--shadow-lg)', minWidth: 180, zIndex: 200, padding: '8px 0', marginTop: 4 }}>
-                  {resourceItems.map(item => (
-                    <div key={item.label} onClick={() => handleDropdownClick(item.href, item.external)} className="dropdown-item" style={{ padding: '8px 16px', fontSize: 13, cursor: 'pointer' }}>
-                      {item.label}
+                <div onMouseEnter={() => setOpenDropdown('resources')} onMouseLeave={() => setOpenDropdown(null)} style={{ position: 'relative' }}>
+                  <button className="nav-dropdown-btn" style={{ background: 'transparent', border: 'none', padding: '6px 12px', borderRadius: 8, fontSize: 13, fontWeight: 500, color: openDropdown === 'resources' ? '#3366ff' : 'var(--text2)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    {t.resources} <span style={{ fontSize: 10, transition: 'transform 0.2s', transform: openDropdown === 'resources' ? 'rotate(180deg)' : 'none' }}>▼</span>
+                  </button>
+                  {openDropdown === 'resources' && (
+                    <div className="dropdown-menu" style={{ position: 'absolute', top: '100%', left: 0, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12, boxShadow: 'var(--shadow-lg)', minWidth: 180, zIndex: 200, padding: '8px 0', marginTop: 4 }}>
+                      {resourceItems.map(item => (
+                        <div key={item.label} onClick={() => handleDropdownClick(item.href, item.external)} className="dropdown-item" style={{ padding: '8px 16px', fontSize: 13, cursor: 'pointer' }}>
+                          {item.label}
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
                 </div>
-              )}
-            </div>
-
-            <NavLink to="/about" active={isActive('/about')}>{t.about}</NavLink>
-
-            {isAuth && (
+                <NavLink to="/about" active={isActive('/about')}>{t.about}</NavLink>
+              </>
+            ) : (
+              // Authenticated nav – no Home, Features, Solutions, Resources, About
               <>
                 <NavLink to="/dashboard" active={isActive('/dashboard')}>{t.dashboard}</NavLink>
                 <NavLink to="/workspaces" active={isActive('/workspaces')}>{t.workspaces}</NavLink>
@@ -126,16 +125,16 @@ export default function Header() {
             )}
           </div>
 
-          {/* Search */}
+          {/* Search (only when logged in) */}
           {isAuth && (
             <form onSubmit={handleSearch} style={{ flexShrink: 0, minWidth: 180 }}>
               <input type="text" placeholder={t.search} value={search} onChange={e => setSearch(e.target.value)} className="search-input" style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 20, padding: '6px 12px', fontSize: 13, width: '100%', outline: 'none' }} />
             </form>
           )}
 
-          {/* Right controls (including AI button) */}
+          {/* Right controls */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
-            {/* AI Assistant Button - always visible in header */}
+            {/* AI Button - always visible */}
             <button
               onClick={() => setAiModalOpen(true)}
               style={{ background: 'linear-gradient(135deg,#3366ff,#6699ff)', border: 'none', borderRadius: 20, padding: '5px 12px', fontSize: 12, fontWeight: 600, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, transition: '0.2s' }}
