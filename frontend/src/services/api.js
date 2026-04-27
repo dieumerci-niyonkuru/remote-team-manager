@@ -27,26 +27,26 @@ api.interceptors.response.use(r => r, async err => {
 })
 
 export const auth = {
-  register: (d) => api.post('/auth/register/', d),
-  login: (d) => api.post('/auth/login/', d),
+  register: d => api.post('/auth/register/', d),
+  login: d => api.post('/auth/login/', d),
   me: () => api.get('/auth/me/'),
-  logout: (r) => api.post('/auth/logout/', { refresh: r }),
+  logout: r => api.post('/auth/logout/', { refresh: r }),
 }
 
 export const ws = {
   list: () => api.get('/workspaces/'),
-  create: (d) => api.post('/workspaces/', d),
-  get: (id) => api.get(`/workspaces/${id}/`),
+  create: d => api.post('/workspaces/', d),
+  get: id => api.get(`/workspaces/${id}/`),
   update: (id, d) => api.patch(`/workspaces/${id}/`, d),
-  delete: (id) => api.delete(`/workspaces/${id}/`),
-  members: (id) => api.get(`/workspaces/${id}/members/`),
+  delete: id => api.delete(`/workspaces/${id}/`),
+  members: id => api.get(`/workspaces/${id}/members/`),
   invite: (id, d) => api.post(`/workspaces/${id}/members/`, d),
   removeMember: (id, uid) => api.delete(`/workspaces/${id}/members/${uid}/`),
-  activity: (id) => api.get(`/workspaces/${id}/activity/`),
+  activity: id => api.get(`/workspaces/${id}/activity/`),
 }
 
 export const proj = {
-  list: (wid) => api.get(`/workspaces/${wid}/projects/`),
+  list: wid => api.get(`/workspaces/${wid}/projects/`),
   create: (wid, d) => api.post(`/workspaces/${wid}/projects/`, d),
   update: (wid, id, d) => api.patch(`/workspaces/${wid}/projects/${id}/`, d),
   delete: (wid, id) => api.delete(`/workspaces/${wid}/projects/${id}/`),

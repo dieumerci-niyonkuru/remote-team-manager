@@ -47,12 +47,10 @@ export default function Register() {
     setLoading(true)
     try {
       const res = await auth.register(form)
-      // The backend returns { data: { user, access, refresh }, message }
-      const { user, access, refresh } = res.data.data
-      localStorage.setItem('rtm_access', access)
-      localStorage.setItem('rtm_refresh', refresh)
-      setUser(user)
-      toast.success('Account created successfully! 🎉 Redirecting to login...')
+      localStorage.setItem('rtm_access', res.data.data.access)
+      localStorage.setItem('rtm_refresh', res.data.data.refresh)
+      setUser(res.data.data.user)
+      toast.success('Account created successfully! 🎉 Redirecting...')
       setTimeout(() => navigate('/login'), 2000)
     } catch (err) {
       const msg = err.response?.data?.message
@@ -63,12 +61,12 @@ export default function Register() {
   }
 
   return (
-    <div className={theme} style={{ minHeight: 'calc(100vh - 64px)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', padding: '1.5rem' }}>
+    <div className={theme} style={{ minHeight: 'calc(100vh - 70px)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', padding: '2rem' }}>
       <div className="card fade-in-up" style={{ maxWidth: 480, width: '100%', padding: '2rem' }}>
         <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-          <div style={{ width: 48, height: 48, margin: '0 auto 1rem', borderRadius: '12px', background: 'linear-gradient(135deg, var(--brand), var(--brand-dark))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem', fontWeight: 800, color: 'white' }}>R</div>
-          <h2 style={{ fontSize: '1.5rem', marginBottom: '0.25rem' }}>Create your account</h2>
-          <p style={{ color: 'var(--text2)', fontSize: '0.85rem' }}>Start collaborating with your team today</p>
+          <div style={{ width: 48, height: 48, margin: '0 auto 1rem', borderRadius: '14px', background: 'linear-gradient(135deg, var(--brand), var(--brand-dark))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.6rem', fontWeight: 800, color: 'white' }}>R</div>
+          <h2>Create your account</h2>
+          <p style={{ color: 'var(--text2)' }}>Start collaborating with your team today</p>
         </div>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -95,9 +93,9 @@ export default function Register() {
             {form.password && (
               <>
                 <div className="progress-bar" style={{ marginTop: '0.5rem', height: '4px', background: 'var(--border)', borderRadius: '4px' }}>
-                  <div className="progress-fill" style={{ width: `${strength.score * 33}%`, background: strength.color, height: '100%', borderRadius: '4px', transition: 'width 0.2s' }} />
+                  <div className="progress-fill" style={{ width: `${strength.score * 33}%`, background: strength.color, height: '100%', borderRadius: '4px' }} />
                 </div>
-                <div style={{ fontSize: '0.7rem', marginTop: '0.25rem', color: strength.color }}>{strength.text}</div>
+                <div style={{ fontSize: '0.75rem', marginTop: '0.25rem', color: strength.color }}>{strength.text}</div>
               </>
             )}
             {errors.password && <div className="error-msg">⚠ {errors.password}</div>}
@@ -107,13 +105,13 @@ export default function Register() {
             <input className={`input ${errors.password2 ? 'error' : ''}`} type="password" placeholder="Repeat password" value={form.password2} onChange={e => setForm({ ...form, password2: e.target.value })} />
             {errors.password2 && <div className="error-msg">⚠ {errors.password2}</div>}
           </div>
-          <button type="submit" className="btn btn-primary btn-block" disabled={loading} style={{ padding: '0.75rem' }}>
+          <button type="submit" className="btn btn-primary btn-block" disabled={loading} style={{ padding: '0.8rem' }}>
             {loading ? <div className="spinner" style={{ width: '1rem', height: '1rem' }} /> : 'Create Account →'}
           </button>
         </form>
 
-        <p style={{ textAlign: 'center', fontSize: '0.8rem', color: 'var(--text2)', marginTop: '1.5rem' }}>
-          {t.hasAccount} <Link to="/login" style={{ color: 'var(--brand)', fontWeight: 600, textDecoration: 'none' }}>{t.login}</Link>
+        <p style={{ textAlign: 'center', fontSize: '0.85rem', marginTop: '1.5rem' }}>
+          {t.hasAccount} <Link to="/login" style={{ color: 'var(--brand)', fontWeight: 600 }}>{t.login}</Link>
         </p>
       </div>
     </div>
