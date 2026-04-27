@@ -20,12 +20,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ===========================
 SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=Csv())
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,.railway.app', cast=Csv())
 
-# Trust Railway domain for CSRF (Django admin login)
+# Trusted origins for CSRF (important for Django admin login)
 CSRF_TRUSTED_ORIGINS = [
     'https://remote-team-manager-production.up.railway.app',
-    'http://remote-team-manager-production.up.railway.app',  # optional
+    'https://steady-madeleine-72cc1c.netlify.app',   # your Netlify frontend
 ]
 
 
@@ -64,8 +64,8 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 # Middleware
 # ===========================
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',          # Must be as high as possible
     'django.middleware.security.SecurityMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -190,11 +190,40 @@ SIMPLE_JWT = {
 # ===========================
 # CORS
 # ===========================
-CORS_ALLOWED_ORIGINS = config(
-    'CORS_ALLOWED_ORIGINS',
-    default='http://localhost:3000',
-    cast=Csv()
-)
+# Read allowed origins from environment variable, but also include the Netlify frontend
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'https://steady-madeleine-72cc1c.netlify.app',   # your live frontend
+    'https://remote-team-manager-production.up.railway.app',  # allow API itself (optional)
+]
+# Override with environment variable if provided
+env_origins = config('CORS_ALLOWED_ORIGINS', default='', cast=Csv())
+if env_origins:
+    CORS_ALLOWED_ORIGINS.extend(env_origins)
+
+CORS_ALLOW_CREDENTIALS = True   # if you use cookies/auth headers (not required for JWT but safe)
+
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
 
 
 # ===========================
