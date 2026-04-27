@@ -201,3 +201,10 @@ SPECTACULAR_SETTINGS = {
 }
 
 REST_FRAMEWORK['DEFAULT_SCHEMA_CLASS'] = 'drf_spectacular.openapi.AutoSchema'
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Remote Team Manager API',
+    'DESCRIPTION': 'Full REST API for managing remote teams.',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+}
