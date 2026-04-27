@@ -216,3 +216,4 @@ if os.environ.get('CREATE_SUPERUSER') == 'True':
             print("ℹ️ Superuser already exists")
     except Exception as e:
         print(f"⚠️ Superuser creation failed: {e}")
+        CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='').split(',')
