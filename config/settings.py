@@ -161,6 +161,7 @@ REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
     ),
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 
@@ -200,11 +201,18 @@ SPECTACULAR_SETTINGS = {
     'SERVE_INCLUDE_SCHEMA': False,
 }
 
-REST_FRAMEWORK['DEFAULT_SCHEMA_CLASS'] = 'drf_spectacular.openapi.AutoSchema'
 
-SPECTACULAR_SETTINGS = {
-    'TITLE': 'Remote Team Manager API',
-    'DESCRIPTION': 'Full REST API for managing remote teams.',
-    'VERSION': '1.0.0',
-    'SERVE_INCLUDE_SCHEMA': False,
-}
+# ===========================
+# Temporary: Auto-create superuser on Railway (remove after first login)
+# ===========================
+if os.environ.get('CREATE_SUPERUSER') == 'True':
+    try:
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        if not User.objects.filter(username='admin').exists():
+            User.objects.create_superuser('admin', 'admin@example.com', 'adminpass123')
+            print("✅ Superuser 'admin' created")
+        else:
+            print("ℹ️ Superuser already exists")
+    except Exception as e:
+        print(f"⚠️ Superuser creation failed: {e}")
