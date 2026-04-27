@@ -270,3 +270,12 @@ else:
             'PORT': 5432,
         }
     }
+
+# Updated CORS for Netlify frontend
+CORS_ALLOWED_ORIGINS = [
+    "https://remote-team-manager.netlify.app",
+    "https://steady-madeleine-72cc1c.netlify.app",
+    "http://localhost:5173",
+    "http://localhost:3000",
+]
+CORS_ALLOW_CREDENTIALS = True
