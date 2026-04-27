@@ -1,125 +1,134 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { workspaceApi } from '../services/api'
-import { useAuthStore } from '../store/auth'
+import { useStore } from '../store'
+import { useT } from '../i18n'
+import { ws } from '../services/api'
 import toast from 'react-hot-toast'
 
+const COLORS = ['#3366ff','#8b5cf6','#ec4899','#10b981','#f59e0b','#ef4444','#06b6d4','#84cc16']
+
 export default function Dashboard() {
-  const { user } = useAuthStore()
+  const { user, lang, theme } = useStore()
+  const t = useT(lang)
+  const navigate = useNavigate()
   const [workspaces, setWorkspaces] = useState([])
   const [loading, setLoading] = useState(true)
   const [showCreate, setShowCreate] = useState(false)
-  const [newWs, setNewWs] = useState({ name: '', description: '' })
-  const navigate = useNavigate()
+  const [form, setForm] = useState({ name:'', description:'' })
+  const [errors, setErrors] = useState({})
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    workspaceApi.list().then(res => {
-      setWorkspaces(res.data.data)
-      setLoading(false)
-    }).catch(() => setLoading(false))
+    ws.list().then(r => { setWorkspaces(r.data.data); setLoading(false) }).catch(() => setLoading(false))
   }, [])
 
-  const handleCreate = async e => {
-    e.preventDefault()
-    try {
-      const res = await workspaceApi.create(newWs)
-      setWorkspaces([...workspaces, res.data.data])
-      setShowCreate(false)
-      setNewWs({ name: '', description: '' })
-      toast.success('Workspace created! 🎉')
-    } catch { toast.error('Failed to create workspace') }
+  const validate = () => {
+    const e = {}
+    if (!form.name.trim()) e.name = t.required
+    setErrors(e)
+    return !Object.keys(e).length
   }
 
-  const colors = ['#3366ff', '#8b5cf6', '#ec4899', '#10b981', '#f59e0b', '#ef4444']
+  const handleCreate = async ev => {
+    ev.preventDefault()
+    if (!validate()) return
+    setSaving(true)
+    try {
+      const r = await ws.create(form)
+      setWorkspaces(p => [...p, r.data.data])
+      setShowCreate(false)
+      setForm({ name:'', description:'' })
+      toast.success('Workspace created! 🎉')
+      navigate(`/workspaces/${r.data.data.id}`)
+    } catch { toast.error('Failed to create workspace') } finally { setSaving(false) }
+  }
 
   return (
-    <div style={{ padding: 32, animation: 'fadeIn 0.4s ease' }}>
-      {/* Header */}
-      <div style={{ marginBottom: 32 }}>
-        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 28, fontWeight: 700, color: 'var(--text)', marginBottom: 6 }}>
-          Good day, {user?.first_name}! 👋
-        </h1>
-        <p style={{ color: 'var(--text-muted)', fontSize: 15 }}>Here's what's happening with your workspaces.</p>
-      </div>
-
-      {/* Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 16, marginBottom: 32 }}>
-        {[
-          { label: 'Workspaces', value: workspaces.length, icon: '🏢', color: '#3366ff' },
-          { label: 'Total Members', value: workspaces.reduce((a, w) => a + (w.member_count || 0), 0), icon: '👥', color: '#8b5cf6' },
-          { label: 'Projects', value: '—', icon: '📁', color: '#10b981' },
-          { label: 'Active Tasks', value: '—', icon: '✅', color: '#f59e0b' },
-        ].map(stat => (
-          <div key={stat.label} className="card" style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-            <div style={{ width: 44, height: 44, borderRadius: 12, background: stat.color + '15', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20 }}>{stat.icon}</div>
-            <div>
-              <div style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 700, color: 'var(--text)' }}>{stat.value}</div>
-              <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{stat.label}</div>
-            </div>
+    <div className={theme} style={{ background:'var(--bg)', minHeight:'calc(100vh - 64px)', padding:'32px 24px' }}>
+      <div style={{ maxWidth:1200, margin:'0 auto' }}>
+        {/* Header */}
+        <div style={{ marginBottom:32, display:'flex', alignItems:'flex-start', justifyContent:'space-between', flexWrap:'wrap', gap:16 }} className="fade-in">
+          <div>
+            <h1 style={{ fontFamily:'var(--font-display)', fontSize:'clamp(22px,3vw,32px)', fontWeight:800, color:'var(--text)', marginBottom:6 }}>
+              Good day, {user?.first_name}! 👋
+            </h1>
+            <p style={{ color:'var(--text2)', fontSize:15 }}>Here's what's happening with your workspaces.</p>
           </div>
-        ))}
-      </div>
-
-      {/* Workspaces */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-        <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 700, color: 'var(--text)' }}>Your Workspaces</h2>
-        <button className="btn-primary" onClick={() => setShowCreate(true)} style={{ padding: '8px 16px', fontSize: 13 }}>+ New Workspace</button>
-      </div>
-
-      {loading ? (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
-          {[1,2,3].map(i => <div key={i} className="skeleton" style={{ height: 140, borderRadius: 12 }} />)}
+          <button className="btn btn-primary" onClick={() => setShowCreate(true)}>+ {t.createWs}</button>
         </div>
-      ) : workspaces.length === 0 ? (
-        <div className="card" style={{ textAlign: 'center', padding: 48 }}>
-          <div style={{ fontSize: 48, marginBottom: 16 }}>🏢</div>
-          <h3 style={{ fontFamily: 'var(--font-display)', color: 'var(--text)', marginBottom: 8 }}>No workspaces yet</h3>
-          <p style={{ color: 'var(--text-muted)', marginBottom: 20 }}>Create your first workspace to get started</p>
-          <button className="btn-primary" onClick={() => setShowCreate(true)}>Create Workspace</button>
-        </div>
-      ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
-          {workspaces.map((ws, i) => (
-            <div key={ws.id} className="card" onClick={() => navigate(`/workspaces/${ws.id}`)}
-              style={{ cursor: 'pointer', transition: 'var(--transition)', borderTop: `3px solid ${colors[i % colors.length]}` }}
-              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = 'var(--shadow-lg)' }}
-              onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'var(--shadow)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-                <div style={{ width: 40, height: 40, borderRadius: 10, background: colors[i % colors.length] + '20', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-display)', fontWeight: 700, color: colors[i % colors.length], fontSize: 16 }}>
-                  {ws.name[0]}
-                </div>
-                <div>
-                  <div style={{ fontWeight: 700, color: 'var(--text)', fontSize: 15 }}>{ws.name}</div>
-                  <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{ws.member_count} member{ws.member_count !== 1 ? 's' : ''}</div>
-                </div>
-              </div>
-              {ws.description && <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 12 }}>{ws.description}</p>}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span className="badge badge-blue">Owner: {ws.owner?.first_name}</span>
-                <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{new Date(ws.created_at).toLocaleDateString()}</span>
+
+        {/* Stats */}
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(150px, 1fr))', gap:14, marginBottom:32 }}>
+          {[
+            { icon:'🏢', label:'Workspaces', value:workspaces.length, color:'#3366ff' },
+            { icon:'👥', label:'Total Members', value:workspaces.reduce((a,w) => a+(w.member_count||0), 0), color:'#8b5cf6' },
+            { icon:'📁', label:'Projects', value:'—', color:'#10b981' },
+            { icon:'✅', label:'Tasks', value:'—', color:'#f59e0b' },
+          ].map(s => (
+            <div key={s.label} className="card" style={{ padding:'18px 20px', display:'flex', alignItems:'center', gap:14 }}>
+              <div style={{ width:44, height:44, borderRadius:12, background:`${s.color}18`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:20, flexShrink:0 }}>{s.icon}</div>
+              <div>
+                <div style={{ fontFamily:'var(--font-display)', fontSize:24, fontWeight:800, color:'var(--text)' }}>{s.value}</div>
+                <div style={{ fontSize:12, color:'var(--text2)' }}>{s.label}</div>
               </div>
             </div>
           ))}
         </div>
-      )}
 
-      {/* Create Modal */}
+        {/* Workspaces grid */}
+        <h2 style={{ fontFamily:'var(--font-display)', fontSize:18, fontWeight:700, color:'var(--text)', marginBottom:16 }}>Your Workspaces</h2>
+        {loading ? (
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(280px, 1fr))', gap:16 }}>
+            {[1,2,3].map(i => <div key={i} className="skeleton" style={{ height:160, borderRadius:14 }} />)}
+          </div>
+        ) : workspaces.length === 0 ? (
+          <div className="card empty-state">
+            <div className="empty-icon">🏢</div>
+            <div className="empty-title">No workspaces yet</div>
+            <div className="empty-desc">Create your first workspace to start collaborating with your team</div>
+            <button className="btn btn-primary" onClick={() => setShowCreate(true)}>+ {t.createWs}</button>
+          </div>
+        ) : (
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(280px, 1fr))', gap:16 }}>
+            {workspaces.map((w, i) => (
+              <div key={w.id} className="card card-hover" onClick={() => navigate(`/workspaces/${w.id}`)}
+                style={{ padding:24, cursor:'pointer', borderTop:`3px solid ${COLORS[i%COLORS.length]}` }}>
+                <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:12 }}>
+                  <div style={{ width:42, height:42, borderRadius:12, background:`${COLORS[i%COLORS.length]}18`, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'var(--font-display)', fontWeight:800, color:COLORS[i%COLORS.length], fontSize:18 }}>{w.name[0]}</div>
+                  <div>
+                    <div style={{ fontWeight:700, fontSize:15, color:'var(--text)' }}>{w.name}</div>
+                    <div style={{ fontSize:12, color:'var(--text2)' }}>{w.member_count} member{w.member_count!==1?'s':''}</div>
+                  </div>
+                </div>
+                {w.description && <p style={{ fontSize:13, color:'var(--text2)', marginBottom:12, lineHeight:1.5 }}>{w.description}</p>}
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                  <span className="badge badge-blue">👤 {w.owner?.first_name}</span>
+                  <span style={{ fontSize:11, color:'var(--text3)' }}>{new Date(w.created_at).toLocaleDateString()}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Create modal */}
       {showCreate && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 20 }}>
-          <div className="card animate-fade" style={{ width: '100%', maxWidth: 440, padding: 32 }}>
-            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 700, color: 'var(--text)', marginBottom: 24 }}>Create Workspace</h3>
-            <form onSubmit={handleCreate} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div className="overlay" onClick={e => e.target===e.currentTarget && setShowCreate(false)}>
+          <div className="card scale-in" style={{ width:'100%', maxWidth:440, padding:36 }}>
+            <h3 style={{ fontFamily:'var(--font-display)', fontSize:20, fontWeight:800, color:'var(--text)', marginBottom:24 }}>🏢 {t.createWs}</h3>
+            <form onSubmit={handleCreate} style={{ display:'flex', flexDirection:'column', gap:16 }}>
               <div>
-                <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>Workspace name *</label>
-                <input value={newWs.name} onChange={e => setNewWs({...newWs, name: e.target.value})} placeholder="My Team Workspace" required />
+                <label className="label">{t.wsName} *</label>
+                <input className={`input ${errors.name?'error':''}`} placeholder="My Team Workspace" value={form.name} onChange={e => { setForm({...form, name:e.target.value}); setErrors({}) }} />
+                {errors.name && <div className="error-msg">⚠ {errors.name}</div>}
               </div>
               <div>
-                <label style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', display: 'block', marginBottom: 6 }}>Description</label>
-                <textarea value={newWs.description} onChange={e => setNewWs({...newWs, description: e.target.value})} placeholder="What is this workspace for?" rows={3} style={{ resize: 'none' }} />
+                <label className="label">{t.wsDesc}</label>
+                <textarea className="input" rows={3} placeholder="What is this workspace for?" value={form.description} onChange={e => setForm({...form, description:e.target.value})} style={{ resize:'none' }} />
               </div>
-              <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
-                <button type="button" className="btn-secondary" onClick={() => setShowCreate(false)} style={{ flex: 1 }}>Cancel</button>
-                <button type="submit" className="btn-primary" style={{ flex: 1 }}>Create</button>
+              <div style={{ display:'flex', gap:10 }}>
+                <button type="button" className="btn btn-secondary" style={{ flex:1 }} onClick={() => setShowCreate(false)}>{t.cancel}</button>
+                <button type="submit" className="btn btn-primary" style={{ flex:1 }} disabled={saving}>{saving ? t.saving : t.create}</button>
               </div>
             </form>
           </div>

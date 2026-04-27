@@ -1,47 +1,38 @@
 import axios from 'axios'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
+const BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
 
-const api = axios.create({
-  baseURL: API_URL,
-  headers: { 'Content-Type': 'application/json' },
+const api = axios.create({ baseURL: BASE, headers: { 'Content-Type': 'application/json' } })
+
+api.interceptors.request.use(cfg => {
+  const t = localStorage.getItem('rtm_access')
+  if (t) cfg.headers.Authorization = `Bearer ${t}`
+  return cfg
 })
 
-api.interceptors.request.use(config => {
-  const token = localStorage.getItem('access_token')
-  if (token) config.headers.Authorization = `Bearer ${token}`
-  return config
-})
-
-api.interceptors.response.use(
-  res => res,
-  async err => {
-    if (err.response?.status === 401) {
-      const refresh = localStorage.getItem('refresh_token')
-      if (refresh) {
-        try {
-          const { data } = await axios.post(`${API_URL}/auth/token/refresh/`, { refresh })
-          localStorage.setItem('access_token', data.access)
-          err.config.headers.Authorization = `Bearer ${data.access}`
-          return api(err.config)
-        } catch {
-          localStorage.clear()
-          window.location.href = '/login'
-        }
-      }
+api.interceptors.response.use(r => r, async err => {
+  if (err.response?.status === 401 && !err.config._retry) {
+    err.config._retry = true
+    const r = localStorage.getItem('rtm_refresh')
+    if (r) {
+      try {
+        const { data } = await axios.post(`${BASE}/auth/token/refresh/`, { refresh: r })
+        localStorage.setItem('rtm_access', data.access)
+        err.config.headers.Authorization = `Bearer ${data.access}`
+        return api(err.config)
+      } catch { localStorage.clear(); window.location.href = '/login' }
     }
-    return Promise.reject(err)
   }
-)
+  return Promise.reject(err)
+})
 
-export const authApi = {
+export const auth = {
   register: d => api.post('/auth/register/', d),
   login: d => api.post('/auth/login/', d),
   me: () => api.get('/auth/me/'),
-  logout: refresh => api.post('/auth/logout/', { refresh }),
+  logout: r => api.post('/auth/logout/', { refresh: r }),
 }
-
-export const workspaceApi = {
+export const ws = {
   list: () => api.get('/workspaces/'),
   create: d => api.post('/workspaces/', d),
   get: id => api.get(`/workspaces/${id}/`),
@@ -52,23 +43,20 @@ export const workspaceApi = {
   removeMember: (id, uid) => api.delete(`/workspaces/${id}/members/${uid}/`),
   activity: id => api.get(`/workspaces/${id}/activity/`),
 }
-
-export const projectApi = {
-  list: wsId => api.get(`/workspaces/${wsId}/projects/`),
-  create: (wsId, d) => api.post(`/workspaces/${wsId}/projects/`, d),
-  update: (wsId, id, d) => api.patch(`/workspaces/${wsId}/projects/${id}/`, d),
-  delete: (wsId, id) => api.delete(`/workspaces/${wsId}/projects/${id}/`),
+export const proj = {
+  list: wid => api.get(`/workspaces/${wid}/projects/`),
+  create: (wid, d) => api.post(`/workspaces/${wid}/projects/`, d),
+  update: (wid, id, d) => api.patch(`/workspaces/${wid}/projects/${id}/`, d),
+  delete: (wid, id) => api.delete(`/workspaces/${wid}/projects/${id}/`),
 }
-
-export const taskApi = {
-  list: (wsId, projId, params) => api.get(`/workspaces/${wsId}/projects/${projId}/tasks/`, { params }),
-  create: (wsId, projId, d) => api.post(`/workspaces/${wsId}/projects/${projId}/tasks/`, d),
-  update: (wsId, projId, id, d) => api.patch(`/workspaces/${wsId}/projects/${projId}/tasks/${id}/`, d),
-  delete: (wsId, projId, id) => api.delete(`/workspaces/${wsId}/projects/${projId}/tasks/${id}/`),
-  subtasks: (wsId, projId, id) => api.get(`/workspaces/${wsId}/projects/${projId}/tasks/${id}/subtasks/`),
-  createSubtask: (wsId, projId, id, d) => api.post(`/workspaces/${wsId}/projects/${projId}/tasks/${id}/subtasks/`, d),
-  updateSubtask: (wsId, projId, taskId, id, d) => api.patch(`/workspaces/${wsId}/projects/${projId}/tasks/${taskId}/subtasks/${id}/`, d),
-  logTime: (wsId, projId, id, d) => api.post(`/workspaces/${wsId}/projects/${projId}/tasks/${id}/timelogs/`, d),
+export const task = {
+  list: (wid, pid, p) => api.get(`/workspaces/${wid}/projects/${pid}/tasks/`, { params: p }),
+  create: (wid, pid, d) => api.post(`/workspaces/${wid}/projects/${pid}/tasks/`, d),
+  update: (wid, pid, id, d) => api.patch(`/workspaces/${wid}/projects/${pid}/tasks/${id}/`, d),
+  delete: (wid, pid, id) => api.delete(`/workspaces/${wid}/projects/${pid}/tasks/${id}/`),
+  subtasks: (wid, pid, id) => api.get(`/workspaces/${wid}/projects/${pid}/tasks/${id}/subtasks/`),
+  addSubtask: (wid, pid, id, d) => api.post(`/workspaces/${wid}/projects/${pid}/tasks/${id}/subtasks/`, d),
+  updateSubtask: (wid, pid, tid, id, d) => api.patch(`/workspaces/${wid}/projects/${pid}/tasks/${tid}/subtasks/${id}/`, d),
+  logTime: (wid, pid, id, d) => api.post(`/workspaces/${wid}/projects/${pid}/tasks/${id}/timelogs/`, d),
 }
-
 export default api

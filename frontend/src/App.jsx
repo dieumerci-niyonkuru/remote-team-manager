@@ -1,38 +1,45 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
-import { useAuthStore } from './store/auth'
+import { useStore } from './store'
 import Layout from './components/layout/Layout'
+import Home from './pages/Home'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import WorkspaceDetail from './pages/WorkspaceDetail'
+import Workspaces from './pages/Workspaces'
+import Team from './pages/Team'
+import Activity from './pages/Activity'
 
 const Protected = ({ children }) => {
-  const isAuthenticated = useAuthStore(s => s.isAuthenticated)
-  return isAuthenticated ? children : <Navigate to="/login" replace />
+  const { isAuth } = useStore()
+  return isAuth ? children : <Navigate to="/login" replace />
 }
-
 const Public = ({ children }) => {
-  const isAuthenticated = useAuthStore(s => s.isAuthenticated)
-  return !isAuthenticated ? children : <Navigate to="/dashboard" replace />
+  const { isAuth } = useStore()
+  return !isAuth ? children : <Navigate to="/dashboard" replace />
 }
 
 export default function App() {
+  const { theme } = useStore()
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<Public><Login /></Public>} />
-        <Route path="/register" element={<Public><Register /></Public>} />
-        <Route path="/" element={<Protected><Layout /></Protected>}>
-          <Route index element={<Navigate to="/dashboard" replace />} />
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="workspaces/:id" element={<WorkspaceDetail />} />
-          <Route path="workspaces" element={<Navigate to="/dashboard" replace />} />
-          <Route path="activity" element={<div style={{padding:32,color:'var(--text)'}}>Activity coming soon</div>} />
-        </Route>
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
-      </Routes>
-      <Toaster position="top-right" toastOptions={{ style: { borderRadius: 10, fontSize: 14 } }} />
-    </BrowserRouter>
+    <div className={theme}>
+      <BrowserRouter>
+        <Routes>
+          <Route element={<Layout />}>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Public><Login /></Public>} />
+            <Route path="/register" element={<Public><Register /></Public>} />
+            <Route path="/dashboard" element={<Protected><Dashboard /></Protected>} />
+            <Route path="/workspaces" element={<Protected><Workspaces /></Protected>} />
+            <Route path="/workspaces/:id" element={<Protected><WorkspaceDetail /></Protected>} />
+            <Route path="/team" element={<Protected><Team /></Protected>} />
+            <Route path="/activity" element={<Protected><Activity /></Protected>} />
+          </Route>
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+      <Toaster position="top-right" toastOptions={{ style:{ borderRadius:10, fontSize:13, fontFamily:'Plus Jakarta Sans, sans-serif' }, duration:3000 }} />
+    </div>
   )
 }
