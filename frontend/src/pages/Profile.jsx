@@ -7,7 +7,7 @@ export default function Profile() {
         <h1>Profile</h1>
         <p><strong>Name:</strong> {user?.first_name} {user?.last_name}</p>
         <p><strong>Email:</strong> {user?.email}</p>
-        <p><strong>Member since:</strong> {new Date(user?.created_at).toLocaleDateString()}</p>
+        <p><strong>Joined:</strong> {new Date(user?.created_at).toLocaleDateString()}</p>
       </div>
     </div>
   )

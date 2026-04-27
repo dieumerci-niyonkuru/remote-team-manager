@@ -24,29 +24,33 @@ export default function Header() {
 
   const isActive = (path) => pathname === path
 
-  // Navigation items (always visible on desktop, on mobile inside hamburger)
-  const navItems = [
-    { to: '/', label: 'Home', public: true },
+  // Public tabs (visible only when NOT authenticated)
+  const publicTabs = [
+    { to: '/', label: 'Home' },
     { type: 'dropdown', label: 'Features', items: [
         { label: 'Workspaces', to: '/features/workspaces' },
         { label: 'Task Management', to: '/features/tasks' },
         { label: 'Team Collaboration', to: '/features/team' },
         { label: 'Time Tracking', to: '/features/time' },
-      ], public: true },
-    { to: '/pricing', label: 'Pricing', public: true },
+      ] },
+    { to: '/pricing', label: 'Pricing' },
     { type: 'dropdown', label: 'Resources', items: [
         { label: 'API Docs', href: 'https://remote-team-manager-production.up.railway.app/api/docs/', external: true },
         { label: 'GitHub', href: 'https://github.com/dieumerci-niyonkuru/remote-team-manager', external: true },
         { label: 'Support', to: '/support' },
-      ], public: true },
-    { to: '/about', label: 'About', public: true },
-    ...(isAuth ? [
-      { to: '/dashboard', label: t.dashboard, public: false },
-      { to: '/workspaces', label: t.workspaces, public: false },
-      { to: '/team', label: t.team, public: false },
-      { to: '/activity', label: t.activity, public: false },
-    ] : []),
+      ] },
+    { to: '/about', label: 'About' },
   ]
+
+  // Private tabs (visible only when authenticated)
+  const privateTabs = [
+    { to: '/dashboard', label: t.dashboard },
+    { to: '/workspaces', label: t.workspaces },
+    { to: '/team', label: t.team },
+    { to: '/activity', label: t.activity },
+  ]
+
+  const currentTabs = isAuth ? privateTabs : publicTabs
 
   const renderNavItem = (item) => {
     if (item.to) {
@@ -133,7 +137,6 @@ export default function Header() {
     <>
       <header className="site-header">
         <div className="header-container">
-          {/* Logo */}
           <Link to={isAuth ? '/dashboard' : '/'} className="logo">
             <div className="logo-icon">R</div>
             <span className="logo-text">Remote<span>Team</span></span>
@@ -141,7 +144,7 @@ export default function Header() {
 
           {/* Desktop Navigation */}
           <nav className="desktop-nav">
-            {navItems.map(renderNavItem)}
+            {currentTabs.map(renderNavItem)}
           </nav>
 
           {/* Desktop Right Controls */}
@@ -174,7 +177,7 @@ export default function Header() {
               <button onClick={() => setMobileOpen(false)}>✕</button>
             </div>
             <div className="mobile-nav-list">
-              {navItems.map(renderMobileItem)}
+              {currentTabs.map(renderMobileItem)}
               <div className="mobile-actions">
                 <div className="mobile-action-group">
                   <span>Language</span>
@@ -240,7 +243,7 @@ export default function Header() {
           border: none;
           cursor: pointer;
         }
-        .nav-link.active, .nav-dropdown-btn.active { color: #4f46e5; background: rgba(79,70,229,0.12); }
+        .nav-link.active { color: #4f46e5; background: rgba(79,70,229,0.12); }
         .nav-link:hover, .nav-dropdown-btn:hover { color: white; background: rgba(79,70,229,0.08); }
 
         .dropdown-container { position: relative; }
@@ -271,7 +274,6 @@ export default function Header() {
         .auth-buttons { display: flex; gap: 10px; }
         .mobile-menu-btn { display: none; background: none; border: none; font-size: 2rem; color: white; cursor: pointer; }
 
-        /* Mobile menu styles */
         .mobile-menu-container {
           position: fixed;
           top: 70px;
