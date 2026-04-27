@@ -22,6 +22,12 @@ SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=Csv())
 
+# Trust Railway domain for CSRF (Django admin login)
+CSRF_TRUSTED_ORIGINS = [
+    'https://remote-team-manager-production.up.railway.app',
+    'http://remote-team-manager-production.up.railway.app',  # optional
+]
+
 
 # ===========================
 # Applications
@@ -216,4 +222,3 @@ if os.environ.get('CREATE_SUPERUSER') == 'True':
             print("ℹ️ Superuser already exists")
     except Exception as e:
         print(f"⚠️ Superuser creation failed: {e}")
-        CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='').split(',')
