@@ -1,71 +1,131 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { useStore } from '../store'
 import { ws } from '../services/api'
-
-const ROLE_BADGE = { owner:'badge-purple', manager:'badge-blue', developer:'badge-green', viewer:'badge-gray' }
+import toast from 'react-hot-toast'
 
 export default function Team() {
   const { theme } = useStore()
-  const navigate = useNavigate()
-  const [data, setData] = useState([])
+  const [workspaces, setWorkspaces] = useState([])
   const [loading, setLoading] = useState(true)
+  const [inviteModal, setInviteModal] = useState({ show: false, workspaceId: null })
+  const [inviteEmail, setInviteEmail] = useState('')
+  const [inviteRole, setInviteRole] = useState('developer')
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    ws.list().then(async r => {
-      const all = r.data.data
-      const withMembers = await Promise.all(all.map(async w => {
-        const m = await ws.members(w.id).then(r => r.data.data).catch(() => [])
-        return { ...w, memberList: m }
-      }))
-      setData(withMembers)
-      setLoading(false)
-    }).catch(() => setLoading(false))
+    const fetchData = async () => {
+      try {
+        const workspacesRes = await ws.list()
+        const workspacesData = workspacesRes.data.data
+        const withMembers = await Promise.all(workspacesData.map(async w => {
+          const membersRes = await ws.members(w.id)
+          return { ...w, members: membersRes.data.data }
+        }))
+        setWorkspaces(withMembers)
+      } catch (err) {
+        toast.error('Failed to load team data')
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchData()
   }, [])
 
+  const handleInvite = async () => {
+    if (!inviteEmail.trim()) {
+      toast.error('Email is required')
+      return
+    }
+    setSaving(true)
+    try {
+      await ws.invite(inviteModal.workspaceId, { email: inviteEmail, role: inviteRole })
+      toast.success(`Invitation sent to ${inviteEmail}`)
+      // Refresh data
+      const workspacesRes = await ws.list()
+      const workspacesData = workspacesRes.data.data
+      const withMembers = await Promise.all(workspacesData.map(async w => {
+        const membersRes = await ws.members(w.id)
+        return { ...w, members: membersRes.data.data }
+      }))
+      setWorkspaces(withMembers)
+      setInviteModal({ show: false, workspaceId: null })
+      setInviteEmail('')
+      setInviteRole('developer')
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to invite member')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const getRoleBadge = (role) => {
+    const map = { owner: 'badge-brand', manager: 'badge-success', developer: 'badge-warning', viewer: 'badge-gray' }
+    return map[role] || 'badge-gray'
+  }
+
+  if (loading) return <div className={theme} style={{ padding: '2rem', textAlign: 'center' }}>Loading team...</div>
+
   return (
-    <div className={theme} style={{ background:'var(--bg)', minHeight:'calc(100vh - 64px)', padding:'32px 24px' }}>
-      <div style={{ maxWidth:1100, margin:'0 auto' }}>
-        <h1 style={{ fontFamily:'var(--font-display)', fontSize:28, fontWeight:800, color:'var(--text)', marginBottom:8 }}>👥 Team</h1>
-        <p style={{ color:'var(--text2)', fontSize:14, marginBottom:28 }}>All members across your workspaces</p>
-        {loading ? (
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(300px, 1fr))', gap:14 }}>
-            {[1,2,3].map(i => <div key={i} className="skeleton" style={{ height:200, borderRadius:14 }} />)}
-          </div>
-        ) : data.length===0 ? (
-          <div className="card empty-state">
-            <div className="empty-icon">👥</div>
-            <div className="empty-title">No workspaces yet</div>
-            <button className="btn btn-primary" onClick={() => navigate('/dashboard')}>Go to Dashboard</button>
+    <div className={theme} style={{ background: 'var(--bg)', minHeight: 'calc(100vh - 70px)', padding: '2rem 1rem' }}>
+      <div className="container">
+        <h1>👥 Team Members</h1>
+        <p style={{ color: 'var(--text2)', marginBottom: '2rem' }}>All members across your workspaces. You can invite new members to each workspace.</p>
+
+        {workspaces.length === 0 ? (
+          <div className="card" style={{ padding: '2rem', textAlign: 'center' }}>
+            <p>No workspaces yet. Create a workspace first.</p>
           </div>
         ) : (
-          <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
-            {data.map(w => (
-              <div key={w.id} className="card" style={{ padding:0, overflow:'hidden' }}>
-                <div style={{ padding:'16px 20px', background:'var(--bg2)', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', gap:10, cursor:'pointer' }} onClick={() => navigate(`/workspaces/${w.id}`)}>
-                  <div style={{ width:32, height:32, borderRadius:8, background:'linear-gradient(135deg,#3366ff,#8b5cf6)', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontWeight:800, fontSize:14 }}>{w.name[0]}</div>
-                  <div>
-                    <div style={{ fontFamily:'var(--font-display)', fontWeight:700, fontSize:15, color:'var(--text)' }}>{w.name}</div>
-                    <div style={{ fontSize:12, color:'var(--text2)' }}>{w.memberList.length} members</div>
-                  </div>
+          workspaces.map(ws => (
+            <div key={ws.id} className="card" style={{ marginBottom: '2rem', overflow: 'hidden' }}>
+              <div style={{ padding: '1rem', background: 'var(--bg2)', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+                <div>
+                  <h3 style={{ margin: 0 }}>{ws.name}</h3>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--text2)', margin: 0 }}>{ws.members.length} members</p>
                 </div>
-                <div style={{ padding:16, display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(240px, 1fr))', gap:12 }}>
-                  {w.memberList.map(m => (
-                    <div key={m.id} style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 12px', background:'var(--bg2)', borderRadius:10 }}>
-                      <div className="avatar" style={{ width:36, height:36, fontSize:12 }}>{m.user.first_name[0]}{m.user.last_name[0]}</div>
-                      <div style={{ flex:1, minWidth:0 }}>
-                        <div style={{ fontWeight:600, fontSize:13, color:'var(--text)' }}>{m.user.first_name} {m.user.last_name}</div>
-                        <div style={{ fontSize:11, color:'var(--text2)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{m.user.email}</div>
-                      </div>
-                      <span className={`badge ${ROLE_BADGE[m.role]}`} style={{ fontSize:10 }}>{m.role}</span>
-                    </div>
-                  ))}
-                </div>
+                <button className="btn btn-primary btn-sm" onClick={() => setInviteModal({ show: true, workspaceId: ws.id })}>+ Invite Member</button>
               </div>
-            ))}
-          </div>
+              <div style={{ padding: '1rem' }}>
+                {ws.members.length === 0 ? (
+                  <p style={{ textAlign: 'center', color: 'var(--text3)' }}>No members yet.</p>
+                ) : (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '0.75rem' }}>
+                    {ws.members.map(m => (
+                      <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.5rem', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)' }}>
+                        <div className="avatar" style={{ width: '2rem', height: '2rem', fontSize: '0.8rem' }}>{m.user.first_name?.[0]}{m.user.last_name?.[0]}</div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontWeight: 600, fontSize: '0.85rem' }}>{m.user.first_name} {m.user.last_name}</div>
+                          <div style={{ fontSize: '0.7rem', color: 'var(--text2)' }}>{m.user.email}</div>
+                        </div>
+                        <span className={`badge ${getRoleBadge(m.role)}`}>{m.role}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          ))
         )}
       </div>
+
+      {inviteModal.show && (
+        <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setInviteModal({ show: false, workspaceId: null })}>
+          <div className="modal-content">
+            <h3>Invite Member</h3>
+            <input className="input" placeholder="Email address" type="email" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} />
+            <select className="input" value={inviteRole} onChange={e => setInviteRole(e.target.value)} style={{ marginTop: '0.5rem' }}>
+              <option value="manager">Manager</option>
+              <option value="developer">Developer</option>
+              <option value="viewer">Viewer</option>
+            </select>
+            <div style={{ fontSize: '0.7rem', color: 'var(--text3)', marginTop: '0.25rem' }}>The user must already have an account.</div>
+            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
+              <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setInviteModal({ show: false, workspaceId: null })}>Cancel</button>
+              <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleInvite} disabled={saving}>{saving ? 'Inviting...' : 'Invite'}</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
