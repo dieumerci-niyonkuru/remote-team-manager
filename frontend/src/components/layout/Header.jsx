@@ -22,9 +22,9 @@ export default function Header() {
     navigate('/login')
   }
 
-  const isActive = (path) => pathname === path
+  const isActive = (path) => pathname === path || (path !== '/' && pathname.startsWith(path))
 
-  // Public tabs (visible only when NOT authenticated)
+  // Public navigation (when NOT logged in)
   const publicTabs = [
     { to: '/', label: 'Home' },
     { type: 'dropdown', label: 'Features', items: [
@@ -42,7 +42,7 @@ export default function Header() {
     { to: '/about', label: 'About' },
   ]
 
-  // Private tabs (visible only when authenticated)
+  // Private navigation (when logged in)
   const privateTabs = [
     { to: '/dashboard', label: t.dashboard },
     { to: '/workspaces', label: t.workspaces },
@@ -142,12 +142,10 @@ export default function Header() {
             <span className="logo-text">Remote<span>Team</span></span>
           </Link>
 
-          {/* Desktop Navigation */}
           <nav className="desktop-nav">
             {currentTabs.map(renderNavItem)}
           </nav>
 
-          {/* Desktop Right Controls */}
           <div className="header-actions">
             <select value={lang} onChange={e => setLang(e.target.value)} className="lang-select">
               {languages.map(l => <option key={l.code} value={l.code}>{l.flag} {l.name}</option>)}
@@ -165,11 +163,9 @@ export default function Header() {
             )}
           </div>
 
-          {/* Mobile hamburger */}
           <button className="mobile-menu-btn" onClick={() => setMobileOpen(!mobileOpen)}>☰</button>
         </div>
 
-        {/* Mobile menu overlay */}
         {mobileOpen && (
           <div className="mobile-menu-container">
             <div className="mobile-menu-header">
