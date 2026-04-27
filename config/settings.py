@@ -251,3 +251,22 @@ if os.environ.get('CREATE_SUPERUSER') == 'True':
             print("ℹ️ Superuser already exists")
     except Exception as e:
         print(f"⚠️ Superuser creation failed: {e}")
+# Ensure database configuration uses the DATABASE_URL environment variable
+import dj_database_url
+import os
+
+DATABASE_URL = os.environ.get('DATABASE_URL')
+if DATABASE_URL:
+    DATABASES['default'] = dj_database_url.config(default=DATABASE_URL, conn_max_age=600)
+else:
+    # Fallback for local development (Docker)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'remoteteam',
+            'USER': 'postgres',
+            'PASSWORD': 'postgres',
+            'HOST': 'db',
+            'PORT': 5432,
+        }
+    }
