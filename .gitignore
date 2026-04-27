@@ -66,3 +66,6 @@ npm-debug.log*
 # Migrations (keep these!)
 # DO NOT add migrations here
 # ===========================
+
+# Local Netlify folder
+.netlify
