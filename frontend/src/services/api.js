@@ -1,15 +1,11 @@
 import axios from 'axios'
-
 const BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
-
 const api = axios.create({ baseURL: BASE, headers: { 'Content-Type': 'application/json' } })
-
 api.interceptors.request.use(cfg => {
   const t = localStorage.getItem('rtm_access')
   if (t) cfg.headers.Authorization = `Bearer ${t}`
   return cfg
 })
-
 api.interceptors.response.use(r => r, async err => {
   if (err.response?.status === 401 && !err.config._retry) {
     err.config._retry = true
@@ -25,7 +21,6 @@ api.interceptors.response.use(r => r, async err => {
   }
   return Promise.reject(err)
 })
-
 export const auth = {
   register: d => api.post('/auth/register/', d),
   login: d => api.post('/auth/login/', d),
@@ -56,7 +51,6 @@ export const task = {
   delete: (wid, pid, id) => api.delete(`/workspaces/${wid}/projects/${pid}/tasks/${id}/`),
   subtasks: (wid, pid, id) => api.get(`/workspaces/${wid}/projects/${pid}/tasks/${id}/subtasks/`),
   addSubtask: (wid, pid, id, d) => api.post(`/workspaces/${wid}/projects/${pid}/tasks/${id}/subtasks/`, d),
-  updateSubtask: (wid, pid, tid, id, d) => api.patch(`/workspaces/${wid}/projects/${pid}/tasks/${tid}/subtasks/${id}/`, d),
   logTime: (wid, pid, id, d) => api.post(`/workspaces/${wid}/projects/${pid}/tasks/${id}/timelogs/`, d),
 }
 export default api

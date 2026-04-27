@@ -1,119 +1,75 @@
 import { Link } from 'react-router-dom'
+import { useState } from 'react'
 import { useStore } from '../store'
 import { useT } from '../i18n'
 
-const FEATURES = [
-  { icon:'🔐', title:'JWT Authentication', desc:'Secure login with access + refresh tokens. Auto-refresh on expiry.' },
-  { icon:'🏢', title:'Multi-Workspace', desc:'Create multiple workspaces for different teams or clients.' },
-  { icon:'👥', title:'Role-Based Access', desc:'Owner, Manager, Developer, Viewer — each with precise permissions.' },
-  { icon:'📋', title:'Kanban Board', desc:'Visual task management with To Do, In Progress, and Done columns.' },
-  { icon:'⏱️', title:'Time Logging', desc:'Track hours spent on tasks. Managers see all team time logs.' },
-  { icon:'⚡', title:'Activity Feed', desc:'Real-time log of every action in your workspace.' },
-  { icon:'🌍', title:'3 Languages', desc:'Full support for English, Français, and Kinyarwanda.' },
-  { icon:'🐳', title:'Docker Ready', desc:'Fully containerised with Docker + PostgreSQL + CI/CD pipeline.' },
-]
-
-const STATS = [
-  { value:'70+', label:'Automated Tests' },
-  { value:'100%', label:'API Coverage' },
-  { value:'4', label:'RBAC Roles' },
-  { value:'Live', label:'On Railway' },
+const featuresData = [
+  { icon: '🔐', title: 'JWT Authentication', desc: 'Secure login with access + refresh tokens.', longDesc: 'JWT ensures stateless authentication. Tokens auto-refresh on expiry. This system uses SimpleJWT with blacklisting.' },
+  { icon: '🏢', title: 'Multi-Workspace', desc: 'Create multiple workspaces for different teams.', longDesc: 'Each workspace has its own members, projects, tasks, and permissions. Perfect for agencies or freelancers.' },
+  { icon: '👥', title: 'Role-Based Access', desc: 'Owner, Manager, Developer, Viewer – precise permissions.', longDesc: 'RBAC controls what each role can do: Owner (full), Manager (create projects), Developer (edit tasks), Viewer (read-only).' },
+  { icon: '📋', title: 'Kanban Board', desc: 'Visual task management with To Do, In Progress, Done.', longDesc: 'Drag & drop tasks between columns. Subtasks auto-update parent progress.' },
+  { icon: '⏱️', title: 'Time Logging', desc: 'Track hours spent on tasks.', longDesc: 'Developers log hours; managers see all team logs. Perfect for billing.' },
+  { icon: '⚡', title: 'Activity Feed', desc: 'Real-time log of every action.', longDesc: 'Every create, update, delete is recorded with actor, timestamp, and object.' },
+  { icon: '🌍', title: '3 Languages', desc: 'English, Français, Kinyarwanda.', longDesc: 'Switch instantly – all UI text changes, powered by i18n.' },
+  { icon: '🐳', title: 'Docker Ready', desc: 'Containerised with PostgreSQL + CI/CD.', longDesc: 'Runs anywhere – Railway, AWS, Vercel. Includes GitHub Actions pipeline.' },
 ]
 
 export default function Home() {
   const { lang, theme } = useStore()
   const t = useT(lang)
+  const [selectedFeature, setSelectedFeature] = useState(null)
 
   return (
     <div className={theme}>
-      {/* Hero */}
-      <section style={{ position:'relative', overflow:'hidden', padding:'100px 24px 80px', textAlign:'center', background:`linear-gradient(180deg, var(--bg) 0%, var(--bg2) 100%)` }}>
-        {/* Bg blobs */}
-        <div style={{ position:'absolute', top:-100, left:'50%', transform:'translateX(-50%)', width:600, height:600, borderRadius:'50%', background:'rgba(51,102,255,0.06)', filter:'blur(80px)', pointerEvents:'none' }} />
-        <div style={{ position:'absolute', top:0, right:'10%', width:300, height:300, borderRadius:'50%', background:'rgba(139,92,246,0.05)', filter:'blur(60px)', pointerEvents:'none' }} />
-
-        <div style={{ maxWidth:780, margin:'0 auto', position:'relative' }} className="fade-in">
-          <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:'var(--brand-bg)', border:'1px solid rgba(51,102,255,0.2)', borderRadius:20, padding:'6px 16px', fontSize:12, fontWeight:600, color:'#3366ff', marginBottom:24 }}>
-            <span style={{ width:6, height:6, borderRadius:'50%', background:'#3366ff', animation:'pulse-dot 2s infinite' }} />
-            Live on Railway · Django Bootcamp Final Project
-          </div>
-
-          <h1 style={{ fontFamily:'var(--font-display)', fontSize:'clamp(36px, 6vw, 68px)', fontWeight:800, color:'var(--text)', lineHeight:1.1, letterSpacing:'-0.03em', marginBottom:20 }}>
-            {t.tagline}
-          </h1>
-
-          <p style={{ fontSize:'clamp(16px, 2vw, 20px)', color:'var(--text2)', lineHeight:1.7, marginBottom:40, maxWidth:560, margin:'0 auto 40px' }}>
-            {t.subtitle}
-          </p>
-
-          <div style={{ display:'flex', gap:14, justifyContent:'center', flexWrap:'wrap' }}>
-            <Link to="/register" className="btn btn-primary" style={{ padding:'14px 32px', fontSize:15, borderRadius:12 }}>
-              Get Started Free →
-            </Link>
-            <a href="https://remote-team-manager-production.up.railway.app/api/docs/" target="_blank" rel="noopener noreferrer" className="btn btn-secondary" style={{ padding:'14px 32px', fontSize:15, borderRadius:12 }}>
-              View API Docs ↗
-            </a>
+      <section style={{ padding: '100px 24px 80px', textAlign: 'center', background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(2px)' }}>
+        <div style={{ maxWidth: 780, margin: '0 auto' }} className="fade-in">
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(36px, 6vw, 68px)', fontWeight: 800, color: '#fff', textShadow: '0 2px 10px rgba(0,0,0,0.3)', lineHeight: 1.1, marginBottom: 20 }}>{t.tagline}</h1>
+          <p style={{ fontSize: 'clamp(16px, 2vw, 20px)', color: 'rgba(255,255,255,0.9)', lineHeight: 1.7, marginBottom: 40 }}>{t.subtitle}</p>
+          <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <Link to="/register" className="btn btn-primary" style={{ padding: '14px 32px', fontSize: 15, borderRadius: 12 }}>Get Started Free →</Link>
+            <a href="https://remote-team-manager-production.up.railway.app/api/docs/" target="_blank" className="btn btn-secondary" style={{ padding: '14px 32px', fontSize: 15, borderRadius: 12, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }}>View API Docs ↗</a>
           </div>
         </div>
-
-        {/* Stats */}
-        <div style={{ display:'flex', gap:16, justifyContent:'center', flexWrap:'wrap', marginTop:64, maxWidth:640, margin:'64px auto 0' }}>
-          {STATS.map(s => (
-            <div key={s.label} style={{ background:'var(--bg-card)', border:'1px solid var(--border)', borderRadius:14, padding:'16px 24px', textAlign:'center', minWidth:120 }} className="card">
-              <div style={{ fontFamily:'var(--font-display)', fontSize:24, fontWeight:800, color:'var(--text)' }}>{s.value}</div>
-              <div style={{ fontSize:12, color:'var(--text2)', marginTop:4 }}>{s.label}</div>
+        <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap', marginTop: 64 }}>
+          {[['70+','Automated Tests'],['100%','API Coverage'],['4','RBAC Roles'],['Live','On Railway']].map(([v,l]) => (
+            <div key={l} className="card" style={{ padding: '16px 24px', textAlign: 'center', minWidth: 120, background: 'rgba(20,30,48,0.7)', backdropFilter: 'blur(8px)' }}>
+              <div style={{ fontFamily: 'var(--font-display)', fontSize: 24, fontWeight: 800, color: '#fff' }}>{v}</div>
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)' }}>{l}</div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Features */}
-      <section id="features" style={{ padding:'80px 24px', background:'var(--bg2)' }}>
-        <div style={{ maxWidth:1140, margin:'0 auto' }}>
-          <div style={{ textAlign:'center', marginBottom:52 }}>
-            <h2 style={{ fontFamily:'var(--font-display)', fontSize:'clamp(28px, 4vw, 44px)', fontWeight:800, color:'var(--text)', letterSpacing:'-0.02em', marginBottom:12 }}>
-              Everything your team needs
-            </h2>
-            <p style={{ fontSize:16, color:'var(--text2)', maxWidth:480, margin:'0 auto' }}>A complete project management system built with Django REST Framework</p>
-          </div>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(240px, 1fr))', gap:16 }}>
-            {FEATURES.map((f, i) => (
-              <div key={i} className="card card-hover" style={{ padding:24, cursor:'default', animationDelay:`${i*0.05}s` }}>
-                <div style={{ width:44, height:44, borderRadius:12, background:'var(--brand-bg)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:22, marginBottom:14 }}>{f.icon}</div>
-                <h3 style={{ fontFamily:'var(--font-display)', fontSize:15, fontWeight:700, color:'var(--text)', marginBottom:8 }}>{f.title}</h3>
-                <p style={{ fontSize:13, color:'var(--text2)', lineHeight:1.65 }}>{f.desc}</p>
-              </div>
-            ))}
-          </div>
+      <section id="features" style={{ padding: '80px 24px', background: 'var(--bg2)', backdropFilter: 'blur(8px)' }}>
+        <div style={{ maxWidth: 1140, margin: '0 auto', textAlign: 'center', marginBottom: 52 }}>
+          <h2 style={{ fontSize: 'clamp(28px,4vw,44px)', fontWeight: 800, color: 'var(--text)' }}>Everything your team needs</h2>
+          <p style={{ fontSize: 16, color: 'var(--text2)', maxWidth: 480, margin: '12px auto 0' }}>Click any feature to learn more</p>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 16, maxWidth: 1140, margin: '0 auto' }}>
+          {featuresData.map((f, i) => (
+            <div key={i} className="card card-hover" onClick={() => setSelectedFeature(f)} style={{ padding: 24, textAlign: 'left', cursor: 'pointer', background: 'var(--bg-card)', backdropFilter: 'blur(4px)' }}>
+              <div style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--brand-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, marginBottom: 14 }}>{f.icon}</div>
+              <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', marginBottom: 8 }}>{f.title}</h3>
+              <p style={{ fontSize: 13, color: 'var(--text2)', lineHeight: 1.65 }}>{f.desc}</p>
+            </div>
+          ))}
         </div>
       </section>
 
-      {/* Tech stack */}
-      <section style={{ padding:'80px 24px', background:'var(--bg)' }}>
-        <div style={{ maxWidth:960, margin:'0 auto', textAlign:'center' }}>
-          <h2 style={{ fontFamily:'var(--font-display)', fontSize:'clamp(24px, 3vw, 38px)', fontWeight:800, color:'var(--text)', marginBottom:12 }}>Built with modern tech</h2>
-          <p style={{ fontSize:15, color:'var(--text2)', marginBottom:40 }}>Production-ready stack used in real companies</p>
-          <div style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}>
-            {[['Django 4.2','🐍'],['DRF','🔌'],['PostgreSQL','🐘'],['Docker','🐳'],['React 18','⚛️'],['JWT Auth','🔐'],['GitHub Actions','⚙️'],['Railway','🚀']].map(([n, i]) => (
-              <div key={n} style={{ display:'flex', alignItems:'center', gap:8, background:'var(--bg-card)', border:'1px solid var(--border)', borderRadius:10, padding:'8px 16px', fontSize:13, fontWeight:600, color:'var(--text)' }}>
-                <span>{i}</span>{n}
-              </div>
-            ))}
+      {/* Feature modal */}
+      {selectedFeature && (
+        <div className="overlay" onClick={e => e.target === e.currentTarget && setSelectedFeature(null)}>
+          <div className="card scale-in" style={{ width: '100%', maxWidth: 480, padding: 32 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+              <div style={{ fontSize: 40 }}>{selectedFeature.icon}</div>
+              <button onClick={() => setSelectedFeature(null)} style={{ background: 'none', border: 'none', fontSize: 24, cursor: 'pointer', color: 'var(--text2)' }}>✕</button>
+            </div>
+            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 700, color: 'var(--text)', marginBottom: 12 }}>{selectedFeature.title}</h3>
+            <p style={{ fontSize: 14, color: 'var(--text2)', lineHeight: 1.6, marginBottom: 20 }}>{selectedFeature.longDesc}</p>
+            <button className="btn-primary" onClick={() => setSelectedFeature(null)} style={{ width: '100%' }}>Got it</button>
           </div>
         </div>
-      </section>
-
-      {/* CTA */}
-      <section style={{ padding:'80px 24px', background:'linear-gradient(135deg, #0a1628 0%, #0f2043 50%, #0a1628 100%)', textAlign:'center' }}>
-        <div style={{ maxWidth:580, margin:'0 auto' }}>
-          <h2 style={{ fontFamily:'var(--font-display)', fontSize:'clamp(28px, 4vw, 44px)', fontWeight:800, color:'#fff', letterSpacing:'-0.02em', marginBottom:16 }}>Ready to get started?</h2>
-          <p style={{ fontSize:16, color:'rgba(255,255,255,0.6)', marginBottom:36 }}>Create your account and start managing your team today.</p>
-          <div style={{ display:'flex', gap:14, justifyContent:'center', flexWrap:'wrap' }}>
-            <Link to="/register" className="btn btn-primary" style={{ padding:'14px 32px', fontSize:15, borderRadius:12 }}>Create Free Account</Link>
-            <Link to="/login" className="btn btn-secondary" style={{ padding:'14px 32px', fontSize:15, borderRadius:12, borderColor:'rgba(255,255,255,0.2)', color:'#fff' }}>Sign In</Link>
-          </div>
-        </div>
-      </section>
+      )}
     </div>
   )
 }
