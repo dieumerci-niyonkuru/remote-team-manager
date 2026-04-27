@@ -56,9 +56,7 @@ export default function Header() {
 
           {/* Desktop Right Controls */}
           <div className="header-actions" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            {isAuth && (
-              <button onClick={() => {}} style={{ background: '#2d3748', border: 'none', borderRadius: '20px', padding: '5px 12px', color: 'white' }}>🔍 {t.search}</button>
-            )}
+            {isAuth && <span style={{ color: '#ccc' }}>🔍 {t.search}</span>}
             <select value={lang} onChange={e => setLang(e.target.value)} style={{ background: '#2d3748', border: 'none', borderRadius: '8px', padding: '5px 8px', color: 'white' }}>
               <option value="en">🇬🇧 EN</option>
               <option value="fr">🇫🇷 FR</option>
@@ -71,17 +69,17 @@ export default function Header() {
               <UserDropdown user={user} />
             ) : (
               <div style={{ display: 'flex', gap: '10px' }}>
-                <Link to="/login" className="btn-secondary" style={{ background: 'transparent', border: '1px solid #4f46e5', padding: '6px 16px', borderRadius: '8px', color: 'white', textDecoration: 'none' }}>{t.login}</Link>
-                <Link to="/register" className="btn-primary" style={{ background: '#4f46e5', padding: '6px 16px', borderRadius: '8px', color: 'white', textDecoration: 'none' }}>{t.register}</Link>
+                <Link to="/login" style={{ background: 'transparent', border: '1px solid #4f46e5', padding: '6px 16px', borderRadius: '8px', color: 'white', textDecoration: 'none' }}>{t.login}</Link>
+                <Link to="/register" style={{ background: '#4f46e5', padding: '6px 16px', borderRadius: '8px', color: 'white', textDecoration: 'none' }}>{t.register}</Link>
               </div>
             )}
           </div>
 
-          {/* Mobile hamburger button */}
+          {/* Mobile hamburger */}
           <button onClick={() => setMobileOpen(!mobileOpen)} className="hamburger" style={{ display: 'none', background: 'none', border: 'none', fontSize: '28px', color: 'white', cursor: 'pointer' }}>☰</button>
         </div>
 
-        {/* Mobile Menu Overlay */}
+        {/* Mobile menu overlay */}
         {mobileOpen && (
           <div style={{ position: 'fixed', top: '64px', left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.95)', backdropFilter: 'blur(16px)', zIndex: 999, padding: '20px', overflowY: 'auto' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -90,10 +88,6 @@ export default function Header() {
                   {link.label}
                 </Link>
               ))}
-              <div style={{ padding: '12px', background: '#1e293b', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ color: 'white' }}>{t.search}</span>
-                <button style={{ background: '#0f172a', border: 'none', borderRadius: '8px', padding: '5px 12px', color: 'white' }}>🔍</button>
-              </div>
               <div style={{ padding: '12px', background: '#1e293b', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ color: 'white' }}>Language</span>
                 <select value={lang} onChange={e => setLang(e.target.value)} style={{ background: '#0f172a', border: 'none', borderRadius: '8px', padding: '5px 8px', color: 'white' }}>

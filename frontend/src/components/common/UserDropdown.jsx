@@ -12,7 +12,7 @@ export default function UserDropdown({ user, mobile }) {
   const handleLogout = async () => {
     try { await auth.logout(localStorage.getItem('rtm_refresh')) } catch {}
     logout()
-    toast.success('Goodbye! 👋')
+    toast.success('Logged out successfully')
     navigate('/login')
   }
 
@@ -26,8 +26,8 @@ export default function UserDropdown({ user, mobile }) {
   if (mobile) {
     return (
       <div style={{ marginTop: '0.5rem' }}>
-        <div style={{ fontWeight: 'bold', marginBottom: '0.5rem', color: 'var(--text2)' }}>Account</div>
-        {items.map((item) => (
+        <div style={{ fontWeight: 'bold', marginBottom: '0.5rem', color: '#aaa' }}>Account</div>
+        {items.map(item => (
           <button
             key={item.label}
             onClick={item.onClick}
@@ -37,12 +37,12 @@ export default function UserDropdown({ user, mobile }) {
               gap: '8px',
               width: '100%',
               padding: '8px 16px',
-              background: 'var(--bg3)',
-              border: '1px solid var(--border)',
+              background: '#1e293b',
+              border: 'none',
               borderRadius: '8px',
               marginBottom: '8px',
               cursor: 'pointer',
-              color: item.danger ? '#ef4444' : 'var(--text)',
+              color: item.danger ? '#ef4444' : 'white',
             }}
           >
             <span>{item.icon}</span> {item.label}
@@ -77,7 +77,7 @@ export default function UserDropdown({ user, mobile }) {
             position: 'absolute',
             top: '100%',
             right: 0,
-            background: 'var(--bg-card)',
+            background: '#0f172a',
             borderRadius: '8px',
             minWidth: '160px',
             boxShadow: '0 10px 25px -5px rgba(0,0,0,0.3)',
@@ -85,7 +85,7 @@ export default function UserDropdown({ user, mobile }) {
             zIndex: 100,
           }}
         >
-          {items.map((item) => (
+          {items.map(item => (
             <div
               key={item.label}
               onClick={() => { setOpen(false); item.onClick() }}
@@ -95,7 +95,7 @@ export default function UserDropdown({ user, mobile }) {
                 alignItems: 'center',
                 gap: '8px',
                 cursor: 'pointer',
-                color: item.danger ? '#ef4444' : 'var(--text)',
+                color: item.danger ? '#ef4444' : 'white',
               }}
             >
               {item.icon} {item.label}
