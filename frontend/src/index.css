@@ -72,3 +72,29 @@ body::before {
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:999;padding:20px}
 /* Password strength */
 .password-strength{height:4px;border-radius:4px;transition:width 0.2s}
+/* Improve text contrast */
+.card, .btn, .input, .dropdown-menu {
+  color: var(--text);
+}
+.btn-primary {
+  background: linear-gradient(135deg, #3366ff, #5a7dff);
+  box-shadow: 0 2px 8px rgba(51,102,255,0.3);
+}
+.btn-primary:hover {
+  background: linear-gradient(135deg, #2255ee, #4a6eff);
+  transform: translateY(-2px);
+}
+.avatar-small, .avatar {
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+.logout-btn {
+  background: rgba(239,68,68,0.15) !important;
+}
+.logout-btn:hover {
+  background: rgba(239,68,68,0.3) !important;
+  transform: translateY(-1px);
+}
+/* Fix modal z-index */
+.overlay {
+  z-index: 10000 !important;
+}
