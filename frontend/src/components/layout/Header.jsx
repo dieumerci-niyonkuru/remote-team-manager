@@ -14,6 +14,7 @@ export default function Header() {
   const [search, setSearch] = useState('')
   const [openDropdown, setOpenDropdown] = useState(null)
   const [aiModalOpen, setAiModalOpen] = useState(false)
+  const [demoLoading, setDemoLoading] = useState(false)
   const dropdownRef = useRef(null)
 
   useEffect(() => {
@@ -38,6 +39,41 @@ export default function Header() {
       navigate(`/dashboard?search=${encodeURIComponent(search)}`)
     else if (pathname.startsWith('/workspaces/'))
       navigate(`${pathname}?search=${encodeURIComponent(search)}`)
+  }
+
+  const handleDemoLogin = async () => {
+    setDemoLoading(true)
+    const demoEmail = 'demo@remoteteam.com'
+    const demoPassword = 'Demo1234!'
+    try {
+      // Try to login first
+      const res = await auth.login({ email: demoEmail, password: demoPassword })
+      localStorage.setItem('rtm_access', res.data.data.access)
+      localStorage.setItem('rtm_refresh', res.data.data.refresh)
+      useStore.getState().setUser(res.data.data.user)
+      toast.success('Demo mode activated! Enjoy exploring 🎉')
+      navigate('/dashboard')
+    } catch (err) {
+      // If login fails, try to register demo user
+      try {
+        const registerRes = await auth.register({
+          email: demoEmail,
+          first_name: 'Demo',
+          last_name: 'User',
+          password: demoPassword,
+          password2: demoPassword
+        })
+        localStorage.setItem('rtm_access', registerRes.data.data.access)
+        localStorage.setItem('rtm_refresh', registerRes.data.data.refresh)
+        useStore.getState().setUser(registerRes.data.data.user)
+        toast.success('Demo account created! You are now logged in 🎉')
+        navigate('/dashboard')
+      } catch (regErr) {
+        toast.error('Demo login unavailable. Please register manually.')
+      }
+    } finally {
+      setDemoLoading(false)
+    }
   }
 
   const solutionItems = [
@@ -67,25 +103,35 @@ export default function Header() {
     { code: 'rw', name: 'Kinyarwanda', flag: '🇷🇼' },
   ]
 
+  const navLinkStyle = {
+    padding: '8px 14px',
+    borderRadius: '8px',
+    fontSize: 'clamp(13px, 1.8vw, 15px)',
+    fontWeight: 500,
+    color: 'var(--text2)',
+    textDecoration: 'none',
+    transition: 'all 0.2s',
+    whiteSpace: 'nowrap'
+  }
+
   return (
     <>
-      <header style={{ position: 'sticky', top: 0, zIndex: 100, background: 'rgba(var(--bg-rgb, 6,11,24),0.95)', backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(255,255,255,0.1)', transition: 'all 0.2s' }}>
-        <div style={{ maxWidth: 1400, margin: '0 auto', padding: '0 20px', height: 64, display: 'flex', alignItems: 'center', gap: 20, flexWrap: 'wrap' }}>
+      <header style={{ position: 'sticky', top: 0, zIndex: 100, background: 'rgba(var(--bg-rgb, 6,11,24),0.95)', backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
+        <div style={{ maxWidth: 1400, margin: '0 auto', padding: '0 20px', height: 'auto', minHeight: 64, display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
           {/* Logo */}
           <Link to={isAuth ? "/dashboard" : "/"} style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', flexShrink: 0 }}>
-            <div style={{ width: 34, height: 34, borderRadius: 10, background: 'linear-gradient(135deg,#3366ff,#6699ff)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 16, transition: 'transform 0.2s' }} className="hover-glow">R</div>
-            <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 15, color: 'var(--text)', letterSpacing: '-0.02em' }}>Remote<span style={{ color: '#3366ff' }}>Team</span></span>
+            <div style={{ width: 34, height: 34, borderRadius: 10, background: 'linear-gradient(135deg,var(--brand),var(--brand-dark))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: 16 }}>R</div>
+            <span style={{ fontWeight: 700, fontSize: 'clamp(14px, 2vw, 16px)', color: 'var(--text)' }}>Remote<span style={{ color: 'var(--brand)' }}>Team</span></span>
           </Link>
 
-          {/* Navigation - Show different links based on auth status */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', position: 'relative' }} ref={dropdownRef}>
+          {/* Navigation */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap', position: 'relative' }} ref={dropdownRef}>
             {!isAuth ? (
-              // Public nav
               <>
-                <NavLink to="/" active={isActive('/')}>{t.home}</NavLink>
-                <NavLink to="/#features" active={false}>{t.features}</NavLink>
+                <Link to="/" className="nav-link" style={navLinkStyle}>{t.home}</Link>
+                <Link to="/#features" className="nav-link" style={navLinkStyle}>{t.features}</Link>
                 <div onMouseEnter={() => setOpenDropdown('solutions')} onMouseLeave={() => setOpenDropdown(null)} style={{ position: 'relative' }}>
-                  <button className="nav-dropdown-btn" style={{ background: 'transparent', border: 'none', padding: '6px 12px', borderRadius: 8, fontSize: 13, fontWeight: 500, color: openDropdown === 'solutions' ? '#3366ff' : 'var(--text2)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <button className="nav-dropdown-btn" style={{ ...navLinkStyle, background: 'transparent', border: 'none', display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
                     {t.solutions} <span style={{ fontSize: 10, transition: 'transform 0.2s', transform: openDropdown === 'solutions' ? 'rotate(180deg)' : 'none' }}>▼</span>
                   </button>
                   {openDropdown === 'solutions' && (
@@ -99,7 +145,7 @@ export default function Header() {
                   )}
                 </div>
                 <div onMouseEnter={() => setOpenDropdown('resources')} onMouseLeave={() => setOpenDropdown(null)} style={{ position: 'relative' }}>
-                  <button className="nav-dropdown-btn" style={{ background: 'transparent', border: 'none', padding: '6px 12px', borderRadius: 8, fontSize: 13, fontWeight: 500, color: openDropdown === 'resources' ? '#3366ff' : 'var(--text2)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <button className="nav-dropdown-btn" style={{ ...navLinkStyle, background: 'transparent', border: 'none', display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
                     {t.resources} <span style={{ fontSize: 10, transition: 'transform 0.2s', transform: openDropdown === 'resources' ? 'rotate(180deg)' : 'none' }}>▼</span>
                   </button>
                   {openDropdown === 'resources' && (
@@ -112,72 +158,75 @@ export default function Header() {
                     </div>
                   )}
                 </div>
-                <NavLink to="/about" active={isActive('/about')}>{t.about}</NavLink>
+                <Link to="/about" className="nav-link" style={navLinkStyle}>{t.about}</Link>
               </>
             ) : (
-              // Authenticated nav – no Home, Features, Solutions, Resources, About
               <>
-                <NavLink to="/dashboard" active={isActive('/dashboard')}>{t.dashboard}</NavLink>
-                <NavLink to="/workspaces" active={isActive('/workspaces')}>{t.workspaces}</NavLink>
-                <NavLink to="/team" active={isActive('/team')}>{t.team}</NavLink>
-                <NavLink to="/activity" active={isActive('/activity')}>{t.activity}</NavLink>
+                <Link to="/dashboard" className="nav-link" style={navLinkStyle}>{t.dashboard}</Link>
+                <Link to="/workspaces" className="nav-link" style={navLinkStyle}>{t.workspaces}</Link>
+                <Link to="/team" className="nav-link" style={navLinkStyle}>{t.team}</Link>
+                <Link to="/activity" className="nav-link" style={navLinkStyle}>{t.activity}</Link>
               </>
             )}
           </div>
 
-          {/* Search (only when logged in) */}
+          {/* Search */}
           {isAuth && (
-            <form onSubmit={handleSearch} style={{ flexShrink: 0, minWidth: 180 }}>
-              <input type="text" placeholder={t.search} value={search} onChange={e => setSearch(e.target.value)} className="search-input" style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 20, padding: '6px 12px', fontSize: 13, width: '100%', outline: 'none' }} />
+            <form onSubmit={handleSearch} style={{ flexShrink: 0, minWidth: 160 }}>
+              <input type="text" placeholder={t.search} value={search} onChange={e => setSearch(e.target.value)} className="search-input" style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 20, padding: '6px 12px', fontSize: 'clamp(12px, 1.5vw, 13px)', width: '100%', outline: 'none' }} />
             </form>
           )}
 
           {/* Right controls */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
-            {/* AI Button - always visible */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0, marginLeft: 'auto' }}>
+            {/* AI Button - prominent */}
             <button
               onClick={() => setAiModalOpen(true)}
-              style={{ background: 'linear-gradient(135deg,#3366ff,#6699ff)', border: 'none', borderRadius: 20, padding: '5px 12px', fontSize: 12, fontWeight: 600, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, transition: '0.2s' }}
-              onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.02)'}
-              onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
+              style={{ background: 'linear-gradient(135deg,var(--brand),var(--brand-dark))', border: 'none', borderRadius: 20, padding: '5px 12px', fontSize: 'clamp(12px, 1.5vw, 13px)', fontWeight: 600, color: 'white', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5 }}
             >
               🤖 AI
             </button>
 
-            <select value={lang} onChange={e => setLang(e.target.value)} className="lang-select" style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8, padding: '5px 8px', fontSize: 12, color: 'var(--text2)', cursor: 'pointer' }}>
+            {/* Demo button for non-authenticated users */}
+            {!isAuth && (
+              <button onClick={handleDemoLogin} disabled={demoLoading} style={{ background: 'transparent', border: '1px solid var(--brand)', borderRadius: 20, padding: '5px 12px', fontSize: 'clamp(12px, 1.5vw, 13px)', fontWeight: 600, color: 'var(--brand)', cursor: 'pointer' }}>
+                {demoLoading ? '...' : '🎭 Demo'}
+              </button>
+            )}
+
+            <select value={lang} onChange={e => setLang(e.target.value)} className="lang-select" style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8, padding: '5px 8px', fontSize: 12 }}>
               {languages.map(l => <option key={l.code} value={l.code}>{l.flag} {l.name}</option>)}
             </select>
             <button className="theme-toggle" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8, padding: '6px 10px', fontSize: 14, cursor: 'pointer' }}>
               {theme === 'dark' ? '☀️' : '🌙'}
             </button>
             {isAuth ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div className="avatar-small" onClick={() => navigate('/dashboard')} style={{ width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg,#3366ff,#8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div className="avatar-small" onClick={() => navigate('/dashboard')} style={{ width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg,var(--brand),var(--brand-dark))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
                   {user?.first_name?.[0]}{user?.last_name?.[0]}
                 </div>
-                <button className="logout-btn" onClick={handleLogout} style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: 'none', borderRadius: 8, padding: '6px 14px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>{t.logout}</button>
+                <button className="logout-btn" onClick={handleLogout} style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: 'none', borderRadius: 8, padding: '6px 12px', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>{t.logout}</button>
               </div>
             ) : (
-              <div style={{ display: 'flex', gap: 12 }}>
-                <Link to="/login" className="auth-btn login" style={{ background: 'transparent', color: 'var(--text2)', border: '1px solid var(--border)', borderRadius: 8, padding: '6px 16px', fontSize: 13, textDecoration: 'none' }}>{t.login}</Link>
-                <Link to="/register" className="auth-btn register" style={{ background: '#3366ff', color: '#fff', border: 'none', borderRadius: 8, padding: '6px 16px', fontSize: 13, fontWeight: 600, textDecoration: 'none' }}>{t.register}</Link>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <Link to="/login" className="auth-btn login" style={{ background: 'transparent', color: 'var(--text2)', border: '1px solid var(--border)', borderRadius: 8, padding: '6px 12px', fontSize: 13, textDecoration: 'none' }}>{t.login}</Link>
+                <Link to="/register" className="auth-btn register" style={{ background: 'var(--brand)', color: '#fff', border: 'none', borderRadius: 8, padding: '6px 12px', fontSize: 13, fontWeight: 600, textDecoration: 'none' }}>{t.register}</Link>
               </div>
             )}
           </div>
         </div>
         <style>{`
-          .nav-link { padding: 6px 12px; border-radius: 8px; font-size: 13px; font-weight: 500; color: var(--text2); text-decoration: none; transition: 0.2s; }
-          .nav-link.active { color: #3366ff; background: rgba(51,102,255,0.12); }
-          .nav-link:hover:not(.active) { color: var(--text); background: rgba(51,102,255,0.08); }
-          .dropdown-item:hover { background: rgba(51,102,255,0.1); color: #3366ff; padding-left: 20px; }
-          .search-input:focus { border-color: #3366ff; box-shadow: 0 0 0 2px rgba(51,102,255,0.2); }
+          .nav-link.active { color: var(--brand); background: rgba(79,70,229,0.12); }
+          .nav-link:hover:not(.active) { color: var(--text); background: rgba(79,70,229,0.08); }
+          .dropdown-item:hover { background: rgba(79,70,229,0.1); color: var(--brand); padding-left: 20px; }
+          .search-input:focus { border-color: var(--brand); box-shadow: 0 0 0 2px rgba(79,70,229,0.2); }
+          @media (max-width: 768px) {
+            header > div { padding: 10px 16px; }
+            .nav-link, .nav-dropdown-btn { padding: 6px 10px !important; font-size: 12px !important; }
+          }
         `}</style>
       </header>
       <AIAssistantModal isOpen={aiModalOpen} onClose={() => setAiModalOpen(false)} />
     </>
   )
-}
-
-function NavLink({ to, children, active }) {
-  return <Link to={to} className={`nav-link ${active ? 'active' : ''}`}>{children}</Link>
 }
