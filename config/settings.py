@@ -52,6 +52,9 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
+    'apps.chat',
+    'apps.knowledge',
+    'apps.hr',
     # # 'apps.chat',
     'apps.users',
     'apps.workspaces',
