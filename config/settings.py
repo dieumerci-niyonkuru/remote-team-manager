@@ -110,7 +110,7 @@ import dj_database_url
 
 DATABASES = {
     'default': dj_database_url.config(
-        default=config('DATABASE_URL'),
+        default=config('DATABASE_URL', default=''),
         conn_max_age=600,
     )
 }
