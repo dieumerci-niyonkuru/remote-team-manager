@@ -293,3 +293,4 @@ CORS_ALLOWED_ORIGINS = [
 ]
 CORS_ALLOW_CREDENTIALS = True
 # ASGI_APPLICATION = 'config.asgi.application'
+# Ensure workspaces app is properly configured
