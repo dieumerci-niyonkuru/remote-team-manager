@@ -1,7 +1,6 @@
 import axios from 'axios'
 
-// Hardcode the production API URL to ensure it works
-const BASE = 'https://remote-team-manager-production.up.railway.app/api'
+const BASE = import.meta.env.VITE_API_URL || 'https://remote-team-manager-production.up.railway.app/api'
 
 const api = axios.create({
   baseURL: BASE,
@@ -9,19 +8,15 @@ const api = axios.create({
   timeout: 10000,
 })
 
-// Add token to every request
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('rtm_access')
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
-    }
+    if (token) config.headers.Authorization = `Bearer ${token}`
     return config
   },
   (error) => Promise.reject(error)
 )
 
-// Handle 401 errors (token refresh)
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -35,14 +30,14 @@ api.interceptors.response.use(
           localStorage.setItem('rtm_access', data.access)
           originalRequest.headers.Authorization = `Bearer ${data.access}`
           return api(originalRequest)
-        } catch (refreshError) {
+        } catch (e) {
           localStorage.clear()
           window.location.href = '/login'
-          return Promise.reject(refreshError)
         }
+      } else {
+        localStorage.clear()
+        window.location.href = '/login'
       }
-      localStorage.clear()
-      window.location.href = '/login'
     }
     return Promise.reject(error)
   }
@@ -82,6 +77,11 @@ export const task = {
   subtasks: (wid, pid, id) => api.get(`/workspaces/${wid}/projects/${pid}/tasks/${id}/subtasks/`),
   addSubtask: (wid, pid, id, d) => api.post(`/workspaces/${wid}/projects/${pid}/tasks/${id}/subtasks/`, d),
   logTime: (wid, pid, id, d) => api.post(`/workspaces/${wid}/projects/${pid}/tasks/${id}/timelogs/`, d),
+}
+
+export const comment = {
+  list: (wid, pid, tid) => api.get(`/workspaces/${wid}/projects/${pid}/tasks/${tid}/comments/`),
+  create: (wid, pid, tid, content) => api.post(`/workspaces/${wid}/projects/${pid}/tasks/${tid}/comments/`, { content }),
 }
 
 export default api

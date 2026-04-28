@@ -42,6 +42,7 @@ DJANGO_APPS = [
 ]
 
 THIRD_PARTY_APPS = [
+    'channels',
     'rest_framework',
     'drf_spectacular',
     'rest_framework_simplejwt',
@@ -51,6 +52,7 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
+    'apps.chat',
     'apps.users',
     'apps.workspaces',
     'apps.projects',
@@ -288,3 +290,4 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
 ]
 CORS_ALLOW_CREDENTIALS = True
+ASGI_APPLICATION = 'config.asgi.application'
