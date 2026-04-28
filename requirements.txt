@@ -37,3 +37,5 @@ factory-boy==3.3.0
 
 # Code Quality
 flake8==7.0.0
+channels==4.1.0
+channels-redis==4.2.1
