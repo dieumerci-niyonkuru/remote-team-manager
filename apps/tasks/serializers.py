@@ -48,3 +48,10 @@ class ActivityFeedSerializer(serializers.ModelSerializer):
     class Meta:
         model  = ActivityFeed
         fields = ['id', 'actor', 'action', 'object_type', 'object_name', 'timestamp']
+
+class CommentSerializer(serializers.ModelSerializer):
+    author = UserSerializer(read_only=True)
+    class Meta:
+        model = Comment
+        fields = ['id', 'author', 'content', 'created_at']
+        read_only_fields = ['id', 'author', 'created_at']
