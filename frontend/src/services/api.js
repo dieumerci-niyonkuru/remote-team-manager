@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const BASE = 'http://localhost:8000/api';
+const BASE = 'http://localhost:8000/api'
 
 const api = axios.create({
   baseURL: BASE,
@@ -65,8 +65,6 @@ export const ws = {
 export const proj = {
   list: (wid) => api.get(`/workspaces/${wid}/projects/`),
   create: (wid, d) => api.post(`/workspaces/${wid}/projects/`, d),
-  update: (wid, id, d) => api.patch(`/workspaces/${wid}/projects/${id}/`, d),
-  delete: (wid, id) => api.delete(`/workspaces/${wid}/projects/${id}/`),
 }
 
 export const task = {
@@ -77,27 +75,25 @@ export const task = {
   subtasks: (wid, pid, id) => api.get(`/workspaces/${wid}/projects/${pid}/tasks/${id}/subtasks/`),
   addSubtask: (wid, pid, id, d) => api.post(`/workspaces/${wid}/projects/${pid}/tasks/${id}/subtasks/`, d),
   logTime: (wid, pid, id, d) => api.post(`/workspaces/${wid}/projects/${pid}/tasks/${id}/timelogs/`, d),
-  attachments: (wid, pid, id) => api.get(`/workspaces/${wid}/projects/${pid}/tasks/${id}/attachments/`),
-  uploadAttachment: (wid, pid, id, file) => {
-    const formData = new FormData()
-    formData.append('file', file)
-    return api.post(`/workspaces/${wid}/projects/${pid}/tasks/${id}/attachments/`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    })
-  },
 }
 
 export const jobsApi = {
-  list: (wid) => api.get(`/hr/workspaces/${wid}/jobs/`),
-  create: (wid, data) => api.post(`/hr/workspaces/${wid}/jobs/`, data),
+  list: (wid) => api.get(`/workspaces/${wid}/jobs/`),
+  create: (wid, data) => api.post(`/workspaces/${wid}/jobs/`, data),
 }
 
 export const chat = {
-  channels: (wid) => api.get(`/chat/workspaces/${wid}/channels/`),
-  createChannel: (wid, data) => api.post(`/chat/workspaces/${wid}/channels/`, data),
-  messages: (cid) => api.get(`/chat/channels/${cid}/messages/`),
-  sendMessage: (cid, data) => api.post(`/chat/channels/${cid}/messages/`, data),
-  addReaction: (mid, emoji) => api.post(`/chat/messages/${mid}/reactions/`, { emoji }),
+  channels: (wid) => api.get(`/workspaces/${wid}/channels/`),
+  createChannel: (wid, data) => api.post(`/workspaces/${wid}/channels/`, data),
+  messages: (cid) => api.get(`/channels/${cid}/messages/`),
+  sendMessage: (cid, data) => api.post(`/channels/${cid}/messages/`, data),
+  addReaction: (mid, emoji) => api.post(`/messages/${mid}/reactions/`, { emoji }),
+}
+
+export const notifications = {
+  list: () => api.get('/notifications/'),
+  markRead: (id) => api.patch(`/notifications/${id}/read/`),
+  countUnread: () => api.get('/notifications/unread-count/'),
 }
 
 export default api
