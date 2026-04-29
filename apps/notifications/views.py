@@ -2,13 +2,13 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from .models import Notification
+from .serializers import NotificationSerializer
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def notification_list(request):
-    notifications = Notification.objects.filter(recipient=request.user).order_by('-created_at')[:50]
-    from .serializers import NotificationSerializer
-    return Response({'data': NotificationSerializer(notifications, many=True).data, 'message': 'Success'})
+    notifs = Notification.objects.filter(recipient=request.user).order_by('-created_at')[:50]
+    return Response({'data': NotificationSerializer(notifs, many=True).data, 'message': 'Success'})
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -19,7 +19,7 @@ def unread_count(request):
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
 def mark_read(request, pk):
-    notification = Notification.objects.get(pk=pk, recipient=request.user)
-    notification.read = True
-    notification.save()
-    return Response({'data': None, 'message': 'Marked as read'})
+    notif = Notification.objects.get(pk=pk, recipient=request.user)
+    notif.read = True
+    notif.save()
+    return Response({'data': None, 'message': 'Marked read'})
