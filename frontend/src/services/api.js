@@ -17,32 +17,6 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 )
 
-api.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true
-      const refreshToken = localStorage.getItem('rtm_refresh')
-      if (refreshToken) {
-        try {
-          const { data } = await axios.post(`${BASE}/auth/token/refresh/`, { refresh: refreshToken })
-          localStorage.setItem('rtm_access', data.access)
-          originalRequest.headers.Authorization = `Bearer ${data.access}`
-          return api(originalRequest)
-        } catch (e) {
-          localStorage.clear()
-          window.location.href = '/login'
-        }
-      } else {
-        localStorage.clear()
-        window.location.href = '/login'
-      }
-    }
-    return Promise.reject(error)
-  }
-)
-
 export const auth = {
   register: (d) => api.post('/auth/register/', d),
   login: (d) => api.post('/auth/login/', d),
@@ -87,9 +61,14 @@ export const task = {
   },
 }
 
-export const comments = {
-  list: (wid, pid, tid) => api.get(`/workspaces/${wid}/projects/${pid}/tasks/${tid}/comments/`),
-  create: (wid, pid, tid, content, parentId = null) => api.post(`/workspaces/${wid}/projects/${pid}/tasks/${tid}/comments/`, { content, parent: parentId }),
+export const jobs = {
+  list: (wid) => api.get(`/workspaces/${wid}/jobs/`),
+  create: (wid, d) => api.post(`/workspaces/${wid}/jobs/`, d),
+}
+
+export const channels = {
+  list: (wid) => api.get(`/workspaces/${wid}/channels/`),
+  create: (wid, d) => api.post(`/workspaces/${wid}/channels/`, d),
 }
 
 export const notifications = {
@@ -98,14 +77,25 @@ export const notifications = {
   countUnread: () => api.get('/notifications/unread-count/'),
 }
 
-export const directMessages = {
-  conversations: (wid) => api.get(`/workspaces/${wid}/direct-messages/`),
-  messages: (convoId) => api.get(`/direct-messages/${convoId}/messages/`),
-  send: (convoId, content) => api.post(`/direct-messages/${convoId}/messages/`, { content }),
-}
-
-export const ai = {
-  suggestTask: (taskData) => api.post('/ai/suggest/', taskData),
-}
-
 export default api
+
+export const chat = {
+  channels: (wid) => api.get(`/workspaces/${wid}/channels/`),
+  createChannel: (wid, data) => api.post(`/workspaces/${wid}/channels/`, data),
+  messages: (cid) => api.get(`/channels/${cid}/messages/`),
+  sendMessage: (cid, data) => api.post(`/channels/${cid}/messages/`, data),
+  addReaction: (mid, emoji) => api.post(`/messages/${mid}/reactions/`, { emoji }),
+}
+
+export const chat = {
+  channels: (wid) => api.get(`/chat/workspaces/${wid}/channels/`),
+  createChannel: (wid, data) => api.post(`/chat/workspaces/${wid}/channels/`, data),
+  messages: (cid) => api.get(`/chat/channels/${cid}/messages/`),
+  sendMessage: (cid, data) => api.post(`/chat/channels/${cid}/messages/`, data),
+  addReaction: (mid, emoji) => api.post(`/chat/messages/${mid}/reactions/`, { emoji }),
+}
+
+export const jobsApi = {
+  list: (wid) => api.get(`/hr/workspaces/${wid}/jobs/`),
+  create: (wid, data) => api.post(`/hr/workspaces/${wid}/jobs/`, data),
+}
