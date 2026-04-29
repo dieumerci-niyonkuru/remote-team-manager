@@ -1,7 +1,6 @@
 import axios from 'axios'
 
-// Hardcoded to the new Railway backend URL
-const BASE = 'https://web-production-655e4.up.railway.app/api'
+const BASE = 'https://remote-team-manager.up.railway.app/api'
 
 const api = axios.create({
   baseURL: BASE,
@@ -78,6 +77,30 @@ export const task = {
   subtasks: (wid, pid, id) => api.get(`/workspaces/${wid}/projects/${pid}/tasks/${id}/subtasks/`),
   addSubtask: (wid, pid, id, d) => api.post(`/workspaces/${wid}/projects/${pid}/tasks/${id}/subtasks/`, d),
   logTime: (wid, pid, id, d) => api.post(`/workspaces/${wid}/projects/${pid}/tasks/${id}/timelogs/`, d),
+  attachments: (wid, pid, id) => api.get(`/workspaces/${wid}/projects/${pid}/tasks/${id}/attachments/`),
+  uploadAttachment: (wid, pid, id, file) => {
+    const formData = new FormData()
+    formData.append('file', file)
+    return api.post(`/workspaces/${wid}/projects/${pid}/tasks/${id}/attachments/`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+  },
+}
+
+export const notifications = {
+  list: () => api.get('/notifications/'),
+  markRead: (id) => api.patch(`/notifications/${id}/read/`),
+  countUnread: () => api.get('/notifications/unread-count/'),
+}
+
+export const directMessages = {
+  conversations: (wid) => api.get(`/workspaces/${wid}/direct-messages/`),
+  messages: (convoId) => api.get(`/direct-messages/${convoId}/messages/`),
+  send: (convoId, content) => api.post(`/direct-messages/${convoId}/messages/`, { content }),
+}
+
+export const ai = {
+  suggestTask: (taskData) => api.post('/ai/suggest/', taskData),
 }
 
 export default api
