@@ -4,12 +4,7 @@ from django.http import JsonResponse
 from django.utils import timezone
 
 def health_check(request):
-    return JsonResponse({
-        'status': 'ok',
-        'message': 'Remote Team Manager is running',
-        'timestamp': timezone.now().isoformat(),
-        'version': '1.0.0',
-    })
+    return JsonResponse({'status': 'ok', 'message': 'Running', 'timestamp': timezone.now().isoformat()})
 
 urlpatterns = [
     path('admin/', admin.site.urls),
