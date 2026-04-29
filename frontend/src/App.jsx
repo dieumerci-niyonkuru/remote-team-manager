@@ -14,12 +14,16 @@ import Chat from './pages/Chat'
 import Knowledge from './pages/Knowledge'
 import Employees from './pages/Employees'
 import Performance from './pages/Performance'
+import Calendar from './pages/Calendar'
+import Files from './pages/Files'
+import Analytics from './pages/Analytics'
+import Support from './pages/Support'
 
-const P = ({ children }) => {
+const Protected = ({ children }) => {
   const { isAuth } = useStore()
   return isAuth ? children : <Navigate to="/login" replace />
 }
-const Pub = ({ children }) => {
+const Public = ({ children }) => {
   const { isAuth } = useStore()
   return !isAuth ? children : <Navigate to="/dashboard" replace />
 }
@@ -32,22 +36,26 @@ export default function App() {
         <Routes>
           <Route element={<Layout />}>
             <Route path="/" element={<Home />} />
-            <Route path="/login" element={<Pub><Login /></Pub>} />
-            <Route path="/register" element={<Pub><Register /></Pub>} />
-            <Route path="/dashboard" element={<P><Dashboard /></P>} />
-            <Route path="/workspaces" element={<P><Workspaces /></P>} />
-            <Route path="/workspaces/:id" element={<P><WorkspaceDetail /></P>} />
-            <Route path="/team" element={<P><Team /></P>} />
-            <Route path="/activity" element={<P><Activity /></P>} />
-            <Route path="/chat" element={<P><Chat /></P>} />
-            <Route path="/knowledge" element={<P><Knowledge /></P>} />
-            <Route path="/employees" element={<P><Employees /></P>} />
-            <Route path="/performance" element={<P><Performance /></P>} />
+            <Route path="/login" element={<Public><Login /></Public>} />
+            <Route path="/register" element={<Public><Register /></Public>} />
+            <Route path="/dashboard" element={<Protected><Dashboard /></Protected>} />
+            <Route path="/workspaces" element={<Protected><Workspaces /></Protected>} />
+            <Route path="/workspaces/:id" element={<Protected><WorkspaceDetail /></Protected>} />
+            <Route path="/team" element={<Protected><Team /></Protected>} />
+            <Route path="/activity" element={<Protected><Activity /></Protected>} />
+            <Route path="/chat" element={<Protected><Chat /></Protected>} />
+            <Route path="/knowledge" element={<Protected><Knowledge /></Protected>} />
+            <Route path="/employees" element={<Protected><Employees /></Protected>} />
+            <Route path="/performance" element={<Protected><Performance /></Protected>} />
+            <Route path="/calendar" element={<Protected><Calendar /></Protected>} />
+            <Route path="/files" element={<Protected><Files /></Protected>} />
+            <Route path="/analytics" element={<Protected><Analytics /></Protected>} />
+            <Route path="/support" element={<Protected><Support /></Protected>} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
-      <Toaster position="top-right" toastOptions={{ style:{ borderRadius:10, fontSize:13, fontFamily:'Plus Jakarta Sans, sans-serif' }, duration:3000 }} />
+      <Toaster position="top-right" toastOptions={{ duration: 3000 }} />
     </div>
   )
 }

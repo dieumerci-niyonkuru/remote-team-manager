@@ -75,3 +75,17 @@ class Comment(models.Model):
 
     def __str__(self):
         return f'Comment by {self.author.email} on {self.object_type}'
+
+class DirectMessage(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    workspace = models.ForeignKey('workspaces.Workspace', on_delete=models.CASCADE, related_name='direct_messages')
+    participants = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='direct_messages')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+class DirectMessageText(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    conversation = models.ForeignKey(DirectMessage, on_delete=models.CASCADE, related_name='messages')
+    sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    content = models.TextField()
+    file = models.FileField(upload_to='dm_files/', null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)

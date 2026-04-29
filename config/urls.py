@@ -26,3 +26,9 @@ urlpatterns = [
     path('api/workspaces/<uuid:workspace_pk>/projects/<uuid:project_pk>/tasks/', include('apps.tasks.urls')),
     path('api/workspaces/<uuid:workspace_pk>/activity/', task_views.activity_feed, name='activity-feed'),
 ]
+from apps.ai.views import suggest_task
+from apps.integrations.views import slack_webhook
+urlpatterns += [
+    path('api/ai/suggest/', suggest_task, name='ai-suggest'),
+    path('api/integrations/slack/', slack_webhook, name='slack-webhook'),
+]
