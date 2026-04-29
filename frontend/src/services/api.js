@@ -87,6 +87,11 @@ export const task = {
   },
 }
 
+export const comments = {
+  list: (wid, pid, tid) => api.get(`/workspaces/${wid}/projects/${pid}/tasks/${tid}/comments/`),
+  create: (wid, pid, tid, content, parentId = null) => api.post(`/workspaces/${wid}/projects/${pid}/tasks/${tid}/comments/`, { content, parent: parentId }),
+}
+
 export const notifications = {
   list: () => api.get('/notifications/'),
   markRead: (id) => api.patch(`/notifications/${id}/read/`),
