@@ -10,14 +10,9 @@ import WorkspaceDetail from './pages/WorkspaceDetail'
 import Workspaces from './pages/Workspaces'
 import Team from './pages/Team'
 import Activity from './pages/Activity'
-import Chat from './pages/Chat'
-import Knowledge from './pages/Knowledge'
-import Employees from './pages/Employees'
-import Performance from './pages/Performance'
+import Jobs from './pages/Jobs'
 import Calendar from './pages/Calendar'
-import Files from './pages/Files'
-import Analytics from './pages/Analytics'
-import Support from './pages/Support'
+import Chat from './pages/Chat'
 
 const Protected = ({ children }) => {
   const { isAuth } = useStore()
@@ -43,14 +38,9 @@ export default function App() {
             <Route path="/workspaces/:id" element={<Protected><WorkspaceDetail /></Protected>} />
             <Route path="/team" element={<Protected><Team /></Protected>} />
             <Route path="/activity" element={<Protected><Activity /></Protected>} />
-            <Route path="/chat" element={<Protected><Chat /></Protected>} />
-            <Route path="/knowledge" element={<Protected><Knowledge /></Protected>} />
-            <Route path="/employees" element={<Protected><Employees /></Protected>} />
-            <Route path="/performance" element={<Protected><Performance /></Protected>} />
+            <Route path="/jobs" element={<Protected><Jobs /></Protected>} />
             <Route path="/calendar" element={<Protected><Calendar /></Protected>} />
-            <Route path="/files" element={<Protected><Files /></Protected>} />
-            <Route path="/analytics" element={<Protected><Analytics /></Protected>} />
-            <Route path="/support" element={<Protected><Support /></Protected>} />
+            <Route path="/chat" element={<Protected><Chat /></Protected>} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

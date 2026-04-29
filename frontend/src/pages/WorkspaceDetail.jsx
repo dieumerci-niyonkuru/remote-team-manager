@@ -1,182 +1,259 @@
 import { useEffect, useState } from 'react'
-import { useParams, useNavigate, useLocation } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { useStore } from '../store'
-import { useT } from '../i18n'
 import { ws, proj, task } from '../services/api'
 import toast from 'react-hot-toast'
 
-const COLS = [
-  { key:'todo', label:'To Do', color:'#64748b' },
-  { key:'in_progress', label:'In Progress', color:'#f59e0b' },
-  { key:'done', label:'Done', color:'#22c55e' },
+const COLUMNS = [
+  { key: 'todo', label: 'To Do', color: '#64748b' },
+  { key: 'in_progress', label: 'In Progress', color: '#f59e0b' },
+  { key: 'done', label: 'Done', color: '#22c55e' },
 ]
-const PRI = { low:'badge-blue', medium:'badge-amber', high:'badge-red' }
-const ROLE_BADGE = { owner:'badge-purple', manager:'badge-blue', developer:'badge-green', viewer:'badge-gray' }
-
-const Modal = ({ title, onClose, children }) => (
-  <div className="overlay" onClick={e => e.target===e.currentTarget && onClose()}>
-    <div className="card scale-in" style={{ width:'100%', maxWidth:460, padding:36 }}>
-      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:24 }}>
-        <h3 style={{ fontFamily:'var(--font-display)', fontSize:20, fontWeight:800, color:'var(--text)' }}>{title}</h3>
-        <button className="btn-icon" onClick={onClose}>✕</button>
-      </div>
-      {children}
-    </div>
-  </div>
-)
 
 export default function WorkspaceDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const location = useLocation()
-  const { lang, theme } = useStore()
-  const t = useT(lang)
-  const [data, setData] = useState({ workspace:null, members:[], projects:[], tasks:[], activity:[] })
-  const [activeProj, setActiveProj] = useState(null)
-  const [tab, setTab] = useState('board')
+  const { theme } = useStore()
+  const [workspace, setWorkspace] = useState(null)
+  const [projects, setProjects] = useState([])
+  const [activeProject, setActiveProject] = useState(null)
+  const [tasks, setTasks] = useState([])
+  const [jobs, setJobs] = useState([])
+  const [activeTab, setActiveTab] = useState('board')
   const [loading, setLoading] = useState(true)
-  const [modal, setModal] = useState(null)
-  const [form, setForm] = useState({})
+  const [showProjectModal, setShowProjectModal] = useState(false)
+  const [showTaskModal, setShowTaskModal] = useState(false)
+  const [showJobModal, setShowJobModal] = useState(false)
+  const [newProject, setNewProject] = useState({ name: '', description: '' })
+  const [newTask, setNewTask] = useState({ title: '', description: '', status: 'todo', priority: 'medium' })
+  const [newJob, setNewJob] = useState({ title: '', description: '', location: 'Remote', requirements: '' })
   const [saving, setSaving] = useState(false)
-  const [filter, setFilter] = useState({ status:'', priority:'' })
-  const searchQuery = new URLSearchParams(location.search).get('search') || ''
 
-  const load = async () => {
-    try {
-      const [w, m, p, a] = await Promise.all([ws.get(id), ws.members(id), proj.list(id), ws.activity(id)])
-      const projects = p.data.data
-      setData({ workspace:w.data.data, members:m.data.data, projects, tasks:[], activity:a.data.data })
-      if (projects.length) { setActiveProj(projects[0]); loadTasks(projects[0].id) }
-    } catch { navigate('/dashboard') } finally { setLoading(false) }
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const w = await ws.get(id)
+        setWorkspace(w.data.data)
+        const [p, j] = await Promise.all([
+          proj.list(id),
+          fetch(`${import.meta.env.VITE_API_URL || 'https://remote-team-manager-production.up.railway.app/api'}/workspaces/${id}/jobs/`, {
+            headers: { Authorization: `Bearer ${localStorage.getItem('rtm_access')}` }
+          }).then(res => res.json()).catch(() => ({ data: [] }))
+        ])
+        setProjects(p.data.data || [])
+        setJobs(j.data || [])
+        if (p.data.data.length) {
+          setActiveProject(p.data.data[0])
+          const t = await task.list(id, p.data.data[0].id)
+          setTasks(t.data.data || [])
+        }
+      } catch (err) {
+        toast.error('Failed to load workspace')
+        navigate('/dashboard')
+      } finally {
+        setLoading(false)
+      }
+    }
+    load()
+  }, [id])
+
+  const loadTasks = async (projectId) => {
+    const res = await task.list(id, projectId)
+    setTasks(res.data.data || [])
   }
 
-  useEffect(() => { load() }, [id])
-
-  const loadTasks = async pid => {
-    const r = await task.list(id, pid)
-    setData(p => ({...p, tasks:r.data.data}))
-  }
-
-  const openModal = (type, defaults={}) => { setForm(defaults); setModal(type) }
-  const closeModal = () => { setModal(null); setForm({}) }
-
-  const handleCreateTask = async ev => {
-    ev.preventDefault()
-    if (!form.title?.trim()) { toast.error(t.required); return }
+  const handleCreateProject = async (e) => {
+    e.preventDefault()
+    if (!newProject.name.trim()) {
+      toast.error('Project name required')
+      return
+    }
     setSaving(true)
     try {
-      const r = await task.create(id, activeProj.id, form)
-      setData(p => ({...p, tasks:[...p.tasks, r.data.data]}))
-      closeModal(); toast.success('Task created ✅')
-    } catch { toast.error('Failed') } finally { setSaving(false) }
+      const res = await proj.create(id, newProject)
+      const newProj = res.data.data
+      setProjects([...projects, newProj])
+      setActiveProject(newProj)
+      setShowProjectModal(false)
+      setNewProject({ name: '', description: '' })
+      toast.success('Project created!')
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to create project')
+    } finally {
+      setSaving(false)
+    }
   }
 
-  const handleUpdateTask = async (tid, updates) => {
-    try {
-      const r = await task.update(id, activeProj.id, tid, updates)
-      setData(p => ({...p, tasks:p.tasks.map(t => t.id===tid ? r.data.data : t)}))
-    } catch { toast.error('Failed to update') }
-  }
-
-  const handleDeleteTask = async tid => {
-    if (!confirm(t.confirmDelete)) return
-    try {
-      await task.delete(id, activeProj.id, tid)
-      setData(p => ({...p, tasks:p.tasks.filter(t => t.id!==tid)}))
-      toast.success('Deleted')
-    } catch { toast.error('Failed') }
-  }
-
-  const handleCreateProject = async ev => {
-    ev.preventDefault()
-    if (!form.name?.trim()) { toast.error(t.required); return }
+  const handleCreateTask = async (e) => {
+    e.preventDefault()
+    if (!newTask.title.trim()) {
+      toast.error('Task title required')
+      return
+    }
     setSaving(true)
     try {
-      const r = await proj.create(id, form)
-      const p2 = r.data.data
-      setData(p => ({...p, projects:[...p.projects, p2], tasks:[]}))
-      setActiveProj(p2); closeModal(); toast.success('Project created 📁')
-    } catch { toast.error('Failed') } finally { setSaving(false) }
+      const res = await task.create(id, activeProject.id, newTask)
+      setTasks([...tasks, res.data.data])
+      setShowTaskModal(false)
+      setNewTask({ title: '', description: '', status: 'todo', priority: 'medium' })
+      toast.success('Task created!')
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to create task')
+    } finally {
+      setSaving(false)
+    }
   }
 
-  const handleDeleteProject = async () => {
-    if (!confirm(`Delete project "${activeProj.name}"?`)) return
-    try {
-      await proj.delete(id, activeProj.id)
-      const remaining = data.projects.filter(p => p.id !== activeProj.id)
-      setData(p => ({...p, projects:remaining, tasks:[]}))
-      setActiveProj(remaining[0] || null)
-      if (remaining[0]) loadTasks(remaining[0].id)
-      toast.success('Project deleted')
-    } catch { toast.error('Failed') }
-  }
-
-  const handleInvite = async ev => {
-    ev.preventDefault()
-    if (!form.email) { toast.error(t.required); return }
+  const handleCreateJob = async (e) => {
+    e.preventDefault()
+    if (!newJob.title.trim() || !newJob.description.trim()) {
+      toast.error('Title and description required')
+      return
+    }
     setSaving(true)
     try {
-      const r = await ws.invite(id, form)
-      setData(p => ({...p, members:[...p.members, r.data.data]}))
-      closeModal(); toast.success('Member invited! 🎉')
-    } catch (err) { toast.error(err.response?.data?.message || 'Failed') } finally { setSaving(false) }
+      const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://remote-team-manager-production.up.railway.app/api'}/workspaces/${id}/jobs/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('rtm_access')}`
+        },
+        body: JSON.stringify(newJob)
+      }).then(r => r.json())
+      if (res.data) {
+        setJobs([...jobs, res.data])
+        setShowJobModal(false)
+        setNewJob({ title: '', description: '', location: 'Remote', requirements: '' })
+        toast.success('Job posted!')
+      } else {
+        throw new Error(res.message)
+      }
+    } catch (err) {
+      toast.error(err.message || 'Failed to post job')
+    } finally {
+      setSaving(false)
+    }
   }
 
-  const handleRemoveMember = async uid => {
-    if (!confirm('Remove this member?')) return
+  const updateTaskStatus = async (taskId, newStatus) => {
     try {
-      await ws.removeMember(id, uid)
-      setData(p => ({...p, members:p.members.filter(m => m.user.id!==uid)}))
-      toast.success('Member removed')
-    } catch (err) { toast.error(err.response?.data?.message || 'Failed') }
+      const res = await task.update(id, activeProject.id, taskId, { status: newStatus })
+      setTasks(tasks.map(t => t.id === taskId ? res.data.data : t))
+    } catch (err) {
+      toast.error('Failed to update task')
+    }
   }
 
-  const filteredTasks = data.tasks.filter(tk =>
-    (tk.title.toLowerCase().includes(searchQuery.toLowerCase()) || (tk.description || '').toLowerCase().includes(searchQuery.toLowerCase())) &&
-    (!filter.status || tk.status===filter.status) &&
-    (!filter.priority || tk.priority===filter.priority)
-  )
+  const deleteTask = async (taskId) => {
+    if (!confirm('Delete this task?')) return
+    try {
+      await task.delete(id, activeProject.id, taskId)
+      setTasks(tasks.filter(t => t.id !== taskId))
+      toast.success('Task deleted')
+    } catch (err) {
+      toast.error('Failed to delete task')
+    }
+  }
 
-  if (loading) return <div className={theme} style={{ display:'flex', alignItems:'center', justifyContent:'center', minHeight:'calc(100vh - 64px)' }}><div className="spinner" style={{ width:36, height:36, border:'3px solid var(--border)', borderTop:'3px solid #3366ff' }} /></div>
+  if (loading) return <div className={theme} style={{ textAlign: 'center', padding: '2rem' }}>Loading...</div>
 
   return (
-    <div className={theme} style={{ background:'var(--bg)', minHeight:'calc(100vh - 64px)' }}>
-      <div style={{ background:'var(--bg2)', borderBottom:'1px solid var(--border)', padding:'16px 24px' }}>
-        <div style={{ maxWidth:1400, margin:'0 auto' }}>
-          <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:12, flexWrap:'wrap' }}>
-            <button className="btn-ghost" onClick={() => navigate('/dashboard')} style={{ padding:'6px 10px', fontSize:13 }}>← Back</button>
-            <div style={{ display:'flex', alignItems:'center', gap:10, flex:1 }}><div style={{ width:36, height:36, borderRadius:10, background:'linear-gradient(135deg,#3366ff,#6699ff)', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontFamily:'var(--font-display)', fontWeight:800, fontSize:16 }}>{data.workspace?.name[0]}</div><div><h1 style={{ fontFamily:'var(--font-display)', fontSize:18, fontWeight:800, color:'var(--text)' }}>{data.workspace?.name}</h1>{data.workspace?.description && <p style={{ fontSize:12, color:'var(--text2)' }}>{data.workspace.description}</p>}</div></div>
-            <button className="btn btn-secondary" style={{ padding:'7px 14px', fontSize:13 }} onClick={() => openModal('invite')}>+ Invite</button>
-          </div>
-          <div className="tab-nav" style={{ maxWidth:360 }}>{['board','members','activity'].map(tb => <button key={tb} className={`tab-item ${tab===tb?'active':''}`} onClick={() => setTab(tb)}>{tb==='board'?'📋 Board':tb==='members'?`👥 Members (${data.members.length})`:'⚡ Activity'}</button>)}</div>
+    <div className={theme} style={{ background: 'var(--bg)', minHeight: 'calc(100vh - 64px)', padding: '1rem' }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+        <button onClick={() => navigate('/dashboard')} style={{ background: 'none', border: 'none', fontSize: 20, cursor: 'pointer', marginBottom: 16 }}>← Back</button>
+        <h1>{workspace?.name}</h1>
+        <p>{workspace?.description}</p>
+
+        {/* Tabs */}
+        <div className="tab-nav" style={{ margin: '20px 0', display: 'flex', gap: 8 }}>
+          <button className={activeTab === 'board' ? 'btn-primary btn-sm' : 'btn-secondary btn-sm'} onClick={() => setActiveTab('board')}>Board</button>
+          <button className={activeTab === 'jobs' ? 'btn-primary btn-sm' : 'btn-secondary btn-sm'} onClick={() => setActiveTab('jobs')}>Jobs</button>
         </div>
-      </div>
-      <div style={{ maxWidth:1400, margin:'0 auto', padding:'20px 24px' }}>
-        {tab==='board' && <>
-          <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:20, flexWrap:'wrap' }}>
-            <span style={{ fontSize:12, fontWeight:600, color:'var(--text2)' }}>Projects:</span>
-            {data.projects.map(p => <button key={p.id} onClick={() => { setActiveProj(p); loadTasks(p.id) }} style={{ padding:'5px 14px', borderRadius:20, fontSize:12, fontWeight:600, background:activeProj?.id===p.id?'#3366ff':'var(--bg3)', color:activeProj?.id===p.id?'#fff':'var(--text)', border:`1px solid ${activeProj?.id===p.id?'#3366ff':'var(--border)'}`, cursor:'pointer' }}>📁 {p.name}</button>)}
-            <button onClick={() => openModal('project')} style={{ padding:'5px 14px', borderRadius:20, fontSize:12, fontWeight:600, background:'transparent', color:'#3366ff', border:'1px dashed #3366ff', cursor:'pointer' }}>+ New Project</button>
-            {activeProj && <div style={{ marginLeft:'auto', display:'flex', gap:8, flexWrap:'wrap', alignItems:'center' }}>
-              <select value={filter.status} onChange={e => setFilter(p=>({...p,status:e.target.value}))} style={{ background:'var(--bg3)', border:'1px solid var(--border)', borderRadius:8, padding:'5px 10px', fontSize:12 }}><option value="">{t.filterStatus}</option><option value="todo">To Do</option><option value="in_progress">In Progress</option><option value="done">Done</option></select>
-              <select value={filter.priority} onChange={e => setFilter(p=>({...p,priority:e.target.value}))} style={{ background:'var(--bg3)', border:'1px solid var(--border)', borderRadius:8, padding:'5px 10px', fontSize:12 }}><option value="">{t.filterPriority}</option><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select>
-              <button className="btn btn-danger" style={{ padding:'6px 12px', fontSize:12 }} onClick={handleDeleteProject}>🗑 Delete Project</button>
-              <button className="btn btn-primary" style={{ padding:'7px 16px', fontSize:13 }} onClick={() => openModal('task', { status:'todo', priority:'medium' })}>+ New Task</button>
-            </div>}
+
+        {activeTab === 'board' && (
+          <>
+            <div style={{ display: 'flex', gap: 8, margin: '16px 0', flexWrap: 'wrap' }}>
+              {projects.map(p => (
+                <button
+                  key={p.id}
+                  className={activeProject?.id === p.id ? 'btn-primary btn-sm' : 'btn-secondary btn-sm'}
+                  onClick={() => { setActiveProject(p); loadTasks(p.id) }}
+                >
+                  {p.name}
+                </button>
+              ))}
+              <button className="btn-primary btn-sm" onClick={() => setShowProjectModal(true)}>+ New Project</button>
+            </div>
+
+            {!activeProject ? (
+              <div className="card empty-state">No project selected or created</div>
+            ) : (
+              <>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '16px 0' }}>
+                  <h2>Tasks in {activeProject.name}</h2>
+                  <button className="btn-primary btn-sm" onClick={() => setShowTaskModal(true)}>+ New Task</button>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
+                  {COLUMNS.map(col => {
+                    const colTasks = tasks.filter(t => t.status === col.key)
+                    return (
+                      <div key={col.key} style={{ background: 'var(--bg2)', borderRadius: 12, padding: 12 }}>
+                        <h3 style={{ color: col.color }}>{col.label} ({colTasks.length})</h3>
+                        {colTasks.map(t => (
+                          <div key={t.id} className="card" style={{ padding: 10, marginBottom: 8 }}>
+                            <div><strong>{t.title}</strong></div>
+                            {t.description && <div style={{ fontSize: 12 }}>{t.description}</div>}
+                            <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
+                              {col.key !== 'todo' && <button onClick={() => updateTaskStatus(t.id, 'todo')} className="btn-sm btn-secondary">← Todo</button>}
+                              {col.key !== 'in_progress' && <button onClick={() => updateTaskStatus(t.id, 'in_progress')} className="btn-sm btn-secondary">→ Progress</button>}
+                              {col.key !== 'done' && <button onClick={() => updateTaskStatus(t.id, 'done')} className="btn-sm btn-secondary">✓ Done</button>}
+                              <button onClick={() => deleteTask(t.id)} className="btn-sm btn-danger">🗑</button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )
+                  })}
+                </div>
+              </>
+            )}
+          </>
+        )}
+
+        {activeTab === 'jobs' && (
+          <div>
+            <button className="btn-primary btn-sm" onClick={() => setShowJobModal(true)}>+ Post Job</button>
+            {jobs.length === 0 && <div className="card empty-state">No jobs posted yet</div>}
+            {jobs.map(job => (
+              <div key={job.id} className="card" style={{ marginTop: 12, padding: 16 }}>
+                <h3>{job.title}</h3>
+                <p>{job.description}</p>
+                <div><strong>Location:</strong> {job.location}</div>
+                <div><strong>Status:</strong> {job.status}</div>
+              </div>
+            ))}
           </div>
-          {searchQuery && filteredTasks.length===0 && <div className="card" style={{ marginBottom:16, padding:12, textAlign:'center', color:'#3366ff', background:'var(--brand-bg)' }}>🔍 {t.searchResults}: "{searchQuery}" — {t.noTasks}</div>}
-          {!activeProj ? <div className="card empty-state"><div className="empty-icon">📁</div><div className="empty-title">{t.noProjects}</div><button className="btn btn-primary" onClick={() => openModal('project')}>+ New Project</button></div> : <div style={{ display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:16, alignItems:'start' }}>{COLS.map(col => { const colTasks = filteredTasks.filter(tk => tk.status===col.key); return <div key={col.key} style={{ background:'var(--bg2)', border:'1px solid var(--border)', borderRadius:14, padding:16 }}><div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14 }}><div style={{ display:'flex', alignItems:'center', gap:8 }}><div style={{ width:8, height:8, borderRadius:'50%', background:col.color }} /><span style={{ fontSize:13, fontWeight:700, color:'var(--text)' }}>{col.label}</span></div><span style={{ fontSize:11, background:'var(--bg3)', border:'1px solid var(--border)', borderRadius:20, padding:'2px 8px', color:'var(--text2)' }}>{colTasks.length}</span></div><div style={{ display:'flex', flexDirection:'column', gap:10 }}>{colTasks.map(tk => <div key={tk.id} className="card" style={{ padding:14, borderLeft:`3px solid ${col.color}` }}><div style={{ fontWeight:700, fontSize:13, color:'var(--text)', marginBottom:6 }}>{tk.title}</div>{tk.description && <div style={{ fontSize:12, color:'var(--text2)', marginBottom:8 }}>{tk.description}</div>}<div style={{ display:'flex', gap:5, flexWrap:'wrap', marginBottom:8 }}><span className={`badge ${PRI[tk.priority]}`}>{tk.priority}</span>{tk.assignee && <span className="badge badge-gray">👤 {tk.assignee.first_name}</span>}{tk.due_date && <span className="badge badge-gray">📅 {tk.due_date}</span>}</div>{tk.progress>0 && <div><div className="progress-track"><div className="progress-fill" style={{ width:`${tk.progress}%` }} /></div><div style={{ fontSize:10, color:'var(--text2)', marginTop:3 }}>{tk.progress}% done</div></div>}<div style={{ display:'flex', gap:6, marginTop:10 }}>{col.key!=='todo' && <button onClick={() => handleUpdateTask(tk.id,{status:'todo'})} style={{ background:'rgba(100,116,139,0.1)', color:'var(--text2)', padding:'3px 8px', fontSize:10, borderRadius:6, cursor:'pointer' }}>← Todo</button>}{col.key!=='in_progress' && <button onClick={() => handleUpdateTask(tk.id,{status:'in_progress'})} style={{ background:'rgba(245,158,11,0.1)', color:'#d97706', padding:'3px 8px', fontSize:10, borderRadius:6, cursor:'pointer' }}>⟳ Progress</button>}{col.key!=='done' && <button onClick={() => handleUpdateTask(tk.id,{status:'done'})} style={{ background:'rgba(34,197,94,0.1)', color:'#16a34a', padding:'3px 8px', fontSize:10, borderRadius:6, cursor:'pointer' }}>✓ Done</button>}<button onClick={() => handleDeleteTask(tk.id)} style={{ marginLeft:'auto', background:'rgba(239,68,68,0.1)', color:'#dc2626', border:'none', padding:'3px 8px', fontSize:10, borderRadius:6, cursor:'pointer' }}>🗑</button></div></div>)}</div><div>{colTasks.length===0 && <div style={{ textAlign:'center', padding:'20px 0', fontSize:12, color:'var(--text3)' }}>No tasks</div>}</div></div>})}</div>}
-        </>}
-        {tab==='members' && <>
-          <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}><h2 style={{ fontFamily:'var(--font-display)', fontSize:18, fontWeight:800, color:'var(--text)' }}>Team Members ({data.members.length})</h2><button className="btn btn-primary" onClick={() => openModal('invite')}>+ Invite Member</button></div>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(300px, 1fr))', gap:14 }}>{data.members.map(m => <div key={m.id} className="card" style={{ padding:18, display:'flex', alignItems:'center', gap:14 }}><div className="avatar" style={{ width:44, height:44, fontSize:14 }}>{m.user.first_name[0]}{m.user.last_name[0]}</div><div style={{ flex:1 }}><div style={{ fontWeight:700, fontSize:14, color:'var(--text)' }}>{m.user.first_name} {m.user.last_name}</div><div style={{ fontSize:12, color:'var(--text2)' }}>{m.user.email}</div><div style={{ fontSize:11, color:'var(--text3)', marginTop:2 }}>Joined {new Date(m.joined_at).toLocaleDateString()}</div></div><div><span className={`badge ${ROLE_BADGE[m.role]}`}>{m.role}</span>{m.role !== 'owner' && <button onClick={() => handleRemoveMember(m.user.id)} style={{ background:'rgba(239,68,68,0.08)', color:'#dc2626', border:'none', borderRadius:6, padding:'2px 8px', fontSize:10, cursor:'pointer', marginTop:4 }}>Remove</button>}</div></div>)}</div>
-        </>}
-        {tab==='activity' && <>
-          <h2 style={{ fontFamily:'var(--font-display)', fontSize:18, fontWeight:800, color:'var(--text)', marginBottom:20 }}>{t.activityFeed}</h2>
-          {data.activity.length===0 ? <div className="card empty-state"><div className="empty-icon">⚡</div><div className="empty-title">{t.noActivity}</div></div> : <div style={{ display:'flex', flexDirection:'column', gap:8 }}>{data.activity.map(a => <div key={a.id} className="card" style={{ padding:'14px 18px', display:'flex', alignItems:'center', gap:14 }}><div className="avatar" style={{ width:36, height:36, fontSize:12 }}>{a.actor?.first_name?.[0]}{a.actor?.last_name?.[0]}</div><div style={{ flex:1 }}><span style={{ fontWeight:700, color:'var(--text)', fontSize:13 }}>{a.actor?.first_name} </span><span className={`badge ${a.action==='created'?'badge-green':a.action==='deleted'?'badge-red':'badge-amber'}`}>{a.action}</span><span style={{ fontSize:13, color:'var(--text2)', marginLeft:6 }}>{a.object_type}: <strong>{a.object_name}</strong></span></div><span style={{ fontSize:11, color:'var(--text3)', whiteSpace:'nowrap' }}>{new Date(a.timestamp).toLocaleString()}</span></div>)}</div>}
-        </>}
+        )}
+
+        {/* Modals (unchanged) */}
+        {showProjectModal && (
+          <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowProjectModal(false)}>
+            <div className="modal-content"><h3>New Project</h3><input className="input" placeholder="Name" value={newProject.name} onChange={e => setNewProject({...newProject, name: e.target.value})} /><textarea className="input-textarea" placeholder="Description" rows="3" value={newProject.description} onChange={e => setNewProject({...newProject, description: e.target.value})} /><div style={{ display: 'flex', gap: 8, marginTop: 16 }}><button className="btn-secondary" onClick={() => setShowProjectModal(false)}>Cancel</button><button className="btn-primary" onClick={handleCreateProject} disabled={saving}>{saving ? 'Creating...' : 'Create'}</button></div></div>
+          </div>
+        )}
+
+        {showTaskModal && activeProject && (
+          <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowTaskModal(false)}>
+            <div className="modal-content"><h3>New Task</h3><input className="input" placeholder="Title" value={newTask.title} onChange={e => setNewTask({...newTask, title: e.target.value})} /><textarea className="input-textarea" placeholder="Description" rows="2" value={newTask.description} onChange={e => setNewTask({...newTask, description: e.target.value})} /><div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}><select className="input" value={newTask.status} onChange={e => setNewTask({...newTask, status: e.target.value})}><option value="todo">To Do</option><option value="in_progress">In Progress</option><option value="done">Done</option></select><select className="input" value={newTask.priority} onChange={e => setNewTask({...newTask, priority: e.target.value})}><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select></div><div style={{ display: 'flex', gap: 8, marginTop: 16 }}><button className="btn-secondary" onClick={() => setShowTaskModal(false)}>Cancel</button><button className="btn-primary" onClick={handleCreateTask} disabled={saving}>{saving ? 'Creating...' : 'Create Task'}</button></div></div>
+          </div>
+        )}
+
+        {showJobModal && (
+          <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowJobModal(false)}>
+            <div className="modal-content"><h3>Post a Job</h3><input className="input" placeholder="Title" value={newJob.title} onChange={e => setNewJob({...newJob, title: e.target.value})} /><textarea className="input-textarea" placeholder="Description" rows="4" value={newJob.description} onChange={e => setNewJob({...newJob, description: e.target.value})} /><input className="input" placeholder="Location" style={{ marginTop: 8 }} value={newJob.location} onChange={e => setNewJob({...newJob, location: e.target.value})} /><textarea className="input-textarea" placeholder="Requirements" rows="3" value={newJob.requirements} onChange={e => setNewJob({...newJob, requirements: e.target.value})} /><div style={{ display: 'flex', gap: 8, marginTop: 16 }}><button className="btn-secondary" onClick={() => setShowJobModal(false)}>Cancel</button><button className="btn-primary" onClick={handleCreateJob} disabled={saving}>{saving ? 'Posting...' : 'Post'}</button></div></div>
+          </div>
+        )}
       </div>
-      {/* Modals (simplified) - we assume they exist from previous code */}
     </div>
   )
 }

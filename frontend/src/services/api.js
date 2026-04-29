@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const BASE = 'https://remote-team-manager-production.up.railway.app/api'
+const BASE = 'http://localhost:8000/api';
 
 const api = axios.create({
   baseURL: BASE,
@@ -15,6 +15,32 @@ api.interceptors.request.use(
     return config
   },
   (error) => Promise.reject(error)
+)
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true
+      const refreshToken = localStorage.getItem('rtm_refresh')
+      if (refreshToken) {
+        try {
+          const { data } = await axios.post(`${BASE}/auth/token/refresh/`, { refresh: refreshToken })
+          localStorage.setItem('rtm_access', data.access)
+          originalRequest.headers.Authorization = `Bearer ${data.access}`
+          return api(originalRequest)
+        } catch (e) {
+          localStorage.clear()
+          window.location.href = '/login'
+        }
+      } else {
+        localStorage.clear()
+        window.location.href = '/login'
+      }
+    }
+    return Promise.reject(error)
+  }
 )
 
 export const auth = {
@@ -61,30 +87,9 @@ export const task = {
   },
 }
 
-export const jobs = {
-  list: (wid) => api.get(`/workspaces/${wid}/jobs/`),
-  create: (wid, d) => api.post(`/workspaces/${wid}/jobs/`, d),
-}
-
-export const channels = {
-  list: (wid) => api.get(`/workspaces/${wid}/channels/`),
-  create: (wid, d) => api.post(`/workspaces/${wid}/channels/`, d),
-}
-
-export const notifications = {
-  list: () => api.get('/notifications/'),
-  markRead: (id) => api.patch(`/notifications/${id}/read/`),
-  countUnread: () => api.get('/notifications/unread-count/'),
-}
-
-export default api
-
-export const chat = {
-  channels: (wid) => api.get(`/workspaces/${wid}/channels/`),
-  createChannel: (wid, data) => api.post(`/workspaces/${wid}/channels/`, data),
-  messages: (cid) => api.get(`/channels/${cid}/messages/`),
-  sendMessage: (cid, data) => api.post(`/channels/${cid}/messages/`, data),
-  addReaction: (mid, emoji) => api.post(`/messages/${mid}/reactions/`, { emoji }),
+export const jobsApi = {
+  list: (wid) => api.get(`/hr/workspaces/${wid}/jobs/`),
+  create: (wid, data) => api.post(`/hr/workspaces/${wid}/jobs/`, data),
 }
 
 export const chat = {
@@ -95,7 +100,4 @@ export const chat = {
   addReaction: (mid, emoji) => api.post(`/chat/messages/${mid}/reactions/`, { emoji }),
 }
 
-export const jobsApi = {
-  list: (wid) => api.get(`/hr/workspaces/${wid}/jobs/`),
-  create: (wid, data) => api.post(`/hr/workspaces/${wid}/jobs/`, data),
-}
+export default api
