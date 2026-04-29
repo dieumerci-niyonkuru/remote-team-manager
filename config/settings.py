@@ -303,3 +303,11 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
 ]
 CORS_ALLOW_CREDENTIALS = True
+
+# CORS – allow your Netlify frontend
+CORS_ALLOWED_ORIGINS = [
+    "https://remote-team-manager.netlify.app",
+    "http://localhost:5173",
+    "http://localhost:3000",
+]
+CORS_ALLOW_CREDENTIALS = True
