@@ -10,7 +10,7 @@ export default function Jobs() {
   const [jobList, setJobList] = useState([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
-  const [newJob, setNewJob] = useState({ title: '', description: '', location: 'Remote', requirements: '' })
+  const [newJob, setNewJob] = useState({ title: '', description: '', location: 'Remote', requirements: '', salary_min: '', salary_max: '', currency: 'USD' })
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
@@ -38,7 +38,7 @@ export default function Jobs() {
       const res = await jobsApi.create(activeWs.id, newJob)
       setJobList([...jobList, res.data.data])
       setShowModal(false)
-      setNewJob({ title: '', description: '', location: 'Remote', requirements: '' })
+      setNewJob({ title: '', description: '', location: 'Remote', requirements: '', salary_min: '', salary_max: '', currency: 'USD' })
       toast.success('Job posted!')
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to post job')
@@ -68,7 +68,7 @@ export default function Jobs() {
                 <div key={job.id} className="card" style={{ padding: 16 }}>
                   <h3>{job.title}</h3>
                   <p>{job.description}</p>
-                  <small>Location: {job.location} | Status: {job.status}</small>
+                  <small>📍 {job.location} | 💰 {job.currency} {job.salary_min} - {job.salary_max} | Status: {job.status}</small>
                 </div>
               ))}
             </div>
@@ -84,6 +84,10 @@ export default function Jobs() {
               <input className="input" placeholder="Job title" value={newJob.title} onChange={e => setNewJob({...newJob, title: e.target.value})} required />
               <textarea className="input-textarea" placeholder="Description" rows="4" value={newJob.description} onChange={e => setNewJob({...newJob, description: e.target.value})} required />
               <input className="input" placeholder="Location" style={{ marginTop: 8 }} value={newJob.location} onChange={e => setNewJob({...newJob, location: e.target.value})} />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 8 }}>
+                <input className="input" placeholder="Min salary" type="number" value={newJob.salary_min} onChange={e => setNewJob({...newJob, salary_min: e.target.value})} />
+                <input className="input" placeholder="Max salary" type="number" value={newJob.salary_max} onChange={e => setNewJob({...newJob, salary_max: e.target.value})} />
+              </div>
               <textarea className="input-textarea" placeholder="Requirements" rows="3" value={newJob.requirements} onChange={e => setNewJob({...newJob, requirements: e.target.value})} />
               <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
                 <button type="button" className="btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
