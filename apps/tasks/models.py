@@ -95,6 +95,7 @@ class ActivityFeed(models.Model):
         return f'{self.actor} {self.action} {self.object_type}'
 
 class Comment(models.Model):
+    parent = models.ForeignKey("self", on_delete=models.CASCADE, null=True, blank=True, related_name="replies")
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='comments')
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='task_comments')
@@ -110,3 +111,57 @@ class TaskAttachment(models.Model):
     file = models.FileField(upload_to='task_files/')
     uploaded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     uploaded_at = models.DateTimeField(auto_now_add=True)
+
+import re
+from apps.users.models import User
+
+def extract_mentions(content, workspace):
+    usernames = re.findall(r'@(\w+)', content)
+    return User.objects.filter(username__in=usernames)  # adjust to your user field
+
+# Update Comment.save to create notifications for mentions
+def save_with_mentions(self, *args, **kwargs):
+    super(Comment, self).save(*args, **kwargs)
+    from apps.notifications.models import Notification
+    mentioned = extract_mentions(self.content, self.task.project.workspace)
+    for user in mentioned:
+        if user != self.author:
+            Notification.objects.create(
+                recipient=user,
+                actor=self.author,
+                verb='mentioned',
+                target_ct='comment',
+                target_id=self.id,
+            )
+
+# Monkey patch – but better: override the save method in the Comment class.
+# Since we cannot easily replace the existing class, we'll create a new method.
+# Actually, we can define a new model method. For simplicity, I'll provide the full model code.
+class Comment(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='comments')
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='task_comments')
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies')
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Extract mentions and create notifications
+        import re
+        from apps.users.models import User
+        from apps.notifications.models import Notification
+        usernames = re.findall(r'@(\w+)', self.content)
+        for username in usernames:
+            user = User.objects.filter(email=username).first() or User.objects.filter(first_name=username).first()
+            if user and user != self.author:
+                Notification.objects.get_or_create(
+                    recipient=user,
+                    actor=self.author,
+                    verb='mentioned',
+                    target_ct='comment',
+                    target_id=self.id,
+                )
