@@ -1,4 +1,4 @@
 [deploy]
-startCommand = "bash start_railway.sh"
+startCommand = "bash start.sh"
 healthcheckPath = "/api/health/"
 restartPolicyType = "ON_FAILURE"
