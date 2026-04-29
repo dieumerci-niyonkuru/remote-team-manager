@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom'
 import { useStore } from '../../store'
-import NotificationBell from "../NotificationBell";
 import { useT } from '../../i18n'
 import { auth } from '../../services/api'
 import toast from 'react-hot-toast'
 import AIAssistant from '../common/AIAssistant'
+import Footer from './Footer'
+import NotificationBell from '../NotificationBell'
 
 export default function Layout() {
   const { isAuth, user, logout, theme, setTheme, lang, setLang } = useStore()
@@ -18,9 +19,9 @@ export default function Layout() {
   const navItems = [
     { to: '/dashboard', icon: '📊', label: t.dashboard },
     { to: '/workspaces', icon: '🏢', label: t.workspaces },
-    { to: '/chat', icon: '💬', label: t.chat || 'Chat' },
+    { to: '/chat', icon: '💬', label: 'Chat' },
     { to: '/jobs', icon: '💼', label: 'Jobs' },
-    { to: '/calendar', icon: '📅', label: t.calendar || 'Calendar' },
+    { to: '/calendar', icon: '📅', label: 'Calendar' },
     { to: '/team', icon: '👥', label: t.team },
     { to: '/activity', icon: '⚡', label: t.activity },
   ]
@@ -40,14 +41,19 @@ export default function Layout() {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
+  // Public layout (no sidebar, but has footer)
   if (!isAuth) {
     return (
-      <div className={theme} style={{ minHeight: '100vh', background: 'var(--bg)' }}>
-        <Outlet />
+      <div className={theme} style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg)' }}>
+        <main style={{ flex: 1 }}>
+          <Outlet />
+        </main>
+        <Footer />
       </div>
     )
   }
 
+  // Authenticated layout with left sidebar
   return (
     <div className={theme} style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg)' }}>
       {/* Sidebar */}
@@ -69,19 +75,13 @@ export default function Layout() {
         <div style={{ padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--border)' }}>
           {!collapsed && (
             <Link to="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
-              <div style={{ width: 32, height: 32, borderRadius: 8, background: 'linear-gradient(135deg, #4f46e5, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold' }}>R</div>
-                <NotificationBell />
-                <NotificationBell />
-                <NotificationBell />
-              <span style={{ fontWeight: 'bold', color: 'var(--text)' }}>RemoteTeam</span>
+              <div style={{ width: 32, height: 32, borderRadius: 8, background: 'linear-gradient(135deg, #4f46e5, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold', fontSize: '1.2rem' }}>R</div>
+              <span style={{ fontWeight: 'bold', color: 'var(--text)', fontSize: '0.9rem' }}>RemoteTeam</span>
             </Link>
           )}
           {collapsed && (
             <Link to="/dashboard" style={{ margin: '0 auto' }}>
-              <div style={{ width: 32, height: 32, borderRadius: 8, background: 'linear-gradient(135deg, #4f46e5, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold' }}>R</div>
-                <NotificationBell />
-                <NotificationBell />
-                <NotificationBell />
+              <div style={{ width: 32, height: 32, borderRadius: 8, background: 'linear-gradient(135deg, #4f46e5, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold', fontSize: '1.2rem' }}>R</div>
             </Link>
           )}
           <button onClick={() => setCollapsed(!collapsed)} style={{ background: 'none', border: 'none', fontSize: 18, cursor: 'pointer', color: 'var(--text2)' }}>
@@ -105,50 +105,68 @@ export default function Layout() {
                 textDecoration: 'none',
                 background: pathname === item.to ? 'var(--brand-bg)' : 'transparent',
                 color: pathname === item.to ? '#4f46e5' : 'var(--text2)',
-                transition: '0.15s'
+                transition: '0.15s',
+                fontSize: '0.9rem',
+                fontWeight: 500
               }}
             >
-              <span style={{ fontSize: 18 }}>{item.icon}</span>
-              {!collapsed && <span style={{ fontSize: 14, fontWeight: 500 }}>{item.label}</span>}
+              <span style={{ fontSize: '1.2rem' }}>{item.icon}</span>
+              {!collapsed && <span>{item.label}</span>}
             </Link>
           ))}
         </nav>
 
-        {/* Bottom section */}
+        {/* Bottom section with user, notifications, theme, logout */}
         <div style={{ padding: '12px 8px', borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 8 }}>
           {!collapsed && (
             <>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg, #4f46e5, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold' }}>
-                <NotificationBell />
-                <NotificationBell />
-                <NotificationBell />
-                  {user?.first_name?.[0]}{user?.last_name?.[0]}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg, #4f46e5, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold', fontSize: '0.8rem' }}>
+                    {user?.first_name?.[0]}{user?.last_name?.[0]}
+                  </div>
+                  <div style={{ flex: 1, overflow: 'hidden' }}>
+                    <div style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text)' }}>{user?.first_name} {user?.last_name}</div>
+                    <div style={{ fontSize: '0.65rem', color: 'var(--text2)' }}>{user?.email}</div>
+                  </div>
                 </div>
-                <div style={{ flex: 1, overflow: 'hidden' }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>{user?.first_name} {user?.last_name}</div>
-                  <div style={{ fontSize: 11, color: 'var(--text2)' }}>{user?.email}</div>
-                </div>
+                <NotificationBell />
               </div>
-              <button onClick={handleLogout} style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: 'none', borderRadius: 8, padding: '8px', cursor: 'pointer', fontSize: 13, fontWeight: 500 }}>
-                Logout
-              </button>
+              <div style={{ display: 'flex', gap: 8, justifyContent: 'space-between', marginTop: 4 }}>
+                <select value={lang} onChange={e => setLang(e.target.value)} style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 6, padding: '5px 8px', fontSize: '0.7rem', color: 'var(--text2)', flex: 1 }}>
+                  <option value="en">🇬🇧 EN</option>
+                  <option value="fr">🇫🇷 FR</option>
+                  <option value="rw">🇷🇼 RW</option>
+                </select>
+                <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 6, padding: '5px 8px', fontSize: '0.8rem', cursor: 'pointer', color: 'var(--text2)' }}>
+                  {theme === 'dark' ? '☀️' : '🌙'}
+                </button>
+                <button onClick={handleLogout} style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: 'none', borderRadius: 6, padding: '5px 8px', fontSize: '0.7rem', cursor: 'pointer', fontWeight: 500 }}>
+                  Logout
+                </button>
+              </div>
             </>
           )}
           {collapsed && (
-            <button onClick={handleLogout} style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: 'none', borderRadius: 8, padding: '8px', cursor: 'pointer', fontSize: 13, width: '100%' }}>
-              🚪
-            </button>
+            <>
+              <NotificationBell />
+              <button onClick={handleLogout} style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: 'none', borderRadius: 8, padding: '8px', cursor: 'pointer', fontSize: '1rem' }}>
+                🚪
+              </button>
+            </>
           )}
         </div>
       </aside>
 
       {/* Main content */}
-      <main style={{ flex: 1, marginLeft: collapsed ? 70 : 240, transition: 'margin-left 0.2s', minHeight: '100vh' }}>
-        <Outlet />
+      <main style={{ flex: 1, marginLeft: collapsed ? 70 : 240, transition: 'margin-left 0.2s', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ flex: 1 }}>
+          <Outlet />
+        </div>
+        <Footer />
       </main>
 
-      {/* Mobile menu button (visible on small screens) */}
+      {/* Mobile menu button */}
       <button
         onClick={() => setMobileOpen(!mobileOpen)}
         style={{

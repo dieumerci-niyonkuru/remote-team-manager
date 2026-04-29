@@ -237,3 +237,20 @@ h3 {
   .input, select { padding: 0.6rem 0.8rem; font-size: 0.85rem; }
   .modal-content { padding: 1rem; }
 }
+
+/* Improve global font sizes and readability */
+body {
+  font-size: 16px;
+}
+h1 { font-size: 1.8rem; }
+h2 { font-size: 1.5rem; }
+h3 { font-size: 1.2rem; }
+.btn, .input, .label, .nav-link, .sidebar-link {
+  font-size: 0.9rem;
+}
+@media (max-width: 768px) {
+  body { font-size: 14px; }
+  h1 { font-size: 1.5rem; }
+  h2 { font-size: 1.3rem; }
+  .btn, .input { font-size: 0.8rem; }
+}
