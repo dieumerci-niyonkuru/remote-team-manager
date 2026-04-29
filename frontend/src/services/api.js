@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const BASE = 'https://remote-team-manager.up.railway.app/api'
+const BASE = 'https://remote-team-manager-production.up.railway.app/api'
 
 const api = axios.create({
   baseURL: BASE,
