@@ -20,8 +20,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ===========================
 SECRET_KEY = config('SECRET_KEY', default='django-insecure-fallback-key-2026-xyz-9876')
 DEBUG = config('DEBUG', default=False, cast=bool)
-# ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,.railway.app', cast=Csv())
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='.railway.app,localhost,web-production-655e4.up.railway.app', cast=Csv())
+# ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', 'remote-team-manager-production.up.railway.app']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', 'remote-team-manager-production.up.railway.app']
 # Trusted origins for CSRF (important for Django admin login)
 CSRF_TRUSTED_ORIGINS = [
     'https://remote-team-manager-production.up.railway.app',
