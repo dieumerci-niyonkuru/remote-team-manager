@@ -20,7 +20,7 @@ class Channel(models.Model):
     is_pinned   = models.BooleanField(default=False)
     created_at  = models.DateTimeField(auto_now_add=True)
 
-    class Meta:
+        class Meta:
         ordering = ['name']
         unique_together = ['workspace', 'name']
 
@@ -39,7 +39,7 @@ class Message(models.Model):
     created_at  = models.DateTimeField(auto_now_add=True)
     updated_at  = models.DateTimeField(auto_now=True)
 
-    class Meta:
+        class Meta:
         ordering = ['created_at']
 
     def __str__(self):
@@ -53,14 +53,14 @@ class Reaction(models.Model):
     emoji      = models.CharField(max_length=10)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    class Meta:
+        class Meta:
         unique_together = ['message', 'user', 'emoji']
 
     def __str__(self):
         return f'{self.emoji} by {self.user.email}'
 
 
-class Comment(models.Model):
+class ChatComment(models.Model):
     id           = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     workspace    = models.ForeignKey(Workspace, on_delete=models.CASCADE, related_name='comments')
     author       = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='comments')
@@ -70,7 +70,7 @@ class Comment(models.Model):
     created_at   = models.DateTimeField(auto_now_add=True)
     updated_at   = models.DateTimeField(auto_now=True)
 
-    class Meta:
+        class Meta:
         ordering = ['created_at']
 
     def __str__(self):
