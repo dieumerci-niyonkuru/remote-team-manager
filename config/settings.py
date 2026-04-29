@@ -57,7 +57,6 @@ LOCAL_APPS = [
     'apps.workspaces',
     'apps.projects',
     'apps.tasks',
-    'apps.chat',
     'apps.knowledge',
     'apps.hr',
 ]
