@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const BASE = 'http://localhost:8000/api'
+const BASE = process.env.NODE_ENV === 'development' ? 'http://localhost:8000/api' : 'https://remote-team-manager-production.up.railway.app/api'
 
 const api = axios.create({
   baseURL: BASE,
@@ -30,7 +30,7 @@ api.interceptors.response.use(
           localStorage.setItem('rtm_access', data.access)
           originalRequest.headers.Authorization = `Bearer ${data.access}`
           return api(originalRequest)
-        } catch (e) {
+        } catch {
           localStorage.clear()
           window.location.href = '/login'
         }
@@ -65,6 +65,8 @@ export const ws = {
 export const proj = {
   list: (wid) => api.get(`/workspaces/${wid}/projects/`),
   create: (wid, d) => api.post(`/workspaces/${wid}/projects/`, d),
+  update: (wid, id, d) => api.patch(`/workspaces/${wid}/projects/${id}/`, d),
+  delete: (wid, id) => api.delete(`/workspaces/${wid}/projects/${id}/`),
 }
 
 export const task = {
@@ -78,22 +80,18 @@ export const task = {
 }
 
 export const jobsApi = {
-  list: (wid) => api.get(`/workspaces/${wid}/jobs/`),
-  create: (wid, data) => api.post(`/workspaces/${wid}/jobs/`, data),
+  list: (wid) => api.get(`/hr/workspaces/${wid}/jobs/`),
+  create: (wid, data) => api.post(`/hr/workspaces/${wid}/jobs/`, data),
+  delete: (wid, id) => api.delete(`/hr/workspaces/${wid}/jobs/${id}/`),
 }
 
 export const chat = {
-  channels: (wid) => api.get(`/workspaces/${wid}/channels/`),
-  createChannel: (wid, data) => api.post(`/workspaces/${wid}/channels/`, data),
-  messages: (cid) => api.get(`/channels/${cid}/messages/`),
-  sendMessage: (cid, data) => api.post(`/channels/${cid}/messages/`, data),
-  addReaction: (mid, emoji) => api.post(`/messages/${mid}/reactions/`, { emoji }),
-}
-
-export const notifications = {
-  list: () => api.get('/notifications/'),
-  markRead: (id) => api.patch(`/notifications/${id}/read/`),
-  countUnread: () => api.get('/notifications/unread-count/'),
+  channels: (wid) => api.get(`/chat/workspaces/${wid}/channels/`),
+  createChannel: (wid, data) => api.post(`/chat/workspaces/${wid}/channels/`, data),
+  deleteChannel: (wid, id) => api.delete(`/chat/workspaces/${wid}/channels/${id}/`),
+  messages: (cid) => api.get(`/chat/channels/${cid}/messages/`),
+  sendMessage: (cid, data) => api.post(`/chat/channels/${cid}/messages/`, data),
+  addReaction: (mid, emoji) => api.post(`/chat/messages/${mid}/reactions/`, { emoji }),
 }
 
 export default api

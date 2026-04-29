@@ -10,7 +10,7 @@ export default function Jobs() {
   const [jobList, setJobList] = useState([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
-  const [newJob, setNewJob] = useState({ title: '', description: '', location: 'Remote', requirements: '', salary_min: '', salary_max: '', currency: 'USD' })
+  const [newJob, setNewJob] = useState({ title: '', description: '', location: 'Remote', requirements: '' })
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
@@ -38,7 +38,7 @@ export default function Jobs() {
       const res = await jobsApi.create(activeWs.id, newJob)
       setJobList([...jobList, res.data.data])
       setShowModal(false)
-      setNewJob({ title: '', description: '', location: 'Remote', requirements: '', salary_min: '', salary_max: '', currency: 'USD' })
+      setNewJob({ title: '', description: '', location: 'Remote', requirements: '' })
       toast.success('Job posted!')
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to post job')
@@ -47,51 +47,68 @@ export default function Jobs() {
     }
   }
 
-  if (loading) return <div className={theme}>Loading...</div>
+  const deleteJob = async (jobId) => {
+    if (!confirm('Delete this job posting?')) return
+    try {
+      await jobsApi.delete(activeWs.id, jobId)
+      setJobList(jobList.filter(j => j.id !== jobId))
+      toast.success('Job deleted')
+    } catch (err) {
+      toast.error('Failed to delete job')
+    }
+  }
+
+  const countries = ['Remote', 'Rwanda', 'Kenya', 'Nigeria', 'South Africa', 'USA', 'UK', 'France', 'Germany', 'Canada', 'India', 'Brazil', 'Australia']
+
+  if (loading) return <div className={theme} style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>
 
   return (
-    <div className={theme} style={{ background: 'var(--bg)', minHeight: 'calc(100vh - 64px)', padding: '2rem' }}>
-      <div className="container">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <h1>💼 Job Postings</h1>
+    <div className={theme} style={{ padding: '2rem', background: 'var(--bg)', minHeight: 'calc(100vh - 64px)' }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+          <h1 style={{ fontSize: '1.8rem', fontWeight: 700 }}>💼 Job Postings</h1>
           <select value={activeWs?.id || ''} onChange={e => setActiveWs(workspaces.find(w => w.id === e.target.value))} className="input" style={{ width: 200 }}>
             {workspaces.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
           </select>
         </div>
-        <button className="btn-primary" onClick={() => setShowModal(true)}>+ Post New Job</button>
-        <div style={{ marginTop: 20 }}>
-          {jobList.length === 0 ? (
-            <div className="card empty-state">No jobs posted yet</div>
-          ) : (
-            <div style={{ display: 'grid', gap: 16 }}>
-              {jobList.map(job => (
-                <div key={job.id} className="card" style={{ padding: 16 }}>
-                  <h3>{job.title}</h3>
-                  <p>{job.description}</p>
-                  <small>📍 {job.location} | 💰 {job.currency} {job.salary_min} - {job.salary_max} | Status: {job.status}</small>
+        <button className="btn-primary" onClick={() => setShowModal(true)} style={{ marginBottom: 20, borderRadius: 30 }}>+ Post New Job</button>
+        {jobList.length === 0 ? (
+          <div className="card empty-state">No jobs posted yet</div>
+        ) : (
+          <div style={{ display: 'grid', gap: 16 }}>
+            {jobList.map(job => (
+              <div key={job.id} className="card" style={{ padding: 16 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div style={{ flex: 1 }}>
+                    <h3 style={{ fontSize: '1.2rem', fontWeight: 600, marginBottom: 8 }}>{job.title}</h3>
+                    <p style={{ marginBottom: 8 }}>{job.description}</p>
+                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                      <span className="badge badge-blue">📍 {job.location}</span>
+                      <span className="badge badge-gray">{job.status}</span>
+                    </div>
+                  </div>
+                  <button onClick={() => deleteJob(job.id)} className="btn-danger" style={{ padding: '4px 12px', borderRadius: 20, fontSize: 12 }}>Delete</button>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {showModal && (
         <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowModal(false)}>
-          <div className="modal-content">
+          <div className="modal-content" style={{ borderRadius: 20 }}>
             <h3>Post a Job</h3>
             <form onSubmit={handleCreateJob}>
               <input className="input" placeholder="Job title" value={newJob.title} onChange={e => setNewJob({...newJob, title: e.target.value})} required />
               <textarea className="input-textarea" placeholder="Description" rows="4" value={newJob.description} onChange={e => setNewJob({...newJob, description: e.target.value})} required />
-              <input className="input" placeholder="Location" style={{ marginTop: 8 }} value={newJob.location} onChange={e => setNewJob({...newJob, location: e.target.value})} />
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 8 }}>
-                <input className="input" placeholder="Min salary" type="number" value={newJob.salary_min} onChange={e => setNewJob({...newJob, salary_min: e.target.value})} />
-                <input className="input" placeholder="Max salary" type="number" value={newJob.salary_max} onChange={e => setNewJob({...newJob, salary_max: e.target.value})} />
-              </div>
+              <select className="input" value={newJob.location} onChange={e => setNewJob({...newJob, location: e.target.value})}>
+                {countries.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
               <textarea className="input-textarea" placeholder="Requirements" rows="3" value={newJob.requirements} onChange={e => setNewJob({...newJob, requirements: e.target.value})} />
               <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
-                <button type="button" className="btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
-                <button type="submit" className="btn-primary" disabled={saving}>{saving ? 'Posting...' : 'Post Job'}</button>
+                <button type="button" className="btn-secondary" onClick={() => setShowModal(false)} style={{ borderRadius: 30 }}>Cancel</button>
+                <button type="submit" className="btn-primary" disabled={saving} style={{ borderRadius: 30 }}>{saving ? 'Posting...' : 'Post Job'}</button>
               </div>
             </form>
           </div>

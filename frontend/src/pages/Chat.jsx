@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { useStore } from '../store'
 import { ws, chat } from '../services/api'
 import toast from 'react-hot-toast'
-import EmojiPicker from 'emoji-picker-react'
 
 export default function Chat() {
   const { theme } = useStore()
@@ -14,11 +13,8 @@ export default function Chat() {
   const [newMsg, setNewMsg] = useState('')
   const [showNewChannel, setShowNewChannel] = useState(false)
   const [newChannel, setNewChannel] = useState({ name: '', description: '' })
-  const [showEmojiPicker, setShowEmojiPicker] = useState(null)
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
-  const [membersList, setMembersList] = useState([])
-  const [mentionSuggestions, setMentionSuggestions] = useState([])
 
   useEffect(() => {
     ws.list().then(r => {
@@ -29,10 +25,7 @@ export default function Chat() {
   }, [])
 
   useEffect(() => {
-    if (activeWs) {
-      loadChannels()
-      ws.members(activeWs.id).then(r => setMembersList(r.data.data || [])).catch(() => setMembersList([]))
-    }
+    if (activeWs) loadChannels()
   }, [activeWs])
 
   const loadChannels = async () => {
@@ -64,14 +57,6 @@ export default function Chat() {
     } catch (err) { toast.error('Failed to send') } finally { setSending(false) }
   }
 
-  const addReaction = async (messageId, emoji) => {
-    try {
-      await chat.addReaction(messageId, emoji)
-      loadMessages(activeChannel.id)
-      setShowEmojiPicker(null)
-    } catch (err) { console.error(err) }
-  }
-
   const createChannel = async (e) => {
     e.preventDefault()
     if (!newChannel.name.trim()) { toast.error('Channel name required'); return }
@@ -87,36 +72,23 @@ export default function Chat() {
     } catch (err) { toast.error(err.response?.data?.message || 'Failed') } finally { setSending(false) }
   }
 
-  const handleMessageChange = (e) => {
-    const value = e.target.value
-    setNewMsg(value)
-    const cursorPos = e.target.selectionStart
-    const textBeforeCursor = value.slice(0, cursorPos)
-    const lastAtIndex = textBeforeCursor.lastIndexOf('@')
-    if (lastAtIndex !== -1 && cursorPos - lastAtIndex > 1) {
-      const query = textBeforeCursor.slice(lastAtIndex + 1).toLowerCase()
-      const matches = membersList.filter(m => m.user.email.toLowerCase().includes(query) || m.user.first_name.toLowerCase().includes(query))
-      setMentionSuggestions(matches)
-    } else {
-      setMentionSuggestions([])
-    }
-  }
-
-  const insertMention = (user) => {
-    const cursorPos = document.getElementById('chat-input')?.selectionStart || newMsg.length
-    const before = newMsg.slice(0, newMsg.lastIndexOf('@', cursorPos - 1))
-    const after = newMsg.slice(cursorPos)
-    setNewMsg(`${before}@${user.user.first_name} ${after}`)
-    setMentionSuggestions([])
-    document.getElementById('chat-input')?.focus()
+  const deleteChannel = async (channelId) => {
+    if (!confirm('Delete this channel?')) return
+    try {
+      await chat.deleteChannel(activeWs.id, channelId)
+      setChannels(channels.filter(ch => ch.id !== channelId));
+      if (activeChannel?.id === channelId) {
+        setActiveChannel(channels.find(ch => ch.id !== channelId) || null);
+      }
+      toast.success('Channel deleted')
+    } catch (err) { toast.error('Failed to delete channel') }
   }
 
   if (loading) return <div className={theme} style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>
 
   return (
-    <div className={theme} style={{ display: 'flex', height: 'calc(100vh - 64px)', background: 'var(--bg)' }}>
-      {/* Sidebar */}
-      <div style={{ width: 260, background: 'var(--bg2)', borderRight: '1px solid var(--border)', display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+    <div className={theme} style={{ display: 'flex', height: '100vh', background: 'var(--bg)' }}>
+      <div style={{ width: 260, background: 'var(--bg2)', borderRight: '1px solid var(--border)', display: 'flex', flexDirection: 'column' }}>
         <div style={{ padding: '12px', borderBottom: '1px solid var(--border)' }}>
           <select value={activeWs?.id || ''} onChange={e => setActiveWs(workspaces.find(w => w.id === e.target.value))} className="input" style={{ width: '100%' }}>
             {workspaces.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
@@ -124,73 +96,43 @@ export default function Chat() {
         </div>
         <div style={{ flex: 1, padding: '8px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-            <span style={{ fontWeight: 'bold', fontSize: 12, color: 'var(--text2)' }}>Channels</span>
-            <button className="btn-sm btn-secondary" onClick={() => setShowNewChannel(true)} style={{ padding: '2px 6px' }}>+</button>
+            <span style={{ fontWeight: 'bold', fontSize: 12 }}>Channels</span>
+            <button className="btn-sm" onClick={() => setShowNewChannel(true)}>+</button>
           </div>
           {channels.map(ch => (
-            <div
-              key={ch.id}
-              onClick={() => { setActiveChannel(ch); loadMessages(ch.id) }}
-              style={{ padding: '6px 10px', borderRadius: 6, cursor: 'pointer', background: activeChannel?.id === ch.id ? 'var(--brand-bg)' : 'transparent', color: activeChannel?.id === ch.id ? '#3366ff' : 'var(--text2)', marginBottom: 2 }}
-            >
-              # {ch.name}
+            <div key={ch.id} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+              <div
+                onClick={() => { setActiveChannel(ch); loadMessages(ch.id) }}
+                style={{ flex: 1, padding: '6px 10px', borderRadius: 6, cursor: 'pointer', background: activeChannel?.id === ch.id ? 'var(--brand-bg)' : 'transparent', color: activeChannel?.id === ch.id ? '#3366ff' : 'var(--text2)' }}
+              >
+                # {ch.name}
+              </div>
+              <button onClick={() => deleteChannel(ch.id)} className="btn-icon" style={{ fontSize: 12 }}>🗑</button>
             </div>
           ))}
         </div>
       </div>
-
-      {/* Chat area */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         {activeChannel ? (
           <>
             <div style={{ padding: '12px 20px', borderBottom: '1px solid var(--border)', background: 'var(--bg2)' }}>
-              <h3 style={{ margin: 0 }}># {activeChannel.name}</h3>
+              <h3># {activeChannel.name}</h3>
               <small>{activeChannel.description}</small>
             </div>
-            <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>
               {messages.map(msg => (
-                <div key={msg.id} style={{ display: 'flex', gap: 10, position: 'relative' }}>
-                  <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg, #4f46e5, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: 12, flexShrink: 0 }}>
-                    {msg.sender?.first_name?.[0]}{msg.sender?.last_name?.[0]}
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div><strong>{msg.sender?.first_name} {msg.sender?.last_name}</strong> <span style={{ fontSize: 11, color: 'var(--text3)' }}>{new Date(msg.created_at).toLocaleTimeString()}</span></div>
-                    <div style={{ marginTop: 4, whiteSpace: 'pre-wrap' }}>{msg.content}</div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
-                      <button onClick={() => setShowEmojiPicker(showEmojiPicker === msg.id ? null : msg.id)} style={{ background: 'none', border: 'none', fontSize: 16, cursor: 'pointer', color: 'var(--text2)' }}>😊</button>
-                      {showEmojiPicker === msg.id && (
-                        <div style={{ position: 'absolute', bottom: '100%', left: 0, zIndex: 10 }}>
-                          <EmojiPicker onEmojiClick={(emoji) => addReaction(msg.id, emoji.emoji)} />
-                        </div>
-                      )}
-                    </div>
-                    {msg.reactions && Object.keys(msg.reactions).length > 0 && (
-                      <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
-                        {Object.entries(msg.reactions).map(([emoji, count]) => (
-                          <span key={emoji} style={{ background: 'var(--brand-bg)', padding: '2px 6px', borderRadius: 12, fontSize: 11 }}>{emoji} {count}</span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                <div key={msg.id} style={{ marginBottom: 12 }}>
+                  <strong>{msg.sender?.first_name} {msg.sender?.last_name}:</strong> {msg.content}
                 </div>
               ))}
             </div>
-            <form onSubmit={sendMessage} style={{ padding: '12px 20px', borderTop: '1px solid var(--border)', background: 'var(--bg2)', position: 'relative' }}>
-              <input id="chat-input" className="input" value={newMsg} onChange={handleMessageChange} placeholder={`Message #${activeChannel.name} (use @ to mention)`} style={{ width: '100%' }} />
-              {mentionSuggestions.length > 0 && (
-                <div style={{ position: 'absolute', bottom: '100%', left: 0, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 8, maxWidth: 200, zIndex: 10 }}>
-                  {mentionSuggestions.map(m => (
-                    <div key={m.id} onClick={() => insertMention(m)} style={{ padding: '6px 10px', cursor: 'pointer', fontSize: 12, borderBottom: '1px solid var(--border)' }}>
-                      👤 {m.user.first_name} {m.user.last_name}
-                    </div>
-                  ))}
-                </div>
-              )}
-              <button type="submit" className="btn-primary" disabled={sending} style={{ marginTop: 8, width: '100%' }}>Send</button>
+            <form onSubmit={sendMessage} style={{ padding: '12px 20px', borderTop: '1px solid var(--border)', display: 'flex', gap: 8 }}>
+              <input type="text" className="input" value={newMsg} onChange={e => setNewMsg(e.target.value)} placeholder="Type a message..." style={{ flex: 1 }} />
+              <button type="submit" className="btn-primary" disabled={sending}>Send</button>
             </form>
           </>
         ) : (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text2)' }}>Select a channel to start chatting</div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>Select a channel to start chatting</div>
         )}
       </div>
 
@@ -200,7 +142,7 @@ export default function Chat() {
           <div className="modal-content">
             <h3>Create Channel</h3>
             <form onSubmit={createChannel}>
-              <input className="input" placeholder="Channel name" value={newChannel.name} onChange={e => setNewChannel({ ...newChannel, name: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-') })} required />
+              <input className="input" placeholder="Channel name" value={newChannel.name} onChange={e => setNewChannel({ ...newChannel, name: e.target.value })} required />
               <textarea className="input-textarea" placeholder="Description" rows="2" value={newChannel.description} onChange={e => setNewChannel({ ...newChannel, description: e.target.value })} />
               <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
                 <button type="button" className="btn-secondary" onClick={() => setShowNewChannel(false)}>Cancel</button>
