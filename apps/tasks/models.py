@@ -30,9 +30,6 @@ class Task(models.Model):
     class Meta:
         ordering = ['-created_at']
 
-    def __str__(self):
-        return f'{self.title} [{self.status}]'
-
     def update_progress(self):
         subtasks = self.subtasks.all()
         if not subtasks.exists():
@@ -51,9 +48,6 @@ class Subtask(models.Model):
     class Meta:
         ordering = ['created_at']
 
-    def __str__(self):
-        return f'{self.title} ({"done" if self.is_completed else "pending"})'
-
 class TimeLog(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='timelogs')
@@ -65,9 +59,6 @@ class TimeLog(models.Model):
 
     class Meta:
         ordering = ['-logged_at']
-
-    def __str__(self):
-        return f'{self.user.email} — {self.hours}h on {self.task.title}'
 
 class ActivityFeed(models.Model):
     class Action(models.TextChoices):
@@ -86,9 +77,6 @@ class ActivityFeed(models.Model):
 
     class Meta:
         ordering = ['-timestamp']
-
-    def __str__(self):
-        return f'{self.actor} {self.action} {self.object_type}'
 
 class TaskAttachment(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -110,13 +98,14 @@ class Comment(models.Model):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        # Extract mentions and create notifications (placeholder)
         import re
         from apps.users.models import User
         from apps.notifications.models import Notification
-        usernames = re.findall(r'@(\w+)', self.content)
-        for username in usernames:
-            user = User.objects.filter(email=username).first() or User.objects.filter(first_name=username).first()
+        usernames = re.findall(r'@([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)', self.content)
+        if not usernames:
+            usernames = re.findall(r'@(\w+)', self.content)
+        for name in usernames:
+            user = User.objects.filter(email=name).first() or User.objects.filter(first_name__iexact=name).first()
             if user and user != self.author:
                 Notification.objects.get_or_create(
                     recipient=user,
