@@ -296,3 +296,10 @@ CORS_ALLOW_CREDENTIALS = True
 # ASGI_APPLICATION = 'config.asgi.application'
 # Ensure workspaces app is properly configured
 CORS_ALLOW_ALL_ORIGINS = True
+
+# CORS - allow Netlify frontend
+CORS_ALLOWED_ORIGINS = [
+    "https://remote-team-manager.netlify.app",
+    "http://localhost:5173",
+]
+CORS_ALLOW_CREDENTIALS = True
