@@ -1,6 +1,7 @@
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from django.shortcuts import get_object_or_404
 from apps.workspaces.models import Workspace, WorkspaceMember
 from .models import Channel, Message, Reaction
 from .serializers import ChannelSerializer, MessageSerializer
@@ -14,7 +15,6 @@ def channel_list(request, workspace_pk):
     if request.method == 'GET':
         channels = workspace.channels.all()
         return Response({'data': ChannelSerializer(channels, many=True).data, 'message': 'Success'})
-    # POST: create channel
     serializer = ChannelSerializer(data=request.data)
     if serializer.is_valid():
         channel = serializer.save(workspace=workspace, created_by=request.user)
@@ -49,4 +49,7 @@ def add_reaction(request, message_pk):
     if not emoji:
         return Response({'data': None, 'message': 'Emoji required'}, status=400)
     reaction, created = Reaction.objects.get_or_create(message=message, user=request.user, emoji=emoji)
+    if not created:
+        reaction.delete()
+        return Response({'data': None, 'message': 'Reaction removed'}, status=200)
     return Response({'data': None, 'message': 'Reaction added'}, status=201)

@@ -9,11 +9,11 @@ class Channel(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True, default='')
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='created_channels')
-    members = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='channels')
+    members = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='channels', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"#{self.name}"
+        return f'#{self.name}'
 
 class Message(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
