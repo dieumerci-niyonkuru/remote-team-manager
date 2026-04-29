@@ -128,7 +128,11 @@ export default function Chat() {
             <button className="btn-sm btn-secondary" onClick={() => setShowNewChannel(true)} style={{ padding: '2px 6px' }}>+</button>
           </div>
           {channels.map(ch => (
-            <div key={ch.id} onClick={() => { setActiveChannel(ch); loadMessages(ch.id) }} style={{ padding: '6px 10px', borderRadius: 6, cursor: 'pointer', background: activeChannel?.id === ch.id ? 'var(--brand-bg)' : 'transparent', color: activeChannel?.id === ch.id ? '#3366ff' : 'var(--text2)', marginBottom: 2 }}>
+            <div
+              key={ch.id}
+              onClick={() => { setActiveChannel(ch); loadMessages(ch.id) }}
+              style={{ padding: '6px 10px', borderRadius: 6, cursor: 'pointer', background: activeChannel?.id === ch.id ? 'var(--brand-bg)' : 'transparent', color: activeChannel?.id === ch.id ? '#3366ff' : 'var(--text2)', marginBottom: 2 }}
+            >
               # {ch.name}
             </div>
           ))}
@@ -172,7 +176,7 @@ export default function Chat() {
               ))}
             </div>
             <form onSubmit={sendMessage} style={{ padding: '12px 20px', borderTop: '1px solid var(--border)', background: 'var(--bg2)', position: 'relative' }}>
-              <input id="chat-input" className="input" value={newMsg} onChange={handleMessageChange} placeholder={`Message #${activeChannel.name} (use @ to mention)`} style={{ flex: 1, width: '100%' }} />
+              <input id="chat-input" className="input" value={newMsg} onChange={handleMessageChange} placeholder={`Message #${activeChannel.name} (use @ to mention)`} style={{ width: '100%' }} />
               {mentionSuggestions.length > 0 && (
                 <div style={{ position: 'absolute', bottom: '100%', left: 0, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 8, maxWidth: 200, zIndex: 10 }}>
                   {mentionSuggestions.map(m => (
