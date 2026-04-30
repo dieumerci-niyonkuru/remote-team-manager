@@ -1,68 +1,52 @@
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework import viewsets, permissions, status
+from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.shortcuts import get_object_or_404
-from apps.workspaces.models import Workspace, WorkspaceMember
-from .models import Project
-from .serializers import ProjectSerializer, CreateProjectSerializer
+from .models import Project, Task, Subtask, Comment, Reaction
+from .serializers import ProjectSerializer, TaskSerializer, SubtaskSerializer, CommentSerializer, ReactionSerializer
+from apps.workspaces.permissions import IsWorkspaceMember
 
-def success_response(data=None, message='Success', status_code=200):
-    return Response({'data': data, 'message': message}, status=status_code)
+class ProjectViewSet(viewsets.ModelViewSet):
+    serializer_class = ProjectSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
-def error_response(message='Error', status_code=400):
-    return Response({'data': None, 'message': message}, status=status_code)
+    def get_queryset(self):
+        # Filter projects by user's workspaces
+        return Project.objects.filter(workspace__members=self.request.user)
 
-def get_user_role(workspace, user):
-    try:
-        return WorkspaceMember.objects.get(workspace=workspace, user=user).role
-    except WorkspaceMember.DoesNotExist:
-        return None
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
 
-@api_view(['GET', 'POST'])
-@permission_classes([IsAuthenticated])
-def project_list(request, workspace_pk):
-    workspace = get_object_or_404(Workspace, pk=workspace_pk)
-    role = get_user_role(workspace, request.user)
-    if role is None:
-        return error_response('You are not a member of this workspace.', 403)
+class TaskViewSet(viewsets.ModelViewSet):
+    serializer_class = TaskSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
-    if request.method == 'GET':
-        projects = Project.objects.filter(workspace=workspace)
-        return success_response(data=ProjectSerializer(projects, many=True).data)
+    def get_queryset(self):
+        return Task.objects.filter(project__workspace__members=self.request.user)
 
-    # Only owner or manager can create projects
-    if role not in [WorkspaceMember.Role.OWNER, WorkspaceMember.Role.MANAGER]:
-        return error_response('Only Owner or Manager can create projects.', 403)
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
 
-    serializer = CreateProjectSerializer(data=request.data)
-    if serializer.is_valid():
-        project = serializer.save(workspace=workspace, created_by=request.user)
-        return success_response(data=ProjectSerializer(project).data, message='Project created.', status_code=201)
-    return Response({'data': None, 'message': serializer.errors}, status=400)
-
-@api_view(['GET', 'PATCH', 'DELETE'])
-@permission_classes([IsAuthenticated])
-def project_detail(request, workspace_pk, pk):
-    workspace = get_object_or_404(Workspace, pk=workspace_pk)
-    project = get_object_or_404(Project, pk=pk, workspace=workspace)
-    role = get_user_role(workspace, request.user)
-    if role is None:
-        return error_response('You are not a member of this workspace.', 403)
-
-    if request.method == 'GET':
-        return success_response(data=ProjectSerializer(project).data)
-
-    if request.method == 'PATCH':
-        if role not in [WorkspaceMember.Role.OWNER, WorkspaceMember.Role.MANAGER]:
-            return error_response('Only Owner or Manager can update projects.', 403)
-        serializer = CreateProjectSerializer(project, data=request.data, partial=True)
+    @action(detail=True, methods=['post'])
+    def add_subtask(self, request, pk=None):
+        task = self.get_object()
+        serializer = SubtaskSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()
-            return success_response(data=ProjectSerializer(project).data, message='Project updated.')
-        return Response({'data': None, 'message': serializer.errors}, status=400)
+            serializer.save(task=task)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    if request.method == 'DELETE':
-        if role != WorkspaceMember.Role.OWNER:
-            return error_response('Only the Owner can delete projects.', 403)
-        project.delete()
-        return success_response(message='Project deleted.')
+    @action(detail=True, methods=['post'])
+    def add_comment(self, request, pk=None):
+        task = self.get_object()
+        serializer = CommentSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(task=task, user=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class ReactionViewSet(viewsets.ModelViewSet):
+    serializer_class = ReactionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return Reaction.objects.filter(comment__task__project__workspace__members=self.request.user)

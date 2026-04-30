@@ -1,0 +1,43 @@
+# ===========================
+# Remote Team Manager
+# requirements.txt
+# ===========================
+
+# Django Core
+Django==4.2.11
+djangorestframework==3.14.0
+
+# Authentication
+djangorestframework-simplejwt==5.3.1
+
+# Database
+psycopg2-binary==2.9.9
+dj-database-url==2.1.0
+
+# Configuration
+python-decouple==3.8
+
+# Filtering
+django-filter==23.5
+
+# CORS
+django-cors-headers==4.3.1
+
+# Production server
+gunicorn==21.2.0
+
+# API Docs
+drf-spectacular==0.27.1
+
+# Testing
+pytest==8.1.1
+pytest-django==4.8.0
+pytest-cov==5.0.0
+factory-boy==3.3.0
+
+# Code Quality
+flake8==7.0.0
+channels==4.1.0
+channels-redis==4.2.1
+channels==4.1.0
+channels-redis==4.2.1

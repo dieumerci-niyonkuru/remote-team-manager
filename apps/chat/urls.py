@@ -1,8 +1,8 @@
-from django.urls import path
-from . import views
+from rest_framework.routers import DefaultRouter
+from .views import ChannelViewSet, MessageViewSet, MessageReactionViewSet
 
-urlpatterns = [
-    path('workspaces/<uuid:workspace_pk>/channels/', views.channel_list, name='channel-list'),
-    path('channels/<uuid:channel_pk>/messages/', views.message_list, name='message-list'),
-    path('messages/<uuid:message_pk>/reactions/', views.add_reaction, name='add-reaction'),
-]
+router = DefaultRouter()
+router.register(r'channels', ChannelViewSet)
+router.register(r'messages', MessageViewSet)
+router.register(r'reactions', MessageReactionViewSet)
+urlpatterns = router.urls

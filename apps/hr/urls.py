@@ -1,6 +1,8 @@
-from django.urls import path
-from . import views
+from rest_framework.routers import DefaultRouter
+from .views import EmployeeProfileViewSet, JobPostingViewSet, PayrollRecordViewSet
 
-urlpatterns = [
-    path('workspaces/<uuid:workspace_pk>/jobs/', views.job_list, name='job-list'),
-]
+router = DefaultRouter()
+router.register(r'employee-profiles', EmployeeProfileViewSet)
+router.register(r'job-postings', JobPostingViewSet)
+router.register(r'payroll', PayrollRecordViewSet)
+urlpatterns = router.urls
