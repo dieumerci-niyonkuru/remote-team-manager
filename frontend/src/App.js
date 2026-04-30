@@ -29,7 +29,12 @@ function Home() {
       .then(res => setStatus(`✅ Backend OK: ${JSON.stringify(res.data)}`))
       .catch(err => setStatus(`❌ Backend error: ${err.message}`));
   }, []);
-  return <h1>Remote Team Manager</h1>;
+  return (
+    <div>
+      <h1>Remote Team Manager</h1>
+      <p>{status}</p>
+    </div>
+  );
 }
 
 function Teams() {

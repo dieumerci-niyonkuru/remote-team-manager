@@ -15,5 +15,4 @@ RUN python manage.py collectstatic --noinput
 
 EXPOSE 8000
 
-# Replace config with actual name
 CMD python manage.py migrate && gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
