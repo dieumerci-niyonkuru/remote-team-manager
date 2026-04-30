@@ -1,12 +1,14 @@
 from django.contrib import admin
 from django.urls import path, include
 from django.http import JsonResponse
+from django.http import JsonResponse
 from django.utils import timezone
 
 def health_check(request):
     return JsonResponse({'status': 'ok', 'message': 'Running', 'timestamp': timezone.now().isoformat()})
 
 urlpatterns = [
+    path('api/health/', lambda request: JsonResponse({'status': 'ok'})),
     path('admin/', admin.site.urls),
     path('api/health/', health_check),
     path('api/auth/', include('apps.users.urls')),
