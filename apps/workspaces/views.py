@@ -1,10 +1,13 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from django.utils.timezone import now
 from .models import Workspace, WorkspaceMember
 from .serializers import WorkspaceSerializer, WorkspaceMemberSerializer
-from apps.accounts.serializers import UserSerializer
+from apps.notifications.models import Invite
 from django.conf import settings
+import uuid
+from datetime import timedelta
 
 class WorkspaceViewSet(viewsets.ModelViewSet):
     serializer_class = WorkspaceSerializer
@@ -20,12 +23,11 @@ class WorkspaceViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def add_member(self, request, pk=None):
         workspace = self.get_object()
-        # Check if current user is owner or manager
         try:
             member = workspace.workspacemember_set.get(user=request.user)
             if member.role not in ['owner', 'manager']:
                 return Response({'error': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
-        except:
+        except WorkspaceMember.DoesNotExist:
             return Response({'error': 'Not a member'}, status=status.HTTP_403_FORBIDDEN)
         
         user_id = request.data.get('user_id')
@@ -34,12 +36,28 @@ class WorkspaceViewSet(viewsets.ModelViewSet):
             user = settings.AUTH_USER_MODEL.objects.get(id=user_id)
             WorkspaceMember.objects.get_or_create(workspace=workspace, user=user, defaults={'role': role})
             return Response({'status': 'member added'})
-        except:
+        except settings.AUTH_USER_MODEL.DoesNotExist:
             return Response({'error': 'User not found'}, status=status.HTTP_400_BAD_REQUEST)
 
-from apps.notifications.models import Invite
-from rest_framework.decorators import action
-from rest_framework.response import Response
+    @action(detail=True, methods=['post'])
+    def invite(self, request, pk=None):
+        workspace = self.get_object()
+        email = request.data.get('email')
+        role = request.data.get('role', 'viewer')
+        token = uuid.uuid4().hex
+        expire_days = 7
+        expires_at = now() + timedelta(days=expire_days)
+        Invite.objects.create(
+            workspace=workspace,
+            email=email,
+            invited_by=request.user,
+            role=role,
+            token=token,
+            expires_at=expires_at
+        )
+        # In production: send email with accept link
+        accept_url = f"{request.build_absolute_uri('/invite/')}{token}"
+        return Response({'message': f'Invite sent to {email}', 'accept_url': accept_url})
 
     @action(detail=False, methods=['post'])
     def accept_invite(self, request):
@@ -52,4 +70,4 @@ from rest_framework.response import Response
             invite.save()
             return Response({'message': f'Joined workspace {workspace.name}'})
         except Invite.DoesNotExist:
-            return Response({'error': 'Invalid or expired invite'}, status=400)
+            return Response({'error': 'Invalid or expired invite'}, status=status.HTTP_400_BAD_REQUEST)
