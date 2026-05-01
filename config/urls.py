@@ -6,8 +6,6 @@ def health_check(request):
     return JsonResponse({'status': 'ok'})
 
 urlpatterns = [
-    path('api/', include('apps.presence.urls')),
-    path('api/', include('apps.notifications.urls')),
     path('admin/', admin.site.urls),
     path('api/health/', health_check, name='health'),
     path('api/accounts/', include('apps.accounts.urls')),
@@ -15,4 +13,6 @@ urlpatterns = [
     path('api/', include('apps.projects.urls')),
     path('api/', include('apps.chat.urls')),
     path('api/', include('apps.hr.urls')),
+    path('api/', include('apps.notifications.urls')),
+    path('api/', include('apps.presence.urls')),
 ]
