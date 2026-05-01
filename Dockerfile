@@ -13,6 +13,7 @@ COPY . .
 
 RUN python manage.py collectstatic --noinput
 
-EXPOSE 8080
+EXPOSE 8000
 
-CMD ["sh", "-c", "python manage.py migrate && gunicorn config.wsgi:application --bind 0.0.0.0:8080"]
+# This will print the full error to logs, then keep running
+CMD python manage.py migrate && python manage.py runserver 0.0.0.0:8000
