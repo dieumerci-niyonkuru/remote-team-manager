@@ -1,8 +1,7 @@
 from rest_framework.routers import DefaultRouter
-from .views import ChannelViewSet, MessageViewSet, MessageReactionViewSet
+from .views import ChatRoomViewSet, ChatMessageViewSet
 
 router = DefaultRouter()
-router.register(r'channels', ChannelViewSet, basename='channel')
-router.register(r'messages', MessageViewSet, basename='message')
-router.register(r'reactions', MessageReactionViewSet, basename='chat-reaction')
+router.register(r'rooms', ChatRoomViewSet, basename='chatroom')
+router.register(r'messages', ChatMessageViewSet, basename='chatmessage')
 urlpatterns = router.urls

@@ -107,3 +107,18 @@ SIMPLE_JWT = {
 
 CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='http://localhost:3000').split(',')
 CORS_ALLOW_CREDENTIALS = True
+
+# Channels configuration
+INSTALLED_APPS += ['channels']
+ASGI_APPLICATION = 'config.asgi.application'
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('redis://localhost:6379')],
+        },
+    },
+}
+import os
+if os.environ.get('REDIS_URL'):
+    CHANNEL_LAYERS['default']['CONFIG']['hosts'] = [os.environ['REDIS_URL']]
