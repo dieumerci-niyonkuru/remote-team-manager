@@ -1,0 +1,20 @@
+    @action(detail=True, methods=['post'])
+    def invite(self, request, pk=None):
+        workspace = self.get_object()
+        email = request.data.get('email')
+        role = request.data.get('role', 'viewer')
+        # generate token and send email (simplified)
+        from apps.notifications.models import Invite
+        import uuid
+        token = uuid.uuid4().hex
+        from django.utils.timezone import now, timedelta
+        Invite.objects.create(
+            workspace=workspace,
+            email=email,
+            invited_by=request.user,
+            role=role,
+            token=token,
+            expires_at=now() + timedelta(days=7)
+        )
+        # In production: send email with accept link
+        return Response({'message': 'Invite sent'})

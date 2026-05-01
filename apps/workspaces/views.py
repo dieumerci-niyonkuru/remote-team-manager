@@ -36,3 +36,20 @@ class WorkspaceViewSet(viewsets.ModelViewSet):
             return Response({'status': 'member added'})
         except:
             return Response({'error': 'User not found'}, status=status.HTTP_400_BAD_REQUEST)
+
+from apps.notifications.models import Invite
+from rest_framework.decorators import action
+from rest_framework.response import Response
+
+    @action(detail=False, methods=['post'])
+    def accept_invite(self, request):
+        token = request.data.get('token')
+        try:
+            invite = Invite.objects.get(token=token, expires_at__gt=now(), accepted=False)
+            workspace = invite.workspace
+            workspace.members.add(request.user, through_defaults={'role': invite.role})
+            invite.accepted = True
+            invite.save()
+            return Response({'message': f'Joined workspace {workspace.name}'})
+        except Invite.DoesNotExist:
+            return Response({'error': 'Invalid or expired invite'}, status=400)
