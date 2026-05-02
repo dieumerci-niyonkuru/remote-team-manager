@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import api from '../api';
 import toast from 'react-hot-toast';
-import { FaEdit, FaTrash, FaPlus, FaUserPlus } from 'react-icons/fa';
+import { FaEdit, FaTrash, FaPlus, FaUserPlus, FaFolderOpen } from 'react-icons/fa';
+import { motion } from 'framer-motion';
 
 const WorkspaceSelector = ({ workspaces, onSelect, refresh }) => {
   const [showModal, setShowModal] = useState(false);
@@ -51,19 +52,53 @@ const WorkspaceSelector = ({ workspaces, onSelect, refresh }) => {
   };
 
   return (
-    <div>
-      <div className="flex justify-between mb-4"><h2 className="text-2xl font-bold">Your Workspaces</h2><button onClick={() => { setEditing(null); setName(''); setDescription(''); setShowModal(true); }} className="bg-blue-600 text-white px-4 py-2 rounded flex items-center gap-2"><FaPlus /> New Workspace</button></div>
-      <div className="grid gap-4">
+    <div className="p-4">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold dark:text-white">Your Workspaces</h2>
+        <button onClick={() => { setEditing(null); setName(''); setDescription(''); setShowModal(true); }} className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition transform hover:scale-105">
+          <FaPlus /> Create Workspace
+        </button>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {workspaces.map(ws => (
-          <div key={ws.id} className="bg-white p-4 rounded shadow flex justify-between items-center">
-            <div className="cursor-pointer" onClick={() => onSelect(ws)}><h3 className="text-xl font-semibold">{ws.name}</h3><p className="text-gray-600">{ws.description}</p></div>
-            <div className="flex gap-2"><button onClick={() => edit(ws)} className="text-blue-600"><FaEdit /></button><button onClick={() => del(ws.id)} className="text-red-600"><FaTrash /></button><button onClick={() => setShowInvite(ws.id)} className="text-green-600"><FaUserPlus /></button></div>
-            {showInvite === ws.id && <div className="absolute bg-white p-4 shadow rounded z-10"><input type="email" placeholder="Email" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} className="border p-1 mr-2" /><button onClick={() => sendInvite(ws.id)} className="bg-green-600 text-white px-2 py-1 rounded">Send</button><button onClick={() => setShowInvite(null)} className="ml-2">Cancel</button></div>}
-          </div>
+          <motion.div key={ws.id} whileHover={{ y: -5 }} className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden border border-gray-200 dark:border-gray-700">
+            <div className="p-5 cursor-pointer" onClick={() => onSelect(ws)}>
+              <div className="flex items-center gap-2 mb-2">
+                <FaFolderOpen className="text-purple-500 text-xl" />
+                <h3 className="text-xl font-semibold dark:text-white">{ws.name}</h3>
+              </div>
+              <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">{ws.description || 'No description'}</p>
+              <div className="text-purple-600 text-sm font-medium">Click to open →</div>
+            </div>
+            <div className="border-t border-gray-100 dark:border-gray-700 px-5 py-3 flex justify-end gap-3">
+              <button onClick={() => edit(ws)} className="text-blue-500 hover:text-blue-700 transition" title="Edit"><FaEdit /></button>
+              <button onClick={() => del(ws.id)} className="text-red-500 hover:text-red-700 transition" title="Delete"><FaTrash /></button>
+              <button onClick={() => setShowInvite(ws.id)} className="text-green-500 hover:text-green-700 transition" title="Invite"><FaUserPlus /></button>
+            </div>
+            {showInvite === ws.id && (
+              <div className="px-5 pb-4 flex gap-2">
+                <input type="email" placeholder="Email address" className="flex-1 border rounded px-2 py-1 text-sm dark:bg-gray-700" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} />
+                <button onClick={() => sendInvite(ws.id)} className="bg-green-600 text-white px-3 py-1 rounded text-sm">Send</button>
+                <button onClick={() => setShowInvite(null)} className="bg-gray-500 text-white px-3 py-1 rounded text-sm">Cancel</button>
+              </div>
+            )}
+          </motion.div>
         ))}
       </div>
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"><div className="bg-white p-6 rounded w-96"><h3 className="text-xl font-bold mb-4">{editing ? 'Edit Workspace' : 'Create Workspace'}</h3><form onSubmit={submit}><input type="text" placeholder="Name" className="w-full border p-2 mb-2 rounded" value={name} onChange={e => setName(e.target.value)} required /><textarea placeholder="Description" className="w-full border p-2 mb-4 rounded" value={description} onChange={e => setDescription(e.target.value)} /><div className="flex justify-end gap-2"><button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 border rounded">Cancel</button><button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded">{editing ? 'Update' : 'Create'}</button></div></form></div></div>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-96">
+            <h3 className="text-xl font-bold mb-4 dark:text-white">{editing ? 'Edit Workspace' : 'Create Workspace'}</h3>
+            <form onSubmit={submit}>
+              <input type="text" placeholder="Name" className="w-full border rounded p-2 mb-3 dark:bg-gray-700" value={name} onChange={e => setName(e.target.value)} required />
+              <textarea placeholder="Description" className="w-full border rounded p-2 mb-4 dark:bg-gray-700" value={description} onChange={e => setDescription(e.target.value)} rows={3} />
+              <div className="flex justify-end gap-2">
+                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 border rounded dark:border-gray-600">Cancel</button>
+                <button type="submit" className="px-4 py-2 bg-purple-600 text-white rounded">{editing ? 'Update' : 'Create'}</button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );

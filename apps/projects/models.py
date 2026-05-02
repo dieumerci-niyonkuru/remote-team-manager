@@ -83,3 +83,7 @@ class Reaction(models.Model):
     task = models.ForeignKey('Task', on_delete=models.CASCADE, related_name='reactions', null=True, blank=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     emoji = models.CharField(max_length=10, choices=EMOJI_CHOICES)
+
+class Task(models.Model):
+    # ... existing fields ...
+    estimated_minutes = models.PositiveIntegerField(null=True, blank=True, help_text="Estimated time in minutes")
