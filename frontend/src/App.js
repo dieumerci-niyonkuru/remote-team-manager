@@ -1,5 +1,5 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { I18nextProvider } from 'react-i18next';
 import i18n from './i18n';
 import { ThemeProvider } from './context/ThemeContext';
@@ -31,38 +31,48 @@ function PrivateRoute({ children }) {
   return isAuthenticated ? children : <Navigate to="/login" />;
 }
 
+function AppContent() {
+  const location = useLocation();
+  const hideHeader = location.pathname.startsWith('/dashboard');
+  const [isAIOpen, setAIOpen] = useState(false);
+  return (
+    <div className="flex flex-col min-h-screen">
+      {!hideHeader && <Header onOpenAI={() => setAIOpen(true)} />}
+      <main className="flex-1">
+        <Routes>
+          <Route path="/" element={<Landing />} />
+          <Route path="/features" element={<FeaturesAll />} />
+          <Route path="/task-management" element={<TaskManagement />} />
+          <Route path="/real-time-chat" element={<RealTimeChat />} />
+          <Route path="/analytics" element={<Analytics />} />
+          <Route path="/ai-assistant" element={<AIAssistantPage />} />
+          <Route path="/file-storage" element={<FileStorage />} />
+          <Route path="/pricing" element={<PricingAll />} />
+          <Route path="/pricing/free" element={<PricingFree />} />
+          <Route path="/pricing/pro" element={<PricingPro />} />
+          <Route path="/pricing/enterprise" element={<PricingEnterprise />} />
+          <Route path="/resources" element={<Resources />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/dashboard/*" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+        </Routes>
+      </main>
+      <Footer />
+      <AIAssistant />
+      <ScrollButtons />
+      <Toaster position="top-right" />
+    </div>
+  );
+}
+
 function App() {
-  const [isAIOpen, setAIOpen] = React.useState(false);
   return (
     <I18nextProvider i18n={i18n}>
       <ThemeProvider>
         <AuthProvider>
           <BrowserRouter>
-            <Header onOpenAI={() => setAIOpen(true)} />
-            <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
-              <Routes>
-                <Route path="/" element={<Landing />} />
-                <Route path="/features" element={<FeaturesAll />} />
-                <Route path="/task-management" element={<TaskManagement />} />
-                <Route path="/real-time-chat" element={<RealTimeChat />} />
-                <Route path="/analytics" element={<Analytics />} />
-                <Route path="/ai-assistant" element={<AIAssistantPage />} />
-                <Route path="/file-storage" element={<FileStorage />} />
-                <Route path="/pricing" element={<PricingAll />} />
-                <Route path="/pricing/free" element={<PricingFree />} />
-                <Route path="/pricing/pro" element={<PricingPro />} />
-                <Route path="/pricing/enterprise" element={<PricingEnterprise />} />
-                <Route path="/resources" element={<Resources />} />
-                <Route path="/contact" element={<Contact />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/dashboard/*" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-              </Routes>
-            </main>
-            <Footer />
-            <AIAssistant />
-            <ScrollButtons />
-            <Toaster position="top-right" />
+            <AppContent />
           </BrowserRouter>
         </AuthProvider>
       </ThemeProvider>
