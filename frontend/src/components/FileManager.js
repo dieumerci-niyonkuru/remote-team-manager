@@ -10,9 +10,14 @@ const FileManager = ({ workspace }) => {
   const fetchFiles = async () => {
     if (!workspace) return;
     setLoading(true);
-    const res = await api.get(`/file-attachments/?workspace=${workspace.id}`);
-    setFiles(res.data);
-    setLoading(false);
+    try {
+      const res = await api.get(`/file-attachments/?workspace=${workspace.id}`);
+      setFiles(res.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { fetchFiles(); }, [workspace]);
@@ -24,16 +29,24 @@ const FileManager = ({ workspace }) => {
     formData.append('content_type', 'workspace');
     formData.append('object_id', workspace.id);
     formData.append('file', file);
-    await api.post('/file-attachments/', formData);
-    toast.success('File uploaded');
-    fetchFiles();
+    try {
+      await api.post('/file-attachments/', formData);
+      toast.success('File uploaded');
+      fetchFiles();
+    } catch (err) {
+      toast.error('Upload failed');
+    }
   };
 
   const deleteFile = async (id) => {
     if (window.confirm('Delete file?')) {
-      await api.delete(`/file-attachments/${id}/`);
-      toast.success('Deleted');
-      fetchFiles();
+      try {
+        await api.delete(`/file-attachments/${id}/`);
+        toast.success('Deleted');
+        fetchFiles();
+      } catch (err) {
+        toast.error('Delete failed');
+      }
     }
   };
 
@@ -47,12 +60,15 @@ const FileManager = ({ workspace }) => {
       {!workspace && <p>Select a workspace first.</p>}
       {workspace && (
         <>
-          <label className="cursor-pointer bg-purple-600 text-white px-4 py-2 rounded inline-flex items-center gap-2 mb-4"><FaUpload /> Upload File<input type="file" className="hidden" onChange={uploadFile} /></label>
+          <label className="cursor-pointer bg-purple-600 text-white px-4 py-2 rounded inline-flex items-center gap-2 mb-4">
+            <FaUpload /> Upload File
+            <input type="file" className="hidden" onChange={uploadFile} />
+          </label>
           {loading ? <p>Loading...</p> : (
             <ul className="space-y-2">
               {files.map(f => (
                 <li key={f.id} className="flex justify-between items-center border-b py-2">
-                  <span>{f.filename || f.file.split('/').pop()}</span>
+                  <span className="truncate">{f.filename || f.file.split('/').pop()}</span>
                   <div className="flex gap-2">
                     <button onClick={() => downloadFile(f.file)} className="text-blue-500"><FaDownload /></button>
                     <button onClick={() => deleteFile(f.id)} className="text-red-500"><FaTrash /></button>
