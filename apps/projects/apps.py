@@ -5,4 +5,4 @@ class ProjectsConfig(AppConfig):
     name = 'apps.projects'
 
     def ready(self):
-        import apps.tasks.signals
+        pass  # signals removed to avoid import error
