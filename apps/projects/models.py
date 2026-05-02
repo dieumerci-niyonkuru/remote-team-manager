@@ -69,3 +69,17 @@ class Suggestion(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+
+class Suggestion(models.Model):
+    task = models.ForeignKey('Task', on_delete=models.CASCADE, related_name='suggestions')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+class Reaction(models.Model):
+    EMOJI_CHOICES = [
+        ('👍', '👍'), ('❤️', '❤️'), ('🎉', '🎉'), ('😄', '😄'), ('😢', '😢'), ('😮', '😮'),
+    ]
+    task = models.ForeignKey('Task', on_delete=models.CASCADE, related_name='reactions')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    emoji = models.CharField(max_length=10, choices=EMOJI_CHOICES)
