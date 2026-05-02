@@ -45,3 +45,9 @@ class ProjectSerializer(serializers.ModelSerializer):
         model = Project
         fields = '__all__'
         read_only_fields = ('created_by',)
+
+class ReactionSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    class Meta:
+        model = Reaction
+        fields = ('id', 'user', 'emoji', 'created_at')
