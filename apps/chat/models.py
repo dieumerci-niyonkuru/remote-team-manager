@@ -21,3 +21,4 @@ class ChatMessage(models.Model):
 
     class Meta:
         ordering = ['timestamp']
+    is_public = models.BooleanField(default=False)
