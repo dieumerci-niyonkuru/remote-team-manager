@@ -1,66 +1,75 @@
-from rest_framework import viewsets, permissions
-from .models import Channel, Message, MessageReaction
-from .serializers import ChannelSerializer, MessageSerializer, MessageReactionSerializer
+from rest_framework import viewsets, permissions, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
 from django.db.models import Q
+from .models import Channel, Message, DirectMessage, ChannelMembership, MessageReaction
+from .serializers import ChannelSerializer, MessageSerializer, DirectMessageSerializer
 
 class ChannelViewSet(viewsets.ModelViewSet):
     serializer_class = ChannelSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        # Show channels that are either public OR user is a member of private channel
-        return Channel.objects.filter(
-            Q(is_public=True) | Q(members=self.request.user)
-        )
+        user = self.request.user
+        # User can see public channels in their workspaces + private channels they are members of
+        workspace_ids = user.workspaces.values_list('id', flat=True)
+        public = Q(workspace__in=workspace_ids, is_private=False)
+        member = Q(channelmembership__user=user, channelmembership__is_pending=False)
+        return Channel.objects.filter(public | member).distinct()
 
     def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user)
+        workspace = self.request.data.get('workspace')
+        serializer.save(created_by=self.request.user, workspace_id=workspace)
+
+    @action(detail=True, methods=['post'])
+    def join(self, request, pk=None):
+        channel = self.get_object()
+        membership, created = ChannelMembership.objects.get_or_create(channel=channel, user=request.user)
+        if channel.is_private and not created:
+            return Response({'error': 'Already requested or member'}, status=status.HTTP_400_BAD_REQUEST)
+        membership.is_pending = channel.is_private  # pending if private
+        membership.save()
+        return Response({'status': 'request sent' if channel.is_private else 'joined'})
+
+    @action(detail=True, methods=['post'])
+    def approve_join(self, request, pk=None):
+        channel = self.get_object()
+        if request.user != channel.created_by:
+            return Response({'error': 'Only channel creator can approve'}, status=status.HTTP_403_FORBIDDEN)
+        user_id = request.data.get('user_id')
+        membership = ChannelMembership.objects.get(channel=channel, user_id=user_id)
+        membership.is_pending = False
+        membership.save()
+        return Response({'status': 'approved'})
+
+    @action(detail=True, methods=['get'])
+    def members(self, request, pk=None):
+        channel = self.get_object()
+        memberships = channel.memberships.filter(is_pending=False)
+        return Response(ChannelMembershipSerializer(memberships, many=True).data)
+
+class DirectMessageViewSet(viewsets.ModelViewSet):
+    serializer_class = DirectMessageSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return DirectMessage.objects.filter(participants=self.request.user)
+
+    def perform_create(self, serializer):
+        dm = serializer.save()
+        dm.participants.add(self.request.user)
+        other_user_id = self.request.data.get('other_user')
+        dm.participants.add(other_user_id)
 
 class MessageViewSet(viewsets.ModelViewSet):
     serializer_class = MessageSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        # Only show messages from channels user can access
-        return Message.objects.filter(channel__in=Channel.objects.filter(
-            Q(is_public=True) | Q(members=self.request.user)
-        ))
+        return Message.objects.filter(
+            Q(channel__memberships__user=self.request.user) |
+            Q(direct_message__participants=self.request.user)
+        ).distinct()
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
-        # Check for mentions and create notifications
-        content = serializer.validated_data.get('content', '')
-        import re
-        from django.contrib.auth import get_user_model
-        from apps.notifications.models import Notification
-        User = get_user_model()
-        mentions = re.findall(r'@(\w+)', content)
-        for username in mentions:
-            try:
-                user = User.objects.get(username=username)
-                if user != self.request.user:
-                    Notification.objects.create(
-                        recipient=user,
-                        actor=self.request.user,
-                        verb=f'mentioned you in channel {serializer.validated_data["channel"].name}',
-                        target=serializer.validated_data["channel"]
-                    )
-            except User.DoesNotExist:
-                pass
-
-class MessageReactionViewSet(viewsets.ModelViewSet):
-    serializer_class = MessageReactionSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-    def get_queryset(self):
-        return MessageReaction.objects.filter(message__channel__in=Channel.objects.filter(
-            Q(is_public=True) | Q(members=self.request.user)
-        ))
-
-    def perform_create(self, serializer):
-        # Remove existing reaction from same user on same message if any
-        MessageReaction.objects.filter(
-            message=serializer.validated_data['message'],
-            user=self.request.user
-        ).delete()
         serializer.save(user=self.request.user)
