@@ -8,10 +8,10 @@ from .serializers import ChannelSerializer, MessageSerializer, DirectMessageSeri
 class ChannelViewSet(viewsets.ModelViewSet):
     serializer_class = ChannelSerializer
     permission_classes = [permissions.IsAuthenticated]
+    queryset = Channel.objects.none()  # placeholder
 
     def get_queryset(self):
         user = self.request.user
-        # User can see public channels in their workspaces + private channels they are members of
         workspace_ids = user.workspaces.values_list('id', flat=True)
         public = Q(workspace__in=workspace_ids, is_private=False)
         member = Q(channelmembership__user=user, channelmembership__is_pending=False)
@@ -27,7 +27,7 @@ class ChannelViewSet(viewsets.ModelViewSet):
         membership, created = ChannelMembership.objects.get_or_create(channel=channel, user=request.user)
         if channel.is_private and not created:
             return Response({'error': 'Already requested or member'}, status=status.HTTP_400_BAD_REQUEST)
-        membership.is_pending = channel.is_private  # pending if private
+        membership.is_pending = channel.is_private
         membership.save()
         return Response({'status': 'request sent' if channel.is_private else 'joined'})
 
@@ -46,11 +46,13 @@ class ChannelViewSet(viewsets.ModelViewSet):
     def members(self, request, pk=None):
         channel = self.get_object()
         memberships = channel.memberships.filter(is_pending=False)
+        from .serializers import ChannelMembershipSerializer
         return Response(ChannelMembershipSerializer(memberships, many=True).data)
 
 class DirectMessageViewSet(viewsets.ModelViewSet):
     serializer_class = DirectMessageSerializer
     permission_classes = [permissions.IsAuthenticated]
+    queryset = DirectMessage.objects.none()
 
     def get_queryset(self):
         return DirectMessage.objects.filter(participants=self.request.user)
@@ -64,6 +66,7 @@ class DirectMessageViewSet(viewsets.ModelViewSet):
 class MessageViewSet(viewsets.ModelViewSet):
     serializer_class = MessageSerializer
     permission_classes = [permissions.IsAuthenticated]
+    queryset = Message.objects.none()
 
     def get_queryset(self):
         return Message.objects.filter(

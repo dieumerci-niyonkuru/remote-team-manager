@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Channel, Message, MessageReaction, DirectMessage, ChannelMembership
+from .models import Channel, Message, DirectMessage, ChannelMembership
 from apps.accounts.serializers import UserSerializer
 
 class ChannelMembershipSerializer(serializers.ModelSerializer):
@@ -29,7 +29,9 @@ class MessageSerializer(serializers.ModelSerializer):
         read_only_fields = ('user',)
 
     def get_reactions(self, obj):
-        return {r.emoji: r.user.id for r in obj.reactions.all()}
+        from .models import MessageReaction
+        reactions = obj.reactions.all()
+        return {r.emoji: r.user.id for r in reactions}
 
 class DirectMessageSerializer(serializers.ModelSerializer):
     participants = UserSerializer(many=True, read_only=True)
