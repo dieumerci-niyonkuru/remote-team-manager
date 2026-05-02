@@ -63,3 +63,9 @@ class TaskFile(models.Model):
     filename = models.CharField(max_length=255)
     version = models.IntegerField(default=1)
     uploaded_at = models.DateTimeField(auto_now_add=True)
+
+class Suggestion(models.Model):
+    task = models.ForeignKey('Task', on_delete=models.CASCADE, related_name='suggestions')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
