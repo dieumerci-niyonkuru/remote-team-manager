@@ -47,3 +47,19 @@ class Reaction(models.Model):
     comment = models.ForeignKey(Comment, on_delete=models.CASCADE, related_name='reactions')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     emoji = models.CharField(max_length=10)
+
+class ProjectFile(models.Model):
+    project = models.ForeignKey('Project', on_delete=models.CASCADE, related_name='files')
+    uploaded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    file = models.FileField(upload_to='project_files/')
+    filename = models.CharField(max_length=255)
+    version = models.IntegerField(default=1)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+class TaskFile(models.Model):
+    task = models.ForeignKey('Task', on_delete=models.CASCADE, related_name='files')
+    uploaded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    file = models.FileField(upload_to='task_files/')
+    filename = models.CharField(max_length=255)
+    version = models.IntegerField(default=1)
+    uploaded_at = models.DateTimeField(auto_now_add=True)

@@ -21,10 +21,8 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  const login = async (username, password, otp_token = null) => {
-    const payload = { username, password };
-    if (otp_token) payload.otp_token = otp_token;
-    const response = await api.post('/accounts/login/', payload);
+  const login = async (username, password) => {
+    const response = await api.post('/accounts/login/', { username, password });
     localStorage.setItem('access_token', response.data.access);
     localStorage.setItem('refresh_token', response.data.refresh);
     const userRes = await api.get('/accounts/profile/');
