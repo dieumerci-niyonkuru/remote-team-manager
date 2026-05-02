@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useTranslation } from 'react-i18next';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import api from '../api';
 import Workspaces from './modules/Workspaces';
@@ -17,8 +17,8 @@ import OKRs from './OKRs';
 import FileManager from './FileManager';
 import AuditLogs from './AuditLogs';
 import Profile from './Profile';
-import TimedTyping from './widgets/TypingSpeed';
-import { FaHome, FaUsers, FaTasks, FaComments, FaChartLine, FaCalendarAlt, FaPlug, FaHourglassHalf, FaBullseye, FaFolderOpen, FaHistory, FaUserEdit, FaSignOutAlt } from 'react-icons/fa';
+import { FaHome, FaUsers, FaTasks, FaComments, FaChartLine, FaCalendarAlt, FaPlug, FaHourglassHalf, FaBullseye, FaFolderOpen, FaHistory, FaUserEdit, FaSignOutAlt, FaBars, FaTimes } from 'react-icons/fa';
+import TypingSpeed from './widgets/TypingSpeed';
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
@@ -26,10 +26,10 @@ const Dashboard = () => {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('workspaces');
   const [workspace, setWorkspace] = useState(null);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const menuItems = [
-    { id: 'home', label: 'Home', icon: <FaHome />, comp: <TimedTyping /> },
+    { id: 'home', label: 'Home', icon: <FaHome />, comp: <TypingSpeed /> },
     { id: 'workspaces', label: 'Workspaces', icon: <FaUsers />, comp: <Workspaces workspace={workspace} setWorkspace={setWorkspace} /> },
     { id: 'projects', label: 'Projects', icon: <FaTasks />, comp: <Projects workspace={workspace} /> },
     { id: 'tasks', label: 'Tasks', icon: <FaTasks />, comp: <Tasks workspace={workspace} /> },
@@ -45,31 +45,61 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
-      <motion.div animate={{ width: sidebarCollapsed ? 80 : 280 }} className="bg-gradient-to-b from-gray-900 to-gray-800 text-white shadow-xl z-20 flex flex-col overflow-hidden">
-        <div className="flex items-center justify-between p-4 border-b border-gray-700">
-          {!sidebarCollapsed && <span className="text-xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">RTM</span>}
-          <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} className="p-1 rounded hover:bg-gray-700">☰</button>
-        </div>
-        <nav className="flex-1 overflow-y-auto py-4">
-          {menuItems.map(item => (
-            <button key={item.id} onClick={() => setActiveTab(item.id)} className={`flex items-center w-full px-4 py-3 transition ${activeTab === item.id ? 'bg-purple-600' : 'hover:bg-gray-700'}`}>
-              <span className="text-xl">{item.icon}</span>
-              {!sidebarCollapsed && <span className="ml-3">{item.label}</span>}
-            </button>
-          ))}
-          <button onClick={logout} className="flex items-center w-full px-4 py-3 hover:bg-gray-700 mt-4">
-            <FaSignOutAlt className="text-xl" />
-            {!sidebarCollapsed && <span className="ml-3">Logout</span>}
-          </button>
-        </nav>
-      </motion.div>
+    <div className="flex h-screen bg-gray-100 dark:bg-gray-900 overflow-hidden">
+      {/* Mobile sidebar toggle */}
+      <div className="fixed top-4 left-4 z-30 md:hidden">
+        <button onClick={() => setSidebarOpen(true)} className="bg-purple-600 text-white p-2 rounded-md shadow-lg">
+          <FaBars size={20} />
+        </button>
+      </div>
+
+      {/* Sidebar drawer for mobile / desktop */}
+      <AnimatePresence>
+        {(sidebarOpen || window.innerWidth >= 768) && (
+          <motion.aside
+            initial={{ x: '-100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '-100%' }}
+            transition={{ duration: 0.3 }}
+            className="fixed md:relative z-40 h-full w-64 bg-gradient-to-b from-gray-900 to-gray-800 text-white shadow-xl flex flex-col overflow-y-auto"
+          >
+            <div className="flex justify-between items-center p-4 border-b border-gray-700">
+              <span className="text-xl font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">RTM</span>
+              <button onClick={() => setSidebarOpen(false)} className="md:hidden text-white"><FaTimes /></button>
+            </div>
+            <nav className="flex-1 p-4 space-y-2">
+              {menuItems.map(item => (
+                <button
+                  key={item.id}
+                  onClick={() => { setActiveTab(item.id); setSidebarOpen(false); }}
+                  className={`flex items-center w-full px-4 py-3 rounded transition ${activeTab === item.id ? 'bg-purple-600' : 'hover:bg-gray-700'}`}
+                >
+                  <span className="text-xl">{item.icon}</span>
+                  <span className="ml-3">{item.label}</span>
+                </button>
+              ))}
+              <button onClick={logout} className="flex items-center w-full px-4 py-3 hover:bg-gray-700 rounded mt-4">
+                <FaSignOutAlt className="text-xl" />
+                <span className="ml-3">Logout</span>
+              </button>
+            </nav>
+          </motion.aside>
+        )}
+      </AnimatePresence>
+
+      {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="bg-white dark:bg-gray-800 shadow-sm p-4 flex justify-between items-center">
-          <div><h1 className="text-2xl font-bold capitalize dark:text-white">{activeTab}</h1>{workspace && <p className="text-sm text-gray-500">Working in: {workspace.name}</p>}</div>
-          <div className="flex items-center gap-4"><span className="text-gray-700 dark:text-gray-200">Welcome, {user?.first_name || user?.username}!</span><img src={user?.avatar || 'https://img.icons8.com/fluency/48/teamwork.png'} alt="Avatar" className="w-8 h-8 rounded-full" /></div>
+          <div>
+            <h1 className="text-2xl font-bold capitalize dark:text-white">{activeTab}</h1>
+            {workspace && <p className="text-sm text-gray-500">Working in: {workspace.name}</p>}
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="text-gray-700 dark:text-gray-200 hidden sm:inline">Welcome, {user?.first_name || user?.username}!</span>
+            <img src={user?.avatar || 'https://img.icons8.com/fluency/48/teamwork.png'} alt="Avatar" className="w-8 h-8 rounded-full" />
+          </div>
         </header>
-        <main className="flex-1 overflow-auto p-6">
+        <main className="flex-1 overflow-auto p-4 md:p-6">
           {menuItems.find(i => i.id === activeTab)?.comp}
         </main>
       </div>

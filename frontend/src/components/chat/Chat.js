@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import EmojiCountryPicker from './EmojiCountryPicker';
-import { FaUsers, FaEnvelope, FaUserPlus, FaCheck, FaTimes } from 'react-icons/fa';
+import { FaUsers, FaEnvelope, FaUserPlus, FaCheck, FaTimes, FaComments } from 'react-icons/fa';
 
 const Chat = ({ workspace }) => {
   const { user } = useAuth();
@@ -16,7 +16,16 @@ const Chat = ({ workspace }) => {
   const [members, setMembers] = useState([]);
   const [showMembers, setShowMembers] = useState(false);
   const [directMessages, setDirectMessages] = useState([]);
+  const [mobileView, setMobileView] = useState('rooms'); // 'rooms', 'chat', 'members'
   const [selectedUserForDM, setSelectedUserForDM] = useState(null);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) setMobileView('rooms');
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const fetchChannels = async () => {
     if (!workspace) return;
@@ -37,8 +46,12 @@ const Chat = ({ workspace }) => {
     if (activeChannel) {
       api.get(`/messages/?channel=${activeChannel.id}`).then(res => setMessages(res.data));
       api.get(`/channels/${activeChannel.id}/members/`).then(res => setMembers(res.data));
+      setMobileView('chat');
     } else if (activeDM) {
       api.get(`/messages/?direct_message=${activeDM.id}`).then(res => setMessages(res.data));
+      setMobileView('chat');
+    } else {
+      setMobileView('rooms');
     }
   }, [activeChannel, activeDM]);
 
@@ -63,13 +76,11 @@ const Chat = ({ workspace }) => {
       await api.post('/messages/', { direct_message: activeDM.id, content: newMessage });
     }
     setNewMessage('');
-    // refresh messages
     if (activeChannel) api.get(`/messages/?channel=${activeChannel.id}`).then(res => setMessages(res.data));
     else if (activeDM) api.get(`/messages/?direct_message=${activeDM.id}`).then(res => setMessages(res.data));
   };
 
   const startDM = async (otherUserId) => {
-    // Check if DM already exists
     let existing = directMessages.find(dm => dm.participants.some(p => p.id === otherUserId));
     if (existing) {
       setActiveDM(existing);
@@ -86,65 +97,70 @@ const Chat = ({ workspace }) => {
   const insertEmoji = (emoji) => setNewMessage(prev => prev + emoji);
 
   return (
-    <div className="flex h-96">
-      {/* Sidebar */}
-      <div className="w-1/3 border-r p-2 overflow-auto">
-        <div className="mb-4">
-          <h3 className="font-bold">Channels</h3>
-          <input type="text" value={newChannelName} onChange={e => setNewChannelName(e.target.value)} placeholder="New channel name" className="border w-full p-1 my-2 text-sm" />
-          <label className="flex items-center gap-2 text-sm mb-2"><input type="checkbox" checked={isPrivate} onChange={e => setIsPrivate(e.target.checked)} /> Private</label>
-          <button onClick={createChannel} className="bg-green-600 text-white px-2 py-1 rounded text-sm w-full">Create Channel</button>
-        </div>
-        <ul className="space-y-1">
-          {channels.map(ch => (
-            <li key={ch.id} className="flex justify-between items-center">
-              <button onClick={() => { setActiveChannel(ch); setActiveDM(null); }} className={`flex-1 text-left p-1 rounded ${activeChannel?.id === ch.id ? 'bg-purple-200' : ''}`}>
-                {ch.name} {ch.is_private && '🔒'}
+    <div className="flex flex-col md:flex-row h-[70vh] md:h-96 bg-white dark:bg-gray-800 rounded-xl shadow overflow-hidden">
+      {/* Rooms sidebar (shown on mobile only when in 'rooms' view) */}
+      {(mobileView === 'rooms' || window.innerWidth >= 768) && (
+        <div className="w-full md:w-1/3 border-r p-2 overflow-auto">
+          <div className="mb-4">
+            <h3 className="font-bold">Channels</h3>
+            <input type="text" value={newChannelName} onChange={e => setNewChannelName(e.target.value)} placeholder="New channel name" className="border w-full p-1 my-2 text-sm rounded" />
+            <label className="flex items-center gap-2 text-sm mb-2"><input type="checkbox" checked={isPrivate} onChange={e => setIsPrivate(e.target.checked)} /> Private</label>
+            <button onClick={createChannel} className="bg-green-600 text-white px-2 py-1 rounded text-sm w-full">Create Channel</button>
+          </div>
+          <ul className="space-y-1">
+            {channels.map(ch => (
+              <li key={ch.id} className="flex justify-between items-center">
+                <button onClick={() => { setActiveChannel(ch); setActiveDM(null); }} className={`flex-1 text-left p-1 rounded ${activeChannel?.id === ch.id ? 'bg-purple-200' : ''}`}>
+                  {ch.name} {ch.is_private && '🔒'}
+                </button>
+                {!ch.is_member && <button onClick={() => joinChannel(ch.id)} className="text-blue-500 text-xs">Join</button>}
+                <button onClick={() => { setActiveChannel(ch); setShowMembers(!showMembers); }} className="text-gray-500 ml-1"><FaUsers size={14} /></button>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-4">
+            <h3 className="font-bold">Direct Messages</h3>
+            <button onClick={() => setSelectedUserForDM(prompt('Enter user ID or email'))} className="text-purple-600 text-sm">New DM</button>
+            {directMessages.map(dm => (
+              <button key={dm.id} onClick={() => { setActiveDM(dm); setActiveChannel(null); }} className={`block w-full text-left p-1 ${activeDM?.id === dm.id ? 'bg-purple-200' : ''}`}>
+                {dm.participants?.find(p => p.id !== user?.id)?.username}
               </button>
-              {!ch.is_member && <button onClick={() => joinChannel(ch.id)} className="text-blue-500 text-xs">Join</button>}
-              <button onClick={() => { setActiveChannel(ch); setShowMembers(!showMembers); }} className="text-gray-500"><FaUsers /></button>
-            </li>
-          ))}
-        </ul>
-        <div className="mt-4">
-          <h3 className="font-bold">Direct Messages</h3>
-          <button onClick={() => setSelectedUserForDM(prompt('Enter user ID or email'))} className="text-purple-600 text-sm">New DM</button>
-          {directMessages.map(dm => (
-            <button key={dm.id} onClick={() => { setActiveDM(dm); setActiveChannel(null); }} className={`block w-full text-left p-1 ${activeDM?.id === dm.id ? 'bg-purple-200' : ''}`}>
-              {dm.participants?.find(p => p.id !== user?.id)?.username}
-            </button>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Main chat area */}
-      <div className="w-2/3 flex flex-col">
-        {activeChannel && (
-          <>
-            <div className="border-b p-2 flex justify-between items-center">
-              <span className="font-bold">{activeChannel.name}</span>
-              <button onClick={() => setShowMembers(!showMembers)} className="text-gray-500"><FaUsers /></button>
+      {/* Chat area */}
+      {(mobileView === 'chat' || window.innerWidth >= 768) && (
+        <div className="flex-1 flex flex-col">
+          <div className="border-b p-2 flex justify-between items-center bg-gray-50 dark:bg-gray-700">
+            <div>
+              {activeChannel && <span className="font-bold">{activeChannel.name}</span>}
+              {activeDM && <span className="font-bold">DM with {activeDM.participants?.find(p => p.id !== user?.id)?.username}</span>}
             </div>
-            {showMembers && (
-              <div className="border-b p-2 max-h-40 overflow-auto">
-                <h4>Members</h4>
-                {members.map(m => <div key={m.user.id} className="flex justify-between items-center"><span>{m.user.username}</span>{m.is_pending && <span className="text-yellow-500">Pending</span>}</div>)}
-              </div>
-            )}
-          </>
-        )}
-        {activeDM && <div className="border-b p-2 font-bold">DM with {activeDM.participants?.find(p => p.id !== user?.id)?.username}</div>}
-        <div className="flex-1 overflow-auto p-2 space-y-1">
-          {messages.map((msg, idx) => (
-            <div key={idx}><b>{msg.user?.username}:</b> {msg.content}</div>
-          ))}
+            <div className="flex gap-2">
+              <button onClick={() => setShowMembers(!showMembers)} className="text-gray-500"><FaUsers /></button>
+              <button onClick={() => setMobileView('rooms')} className="md:hidden text-gray-500"><FaComments /></button>
+            </div>
+          </div>
+          {showMembers && (
+            <div className="border-b p-2 max-h-40 overflow-auto text-sm">
+              <h4>Members</h4>
+              {members.map(m => <div key={m.user.id} className="flex justify-between"><span>{m.user.username}</span>{m.is_pending && <span className="text-yellow-500">Pending</span>}</div>)}
+            </div>
+          )}
+          <div className="flex-1 overflow-auto p-2 space-y-1">
+            {messages.map((msg, idx) => (
+              <div key={idx} className="text-sm"><b>{msg.user?.username}:</b> {msg.content}</div>
+            ))}
+          </div>
+          <div className="border-t p-2 flex gap-1 items-center">
+            <input type="text" value={newMessage} onChange={e => setNewMessage(e.target.value)} className="flex-1 border p-1 rounded text-sm" placeholder="Type message... 😊🇷🇼" />
+            <EmojiCountryPicker onSelect={insertEmoji} />
+            <button onClick={sendMessage} className="bg-purple-600 text-white px-3 py-1 rounded">Send</button>
+          </div>
         </div>
-        <div className="border-t p-2 flex gap-1 items-center">
-          <input type="text" value={newMessage} onChange={e => setNewMessage(e.target.value)} className="flex-1 border p-1 rounded" placeholder="Type message... 😊🇷🇼" />
-          <EmojiCountryPicker onSelect={insertEmoji} />
-          <button onClick={sendMessage} className="bg-purple-600 text-white px-3 py-1 rounded">Send</button>
-        </div>
-      </div>
+      )}
     </div>
   );
 };
