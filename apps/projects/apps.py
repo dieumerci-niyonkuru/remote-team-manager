@@ -5,4 +5,5 @@ class ProjectsConfig(AppConfig):
     name = 'apps.projects'
 
     def ready(self):
-        pass  # signals removed to avoid import error
+        # Signals are disabled temporarily to avoid import errors
+        pass
