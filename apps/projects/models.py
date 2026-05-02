@@ -80,6 +80,6 @@ class Reaction(models.Model):
     EMOJI_CHOICES = [
         ('👍', '👍'), ('❤️', '❤️'), ('🎉', '🎉'), ('😄', '😄'), ('😢', '😢'), ('😮', '😮'),
     ]
-    task = models.ForeignKey('Task', on_delete=models.CASCADE, related_name='reactions')
+    task = models.ForeignKey('Task', on_delete=models.CASCADE, related_name='reactions', null=True, blank=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     emoji = models.CharField(max_length=10, choices=EMOJI_CHOICES)
