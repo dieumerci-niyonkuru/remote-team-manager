@@ -61,3 +61,29 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
         user.otp_enabled = False
         user.save()
         return Response({'message': '2FA disabled'})
+
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework import serializers, exceptions
+from .models import User
+from .utils.otp import verify_otp
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    otp_token = serializers.CharField(write_only=True, required=False)
+
+    def validate(self, attrs):
+        username = attrs.get('username')
+        password = attrs.get('password')
+        user = User.objects.filter(username=username).first()
+        if user and user.check_password(password):
+            if user.otp_enabled:
+                otp_token = attrs.get('otp_token')
+                if not otp_token:
+                    raise exceptions.AuthenticationFailed('2FA token required')
+                if not verify_otp(user.otp_secret, otp_token):
+                    raise exceptions.AuthenticationFailed('Invalid 2FA token')
+            return super().validate(attrs)
+        raise exceptions.AuthenticationFailed('Invalid credentials')
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
