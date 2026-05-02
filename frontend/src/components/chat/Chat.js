@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../api';
 import { useAuth } from '../../context/AuthContext';
+import EmojiCountryPicker from './EmojiCountryPicker';
 
 const Chat = ({ workspace }) => {
   const { user } = useAuth();
@@ -38,6 +39,10 @@ const Chat = ({ workspace }) => {
     setMessages(res.data);
   };
 
+  const insertEmojiOrFlag = (emoji) => {
+    setNewMessage(prev => prev + emoji);
+  };
+
   return (
     <div className="flex h-96">
       <div className="w-1/3 border-r p-2">
@@ -52,10 +57,15 @@ const Chat = ({ workspace }) => {
         {activeChannel && (
           <>
             <div className="flex-1 overflow-auto p-2 space-y-1">
-              {messages.map((msg, idx) => <div key={idx}><b>{msg.user?.username}:</b> {msg.content}</div>)}
+              {messages.map((msg, idx) => (
+                <div key={idx}>
+                  <b>{msg.user?.username}:</b> {msg.content}
+                </div>
+              ))}
             </div>
-            <div className="border-t p-2 flex gap-1">
-              <input type="text" value={newMessage} onChange={e => setNewMessage(e.target.value)} className="flex-1 border p-1" placeholder="Type message..." />
+            <div className="border-t p-2 flex gap-1 items-center">
+              <input type="text" value={newMessage} onChange={e => setNewMessage(e.target.value)} className="flex-1 border p-1" placeholder="Type message... 😍🇷🇼" />
+              <EmojiCountryPicker onSelect={insertEmojiOrFlag} />
               <button onClick={sendMessage} className="bg-purple-600 text-white px-3 py-1 rounded">Send</button>
             </div>
           </>
