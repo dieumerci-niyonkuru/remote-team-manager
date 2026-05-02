@@ -17,7 +17,7 @@ import OKRs from './OKRs';
 import FileManager from './FileManager';
 import AuditLogs from './AuditLogs';
 import Profile from './Profile';
-import TypingSpeed from './widgets/TypingSpeed';
+import TimedTyping from './widgets/TypingSpeed';
 import { FaHome, FaUsers, FaTasks, FaComments, FaChartLine, FaCalendarAlt, FaPlug, FaHourglassHalf, FaBullseye, FaFolderOpen, FaHistory, FaUserEdit, FaSignOutAlt } from 'react-icons/fa';
 
 const Dashboard = () => {
@@ -29,7 +29,7 @@ const Dashboard = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const menuItems = [
-    { id: 'home', label: 'Home', icon: <FaHome />, comp: <TypingSpeed /> },
+    { id: 'home', label: 'Home', icon: <FaHome />, comp: <TimedTyping /> },
     { id: 'workspaces', label: 'Workspaces', icon: <FaUsers />, comp: <Workspaces workspace={workspace} setWorkspace={setWorkspace} /> },
     { id: 'projects', label: 'Projects', icon: <FaTasks />, comp: <Projects workspace={workspace} /> },
     { id: 'tasks', label: 'Tasks', icon: <FaTasks />, comp: <Tasks workspace={workspace} /> },

@@ -6,6 +6,7 @@ def health_check(request):
     return JsonResponse({'status': 'ok'})
 
 urlpatterns = [
+    path('api/timelogs/', include('apps.timetracking.urls')),
     path('admin/', admin.site.urls),
     path('api/health/', health_check, name='health'),
     path('api/accounts/', include('apps.accounts.urls')),
