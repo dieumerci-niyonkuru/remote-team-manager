@@ -28,7 +28,7 @@ class Task(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='todo')
     priority = models.CharField(max_length=10, choices=PRIORITY_CHOICES, default='medium')
     due_date = models.DateTimeField(null=True, blank=True)
-    estimated_minutes = models.PositiveIntegerField(null=True, blank=True)
+    estimated_minutes = models.PositiveIntegerField(null=True, blank=True, help_text="Estimated time in minutes")
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='created_tasks')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -38,3 +38,40 @@ class Subtask(models.Model):
     title = models.CharField(max_length=200)
     is_completed = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
+
+class Comment(models.Model):
+    task = models.ForeignKey('projects.Task', on_delete=models.CASCADE, related_name='comments')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+class Suggestion(models.Model):
+    task = models.ForeignKey('projects.Task', on_delete=models.CASCADE, related_name='suggestions')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+class Reaction(models.Model):
+    EMOJI_CHOICES = [
+        ('👍', '👍'), ('❤️', '❤️'), ('🎉', '🎉'), ('😄', '😄'), ('😢', '😢'), ('😮', '😮'),
+    ]
+    task = models.ForeignKey('projects.Task', on_delete=models.CASCADE, related_name='reactions', null=True, blank=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    emoji = models.CharField(max_length=10, choices=EMOJI_CHOICES)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+class TaskFile(models.Model):
+    task = models.ForeignKey('projects.Task', on_delete=models.CASCADE, related_name='files')
+    uploaded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    file = models.FileField(upload_to='task_files/')
+    filename = models.CharField(max_length=255)
+    version = models.IntegerField(default=1)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+class ProjectFile(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='files')
+    uploaded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    file = models.FileField(upload_to='project_files/')
+    filename = models.CharField(max_length=255)
+    version = models.IntegerField(default=1)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
