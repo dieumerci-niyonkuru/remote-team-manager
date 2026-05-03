@@ -67,4 +67,9 @@ export const chat = {
   dms: () => api.get('/direct-messages/'),
   createDm: d => api.post('/direct-messages/', d),
 }
+export const timer = {
+  start: task_id => api.post('/start/', { task_id }),
+  pause: task_id => api.post('/pause/', { task_id }),
+  logs: () => api.get('/logs/'),
+}
 export default api

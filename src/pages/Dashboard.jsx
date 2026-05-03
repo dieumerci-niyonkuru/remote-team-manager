@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStore } from '../store'
 import { useT } from '../i18n'
-import { ws } from '../services/api'
+import { ws, timer } from '../services/api'
 import toast from 'react-hot-toast'
 
 const COLORS = ['#3366ff','#8b5cf6','#ec4899','#10b981','#f59e0b','#ef4444','#06b6d4','#84cc16']
@@ -12,6 +12,7 @@ export default function Dashboard() {
   const t = useT(lang)
   const navigate = useNavigate()
   const [workspaces, setWorkspaces] = useState([])
+  const [timeLogs, setTimeLogs] = useState([])
   const [loading, setLoading] = useState(true)
   const [showCreate, setShowCreate] = useState(false)
   const [form, setForm] = useState({ name:'', description:'' })
@@ -19,7 +20,13 @@ export default function Dashboard() {
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    ws.list().then(r => { setWorkspaces(r.data.data); setLoading(false) }).catch(() => setLoading(false))
+    Promise.all([ws.list(), timer.logs()])
+      .then(([wRes, tRes]) => { 
+        setWorkspaces(wRes.data.data || wRes.data)
+        setTimeLogs(tRes.data || [])
+        setLoading(false) 
+      })
+      .catch(() => setLoading(false))
   }, [])
 
   const validate = () => {
@@ -73,6 +80,39 @@ export default function Dashboard() {
               </div>
             </div>
           ))}
+        </div>
+
+        {/* Analytics Section */}
+        <h2 style={{ fontFamily:'var(--font-display)', fontSize:18, fontWeight:700, color:'var(--text)', marginBottom:16 }}>Productivity Analytics</h2>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 32 }}>
+          <div className="card" style={{ padding: 24 }}>
+            <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text2)', marginBottom: 16 }}>Time Logged per Task</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {timeLogs.length === 0 && <div style={{ fontSize: 13, color: 'var(--text3)' }}>No time logged yet.</div>}
+              {timeLogs.slice(0, 5).map((log, i) => {
+                const hrs = (log.duration_seconds / 3600).toFixed(1)
+                return (
+                  <div key={i}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
+                      <span style={{ fontWeight: 600, color: 'var(--text)' }}>{log.task_title}</span>
+                      <span style={{ color: 'var(--text2)' }}>{hrs}h</span>
+                    </div>
+                    <div className="progress-track" style={{ background: 'var(--border2)' }}>
+                      <div className="progress-fill" style={{ width: `${Math.min((hrs/8)*100, 100)}%`, background: COLORS[i%COLORS.length] }} />
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+          <div className="card" style={{ padding: 24, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ position: 'relative', width: 140, height: 140, borderRadius: '50%', background: `conic-gradient(var(--brand) ${Math.min(timeLogs.length*10, 100)}%, var(--border2) 0)` }}>
+              <div style={{ position: 'absolute', inset: 12, background: 'var(--bg-card)', borderRadius: '50%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                <span style={{ fontFamily: 'var(--font-display)', fontSize: 28, fontWeight: 800, color: 'var(--text)' }}>{timeLogs.length}</span>
+                <span style={{ fontSize: 11, color: 'var(--text2)' }}>Tasks Logged</span>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Workspaces grid */}

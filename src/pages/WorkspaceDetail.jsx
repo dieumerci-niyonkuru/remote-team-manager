@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useStore } from '../store'
 import { useT } from '../i18n'
-import { ws, proj, task } from '../services/api'
+import { ws, proj, task, timer } from '../services/api'
 import toast from 'react-hot-toast'
 
 const COLS = [
@@ -38,6 +38,7 @@ export default function WorkspaceDetail() {
   const [form, setForm] = useState({})
   const [saving, setSaving] = useState(false)
   const [filter, setFilter] = useState({ status:'', priority:'' })
+  const [activeTimer, setActiveTimer] = useState(null)
 
   const load = async () => {
     try {
@@ -83,6 +84,22 @@ export default function WorkspaceDetail() {
       setData(p => ({...p, tasks:p.tasks.filter(t => t.id!==tid)}))
       toast.success('Deleted')
     } catch { toast.error('Failed') }
+  }
+
+  const handleStartTimer = async tid => {
+    try {
+      await timer.start(tid)
+      setActiveTimer(tid)
+      toast.success('Timer started ⏱️')
+    } catch (err) { toast.error(err.response?.data?.error || 'Failed to start timer') }
+  }
+
+  const handlePauseTimer = async tid => {
+    try {
+      await timer.pause(tid)
+      setActiveTimer(null)
+      toast.success('Timer paused ⏸️')
+    } catch { toast.error('Failed to pause timer') }
   }
 
   const handleCreateProject = async ev => {
@@ -245,6 +262,11 @@ export default function WorkspaceDetail() {
                               </div>
                             )}
                             <div style={{ display:'flex', gap:6, marginTop:10, flexWrap:'wrap' }}>
+                              {activeTimer === tk.id ? (
+                                <button onClick={() => handlePauseTimer(tk.id)} style={{ background:'rgba(239,68,68,0.1)', color:'#dc2626', border:'none', borderRadius:6, padding:'3px 8px', fontSize:10, fontWeight:600, cursor:'pointer' }}>⏸ Pause</button>
+                              ) : (
+                                <button onClick={() => handleStartTimer(tk.id)} style={{ background:'rgba(51,102,255,0.1)', color:'#3366ff', border:'none', borderRadius:6, padding:'3px 8px', fontSize:10, fontWeight:600, cursor:'pointer' }}>▶ Start</button>
+                              )}
                               {col.key!=='todo' && <button onClick={() => handleUpdateTask(tk.id,{status:'todo'})} style={{ background:'rgba(100,116,139,0.1)', color:'var(--text2)', border:'none', borderRadius:6, padding:'3px 8px', fontSize:10, fontWeight:600, cursor:'pointer' }}>← Todo</button>}
                               {col.key!=='in_progress' && <button onClick={() => handleUpdateTask(tk.id,{status:'in_progress'})} style={{ background:'rgba(245,158,11,0.1)', color:'#d97706', border:'none', borderRadius:6, padding:'3px 8px', fontSize:10, fontWeight:600, cursor:'pointer' }}>⟳ Progress</button>}
                               {col.key!=='done' && <button onClick={() => handleUpdateTask(tk.id,{status:'done'})} style={{ background:'rgba(34,197,94,0.1)', color:'#16a34a', border:'none', borderRadius:6, padding:'3px 8px', fontSize:10, fontWeight:600, cursor:'pointer' }}>✓ Done</button>}
