@@ -22,4 +22,5 @@ urlpatterns = [
     path('api/', include('apps.okr.urls')),
     path('api/ai/', include('apps.ai.urls')),
     path('api/automation/', include('apps.automation.urls')),
+    path('api/wiki/', include('apps.wiki.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

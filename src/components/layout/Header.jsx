@@ -29,6 +29,8 @@ export default function Header() {
       { to: '/files', label: 'Files' },
       { to: '/ai', label: '🧠 AI' },
       { to: '/automations', label: '⚡ Automations' },
+      { to: '/wiki', label: '📚 Wiki' },
+      { to: '/search', label: '🔍 Search' },
     ] : []),
   ]
 

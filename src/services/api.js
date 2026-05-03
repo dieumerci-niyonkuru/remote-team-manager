@@ -91,4 +91,14 @@ export const automation = {
   create: d => api.post('/automation/rules/', d),
   delete: id => api.delete(`/automation/rules/${id}/`),
 }
+export const wiki = {
+  list: (q) => api.get('/wiki/articles/', { params: q ? { q } : {} }),
+  get: (id) => api.get(`/wiki/articles/${id}/`),
+  create: d => api.post('/wiki/articles/', d),
+  update: (id, d) => api.patch(`/wiki/articles/${id}/`, d),
+  delete: id => api.delete(`/wiki/articles/${id}/`),
+}
+export const search = {
+  global: (q) => api.get('/search/', { params: { q } }),
+}
 export default api

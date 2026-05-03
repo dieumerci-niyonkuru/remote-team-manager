@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'apps.okr',
     'apps.ai',
     'apps.automation',
+    'apps.wiki',
 ]
 
 MIDDLEWARE = [
