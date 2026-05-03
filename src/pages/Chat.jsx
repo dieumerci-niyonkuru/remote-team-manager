@@ -10,6 +10,7 @@ export default function Chat() {
   const [activeChannel, setActiveChannel] = useState(null)
   const [messages, setMessages] = useState([])
   const [inputText, setInputText] = useState('')
+  const [typing, setTyping] = useState(false)
   const ws = useRef(null)
   const messagesEndRef = useRef(null)
 
@@ -54,8 +55,16 @@ export default function Chat() {
     
     ws.current.onmessage = (event) => {
       const data = JSON.parse(event.data)
-      setMessages(prev => [...prev, data])
-      scrollToBottom()
+      if (data.type === 'typing') {
+        if (data.user_id !== user.id) {
+          setTyping(true)
+          setTimeout(() => setTyping(false), 3000)
+        }
+      } else {
+        setMessages(prev => [...prev, data])
+        setTyping(false)
+        scrollToBottom()
+      }
     }
     
     ws.current.onerror = () => {
@@ -72,6 +81,13 @@ export default function Chat() {
   useEffect(() => {
     scrollToBottom()
   }, [messages])
+
+  const handleInput = (e) => {
+    setInputText(e.target.value)
+    if (ws.current) {
+      ws.current.send(JSON.stringify({ type: 'typing', user_id: user.id }))
+    }
+  }
 
   const sendMessage = (e) => {
     e.preventDefault()
@@ -158,6 +174,14 @@ export default function Chat() {
                   </div>
                 </div>
               ))}
+              {typing && (
+                <div style={{ display: 'flex', gap: 12 }}>
+                  <div className="avatar" style={{ width: 36, height: 36 }}>💭</div>
+                  <div style={{ padding: '8px 12px', borderRadius: 12, background: 'var(--bg2)', color: 'var(--text2)', fontStyle: 'italic', fontSize: 13 }}>
+                    Someone is typing...
+                  </div>
+                </div>
+              )}
               <div ref={messagesEndRef} />
             </div>
 
@@ -166,10 +190,10 @@ export default function Chat() {
               <form onSubmit={sendMessage} style={{ display: 'flex', gap: 12 }}>
                 <input 
                   className="input" 
-                  style={{ flex: 1, padding: '14px 18px', borderRadius: 24, background: 'var(--bg-card)' }}
-                  placeholder={`Message #${activeChannel.name}...`}
-                  value={inputText}
-                  onChange={e => setInputText(e.target.value)}
+                  style={{ flex: 1, borderRadius: 24, padding: '12px 20px' }} 
+                  placeholder="Type a message..." 
+                  value={inputText} 
+                  onChange={handleInput} 
                 />
                 <button type="submit" className="btn btn-primary" style={{ borderRadius: 24, padding: '0 24px' }} disabled={!inputText.trim()}>
                   Send

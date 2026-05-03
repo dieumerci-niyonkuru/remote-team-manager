@@ -29,8 +29,9 @@ INSTALLED_APPS = [
     'apps.notifications',
     'apps.presence',
     'apps.communications',
-    'apps.timetracking',
     'apps.okr',
+    'apps.ai',
+    'apps.automation',
 ]
 
 MIDDLEWARE = [

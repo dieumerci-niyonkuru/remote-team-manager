@@ -83,4 +83,12 @@ export const files = {
   list: params => api.get('/file-attachments/', { params }),
   upload: d => api.post('/file-attachments/', d, { headers: { 'Content-Type': 'multipart/form-data' } }),
 }
+export const ai = {
+  suggestTasks: prompt => api.post('/ai/suggest-tasks/', { prompt }),
+}
+export const automation = {
+  list: () => api.get('/automation/rules/'),
+  create: d => api.post('/automation/rules/', d),
+  delete: id => api.delete(`/automation/rules/${id}/`),
+}
 export default api

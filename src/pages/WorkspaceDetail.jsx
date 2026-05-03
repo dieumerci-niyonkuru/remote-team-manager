@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useStore } from '../store'
 import { useT } from '../i18n'
-import { ws, proj, task, timer } from '../services/api'
+import { ws, proj, task, timer, ai } from '../services/api'
 import toast from 'react-hot-toast'
 
 const COLS = [
@@ -39,6 +39,8 @@ export default function WorkspaceDetail() {
   const [saving, setSaving] = useState(false)
   const [filter, setFilter] = useState({ status:'', priority:'' })
   const [activeTimer, setActiveTimer] = useState(null)
+  const [aiPrompt, setAiPrompt] = useState('')
+  const [aiLoading, setAiLoading] = useState(false)
 
   const load = async () => {
     try {
@@ -61,13 +63,35 @@ export default function WorkspaceDetail() {
 
   const handleCreateTask = async ev => {
     ev.preventDefault()
-    if (!form.title?.trim()) { toast.error(t.required); return }
+    if (!form.title?.trim() || !activeProj) return
     setSaving(true)
     try {
-      const r = await task.create(id, activeProj.id, form)
+      const r = await task.create(id, activeProj.id, { ...form, status:'todo' })
       setData(p => ({...p, tasks:[...p.tasks, r.data.data]}))
-      closeModal(); toast.success('Task created ✅')
+      setForm({})
+      toast.success('Task created')
     } catch { toast.error('Failed') } finally { setSaving(false) }
+  }
+
+  const handleAIBreakdown = async () => {
+    if (!aiPrompt.trim() || !activeProj) return
+    setAiLoading(true)
+    try {
+      const res = await ai.suggestTasks(aiPrompt)
+      const tasksToCreate = res.data.tasks || []
+      let newTasks = []
+      for (const t of tasksToCreate) {
+        const r = await task.create(id, activeProj.id, { title: t.title, description: t.description, priority: t.priority, status: 'todo' })
+        newTasks.push(r.data.data)
+      }
+      setData(p => ({...p, tasks: [...p.tasks, ...newTasks]}))
+      setAiPrompt('')
+      toast.success(`AI generated ${newTasks.length} tasks! 🧠`)
+    } catch {
+      toast.error('AI request failed')
+    } finally {
+      setAiLoading(false)
+    }
   }
 
   const handleUpdateTask = async (tid, updates) => {
@@ -375,6 +399,19 @@ export default function WorkspaceDetail() {
               <button type="submit" className="btn btn-primary" style={{ flex:1 }} disabled={saving}>{saving ? 'Creating...' : 'Create Task'}</button>
             </div>
           </form>
+          
+          <div style={{ marginTop: 24, paddingTop: 24, borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <h4 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span>🧠</span> AI Auto Breakdown
+            </h4>
+            <p style={{ fontSize: 12, color: 'var(--text2)', margin: 0 }}>Describe a large feature and AI will generate the sub-tasks for you.</p>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input className="input" style={{ flex: 1, background: 'var(--brand-bg)', color: 'var(--brand)', borderColor: 'var(--brand)' }} placeholder="e.g. Build a payment checkout page..." value={aiPrompt} onChange={e=>setAiPrompt(e.target.value)} />
+              <button type="button" className="btn btn-primary" onClick={() => { handleAIBreakdown(); closeModal(); }} disabled={aiLoading || !aiPrompt.trim()}>
+                {aiLoading ? 'Thinking...' : 'Generate'}
+              </button>
+            </div>
+          </div>
         </Modal>
       )}
 

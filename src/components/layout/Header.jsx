@@ -27,6 +27,8 @@ export default function Header() {
       { to: '/calendar', label: 'Calendar' },
       { to: '/hr', label: 'HR' },
       { to: '/files', label: 'Files' },
+      { to: '/ai', label: '🧠 AI' },
+      { to: '/automations', label: '⚡ Automations' },
     ] : []),
   ]
 

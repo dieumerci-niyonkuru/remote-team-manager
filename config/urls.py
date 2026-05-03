@@ -20,4 +20,6 @@ urlpatterns = [
     path('api/', include('apps.communications.urls')),
     path('api/', include('apps.timetracking.urls')),
     path('api/', include('apps.okr.urls')),
+    path('api/ai/', include('apps.ai.urls')),
+    path('api/automation/', include('apps.automation.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

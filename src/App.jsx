@@ -14,6 +14,8 @@ import Chat from './pages/Chat'
 import Calendar from './pages/Calendar'
 import HR from './pages/HR'
 import Files from './pages/Files'
+import AIAssistant from './pages/AIAssistant'
+import Automations from './pages/Automations'
 
 const Protected = ({ children }) => {
   const { isAuth } = useStore()
@@ -43,6 +45,8 @@ export default function App() {
             <Route path="/calendar" element={<Protected><Calendar /></Protected>} />
             <Route path="/hr" element={<Protected><HR /></Protected>} />
             <Route path="/files" element={<Protected><Files /></Protected>} />
+            <Route path="/ai" element={<Protected><AIAssistant /></Protected>} />
+            <Route path="/automations" element={<Protected><Automations /></Protected>} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
