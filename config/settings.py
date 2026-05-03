@@ -11,11 +11,6 @@ DEBUG = config('DEBUG', default=True, cast=bool)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
 
 INSTALLED_APPS = [
-    'apps.okr',
-    'apps.timetracking',
-    'apps.communications',
-    'apps.notifications',
-    'apps.presence',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -25,11 +20,17 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
+    'channels',
     'apps.accounts',
     'apps.workspaces',
     'apps.projects',
     'apps.chat',
     'apps.hr',
+    'apps.notifications',
+    'apps.presence',
+    'apps.communications',
+    'apps.timetracking',
+    'apps.okr',
 ]
 
 MIDDLEWARE = [
@@ -62,8 +63,8 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'config.wsgi.application'
+ASGI_APPLICATION = 'config.asgi.application'
 
-# Use DATABASE_URL if on Railway, otherwise SQLite
 DATABASE_URL = config('DATABASE_URL', default=None)
 if DATABASE_URL:
     DATABASES = {'default': dj_database_url.parse(DATABASE_URL)}
@@ -90,7 +91,7 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.environ.get('MEDIA_ROOT', BASE_DIR / 'media')
+MEDIA_ROOT = config('MEDIA_ROOT', default=BASE_DIR / 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -113,17 +114,13 @@ SIMPLE_JWT = {
 CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='http://localhost:3000').split(',')
 CORS_ALLOW_CREDENTIALS = True
 
-# Channels configuration
-INSTALLED_APPS += ['channels']
-ASGI_APPLICATION = 'config.asgi.application'
 CHANNEL_LAYERS = {
     'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            "hosts": [('redis://localhost:6379')],
-        },
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
     },
 }
-import os
-if os.environ.get('REDIS_URL'):
-    CHANNEL_LAYERS['default']['CONFIG']['hosts'] = [os.environ['REDIS_URL']]
+if config('REDIS_URL', default=None):
+    CHANNEL_LAYERS['default'] = {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {"hosts": [config('REDIS_URL')]},
+    }
