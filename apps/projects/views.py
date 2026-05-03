@@ -25,3 +25,27 @@ class TaskViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
+
+class CommentViewSet(viewsets.ModelViewSet):
+    serializer_class = CommentSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = Comment.objects.none()
+
+    def get_queryset(self):
+        return Comment.objects.filter(task__project__workspace__members=self.request.user)
+
+class SuggestionViewSet(viewsets.ModelViewSet):
+    serializer_class = SuggestionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = Suggestion.objects.none()
+
+    def get_queryset(self):
+        return Suggestion.objects.filter(task__project__workspace__members=self.request.user)
+
+class ReactionViewSet(viewsets.ModelViewSet):
+    serializer_class = ReactionSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = Reaction.objects.none()
+
+    def get_queryset(self):
+        return Reaction.objects.filter(task__project__workspace__members=self.request.user)
