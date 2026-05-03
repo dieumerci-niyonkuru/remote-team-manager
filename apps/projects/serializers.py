@@ -1,32 +1,35 @@
 from rest_framework import serializers
-from .models import Project, Task
 from apps.accounts.serializers import UserSerializer
-
-class TaskSerializer(serializers.ModelSerializer):
-    assignee = UserSerializer(read_only=True)
-    class Meta:
-        model = Task
-        fields = '__all__'
-        read_only_fields = ('created_by',)
+from .models import Project, Task, Subtask, Comment, Suggestion, Reaction
 
 class ProjectSerializer(serializers.ModelSerializer):
-    tasks = TaskSerializer(many=True, read_only=True)
     class Meta:
         model = Project
         fields = '__all__'
         read_only_fields = ('created_by',)
 
+class TaskSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Task
+        fields = '__all__'
+        read_only_fields = ('created_by',)
+
+class SubtaskSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Subtask
+        fields = '__all__'
+
 class CommentSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
     class Meta:
         model = Comment
-        fields = ('id', 'user', 'content', 'created_at')
+        fields = '__all__'
 
 class SuggestionSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
     class Meta:
         model = Suggestion
-        fields = ('id', 'user', 'content', 'created_at')
+        fields = '__all__'
 
 class ReactionSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
