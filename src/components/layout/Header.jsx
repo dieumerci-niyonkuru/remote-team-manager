@@ -25,6 +25,8 @@ export default function Header() {
       { to: '/activity', label: t.activity },
       { to: '/chat', label: 'Chat' },
       { to: '/calendar', label: 'Calendar' },
+      { to: '/hr', label: 'HR' },
+      { to: '/files', label: 'Files' },
     ] : []),
   ]
 

@@ -12,6 +12,8 @@ import Team from './pages/Team'
 import Activity from './pages/Activity'
 import Chat from './pages/Chat'
 import Calendar from './pages/Calendar'
+import HR from './pages/HR'
+import Files from './pages/Files'
 
 const Protected = ({ children }) => {
   const { isAuth } = useStore()
@@ -39,6 +41,8 @@ export default function App() {
             <Route path="/activity" element={<Protected><Activity /></Protected>} />
             <Route path="/chat" element={<Protected><Chat /></Protected>} />
             <Route path="/calendar" element={<Protected><Calendar /></Protected>} />
+            <Route path="/hr" element={<Protected><HR /></Protected>} />
+            <Route path="/files" element={<Protected><Files /></Protected>} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

@@ -72,4 +72,15 @@ export const timer = {
   pause: task_id => api.post('/pause/', { task_id }),
   logs: () => api.get('/logs/'),
 }
+export const hr = {
+  employees: () => api.get('/employee-profiles/'),
+  createEmployee: d => api.post('/employee-profiles/', d),
+  jobs: () => api.get('/job-postings/'),
+  createJob: d => api.post('/job-postings/', d),
+  payroll: () => api.get('/payroll/'),
+}
+export const files = {
+  list: params => api.get('/file-attachments/', { params }),
+  upload: d => api.post('/file-attachments/', d, { headers: { 'Content-Type': 'multipart/form-data' } }),
+}
 export default api
