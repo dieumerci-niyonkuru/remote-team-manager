@@ -59,4 +59,12 @@ export const task = {
   updateSubtask: (wid, pid, tid, id, d) => api.patch(`/workspaces/${wid}/projects/${pid}/tasks/${tid}/subtasks/${id}/`, d),
   logTime: (wid, pid, id, d) => api.post(`/workspaces/${wid}/projects/${pid}/tasks/${id}/timelogs/`, d),
 }
+export const chat = {
+  channels: () => api.get('/channels/'),
+  createChannel: d => api.post('/channels/', d),
+  joinChannel: id => api.post(`/channels/${id}/join/`),
+  messages: params => api.get('/messages/', { params }),
+  dms: () => api.get('/direct-messages/'),
+  createDm: d => api.post('/direct-messages/', d),
+}
 export default api

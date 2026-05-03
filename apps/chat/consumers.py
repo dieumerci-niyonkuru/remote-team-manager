@@ -1,21 +1,21 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
-from .models import ChatRoom, ChatMessage
+from .models import Channel, Message
 from django.contrib.auth.models import AnonymousUser
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        self.room_id = self.scope['url_route']['kwargs']['room_id']
-        self.room_group_name = f'chat_{self.room_id}'
+        self.channel_id = self.scope['url_route']['kwargs']['room_id']
+        self.room_group_name = f'chat_{self.channel_id}'
 
         user = self.scope['user']
         if user.is_anonymous:
             await self.close()
             return
 
-        room_exists = await self.room_exists(self.room_id, user)
-        if not room_exists:
+        channel_exists = await self.channel_exists(self.channel_id, user)
+        if not channel_exists:
             await self.close()
             return
 
@@ -30,15 +30,15 @@ class ChatConsumer(AsyncWebsocketConsumer):
         message = data['message']
         user = self.scope['user']
 
-        saved_message = await self.save_message(self.room_id, user, message)
+        saved_message = await self.save_message(self.channel_id, user, message)
 
         await self.channel_layer.group_send(
             self.room_group_name,
             {
                 'type': 'chat_message',
                 'message': message,
-                'username': user.username,
-                'timestamp': saved_message.timestamp.isoformat(),
+                'username': user.first_name or user.username,
+                'timestamp': saved_message.created_at.isoformat(),
             }
         )
 
@@ -50,14 +50,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
         }))
 
     @database_sync_to_async
-    def room_exists(self, room_id, user):
+    def channel_exists(self, channel_id, user):
         try:
-            room = ChatRoom.objects.get(id=room_id)
-            return room.members.filter(id=user.id).exists() or not room.is_private
-        except ChatRoom.DoesNotExist:
+            channel = Channel.objects.get(id=channel_id)
+            return channel.members.filter(id=user.id).exists() or not channel.is_private
+        except Channel.DoesNotExist:
             return False
 
     @database_sync_to_async
-    def save_message(self, room_id, user, content):
-        room = ChatRoom.objects.get(id=room_id)
-        return ChatMessage.objects.create(room=room, user=user, content=content)
+    def save_message(self, channel_id, user, content):
+        channel = Channel.objects.get(id=channel_id)
+        return Message.objects.create(channel=channel, user=user, content=content)

@@ -23,6 +23,7 @@ export default function Header() {
       { to: '/workspaces', label: t.workspaces },
       { to: '/team', label: t.team },
       { to: '/activity', label: t.activity },
+      { to: '/chat', label: 'Chat' },
     ] : []),
   ]
 
