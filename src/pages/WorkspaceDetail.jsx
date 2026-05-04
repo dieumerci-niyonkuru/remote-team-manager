@@ -274,10 +274,16 @@ export default function WorkspaceDetail() {
                           <div key={tk.id} className="card" style={{ padding:14, borderLeft:`3px solid ${col.color}` }}>
                             <div style={{ fontWeight:700, fontSize:13, color:'var(--text)', marginBottom:6, lineHeight:1.4 }}>{tk.title}</div>
                             {tk.description && <div style={{ fontSize:12, color:'var(--text2)', marginBottom:8, lineHeight:1.5 }}>{tk.description}</div>}
-                            <div style={{ display:'flex', gap:5, flexWrap:'wrap', marginBottom:tk.progress>0?8:0 }}>
+                            <div style={{ display:'flex', gap:5, flexWrap:'wrap', marginBottom:8 }}>
                               <span className={`badge ${PRI[tk.priority]}`}>{tk.priority}</span>
                               {tk.assignee && <span className="badge badge-gray">👤 {tk.assignee.first_name}</span>}
                               {tk.due_date && <span className="badge badge-gray">📅 {tk.due_date}</span>}
+                              {/* Smart Dependency — show if blocked */}
+                              {tk.dependencies?.length > 0 && (
+                                <span className="badge" style={{ background:'rgba(239,68,68,0.12)', color:'#dc2626', fontWeight:700 }}>
+                                  🔒 Blocked ({tk.dependencies.length})
+                                </span>
+                              )}
                             </div>
                             {tk.progress > 0 && (
                               <div>

@@ -18,6 +18,7 @@ import AIAssistant from './pages/AIAssistant'
 import Automations from './pages/Automations'
 import Wiki from './pages/Wiki'
 import Search from './pages/Search'
+import Integrations from './pages/Integrations'
 
 const Protected = ({ children }) => {
   const { isAuth } = useStore()
@@ -51,6 +52,7 @@ export default function App() {
             <Route path="/automations" element={<Protected><Automations /></Protected>} />
             <Route path="/wiki" element={<Protected><Wiki /></Protected>} />
             <Route path="/search" element={<Protected><Search /></Protected>} />
+            <Route path="/integrations" element={<Protected><Integrations /></Protected>} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

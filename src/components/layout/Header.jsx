@@ -31,6 +31,7 @@ export default function Header() {
       { to: '/automations', label: '⚡ Automations' },
       { to: '/wiki', label: '📚 Wiki' },
       { to: '/search', label: '🔍 Search' },
+      { to: '/integrations', label: '🔗 Integrations' },
     ] : []),
   ]
 

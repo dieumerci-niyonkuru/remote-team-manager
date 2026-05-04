@@ -75,3 +75,15 @@ class ProjectFile(models.Model):
     filename = models.CharField(max_length=255)
     version = models.IntegerField(default=1)
     uploaded_at = models.DateTimeField(auto_now_add=True)
+
+class TaskDependency(models.Model):
+    """Task A is BLOCKED BY Task B (predecessor)"""
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='dependencies')
+    depends_on = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='dependents')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('task', 'depends_on')
+
+    def __str__(self):
+        return f"{self.task.title} ← blocked by → {self.depends_on.title}"
