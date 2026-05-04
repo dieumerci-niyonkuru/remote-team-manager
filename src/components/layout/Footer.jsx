@@ -8,73 +8,74 @@ const SOCIAL = [
 
 export default function Footer() {
   return (
-    <footer style={{ background:'var(--bg)', borderTop:'1px solid var(--border)', padding:'100px 24px 60px' }}>
+    <footer id="footer" style={{ background: 'var(--bg-card)', borderTop: '1px solid var(--border)', padding: '100px 0 60px' }}>
       <div className="container">
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(280px, 1fr))', gap:64, marginBottom:80 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 64, marginBottom: 80 }}>
+          
           {/* Brand & Mission */}
-          <div style={{ gridColumn:'span 1.5' }}>
-            <Link to="/" style={{ display:'flex', alignItems:'center', gap:12, textDecoration:'none', marginBottom:32 }}>
-              <div style={{ width:44, height:44, borderRadius:14, background:'linear-gradient(135deg,#3366ff,#8b5cf6)', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', boxShadow:'0 10px 20px -5px rgba(51,102,255,0.4)' }}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          <div style={{ gridColumn: 'span 1.5' }}>
+            <Link to="/" style={{ display:'flex', alignItems:'center', gap:14, textDecoration:'none', marginBottom:32 }}>
+              <div style={{ width:48, height:48, borderRadius:14, background:'linear-gradient(135deg,#3366ff,#8b5cf6)', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', boxShadow:'0 10px 20px -5px rgba(51,102,255,0.4)' }}>
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
               </div>
-              <span className="logo-font">NexusTeams</span>
+              <span className="logo-font" style={{ fontSize:26 }}>NexusTeams</span>
             </Link>
-            <p style={{ fontSize:16, color:'var(--text2)', lineHeight:1.8, marginBottom:32, maxWidth:400 }}>
-              The world's most advanced remote-first collaboration platform. Empowering teams to build, scale, and win together.
+            <p style={{ color: 'var(--text2)', lineHeight: 1.8, fontSize: 16, maxWidth: 420 }}>
+              NexusTeams is an enterprise-grade mission control platform designed to unify remote workforces, streamline complex workflows, and protect mission-critical assets globally.
             </p>
-            <div style={{ display:'flex', flexDirection:'column', gap:12, fontSize:15, color:'var(--text2)' }}>
-              <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-                <span style={{ fontSize:18 }}>📍</span> Kigali, Rwanda
-              </div>
-              <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-                <span style={{ fontSize:18 }}>📧</span> dieumercin21@gmail.com
-              </div>
-            </div>
-          </div>
-
-          {/* Navigation Columns */}
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:40 }}>
-            <div>
-              <h4 style={{ fontSize:14, fontWeight:900, color:'var(--text)', textTransform:'uppercase', letterSpacing:1.5, marginBottom:32 }}>Company</h4>
-              {['Home', 'About', 'Pricing', 'Blog', 'Careers'].map(l => (
-                <Link key={l} to={l === 'Home' ? '/' : `/#${l.toLowerCase()}`} style={{ display:'block', fontSize:15, color:'var(--text3)', textDecoration:'none', padding:'10px 0', transition:'var(--transition)', fontWeight:500 }}
-                  onMouseEnter={e => e.target.style.color='var(--brand)'} onMouseLeave={e => e.target.style.color='var(--text3)'}>{l}</Link>
-              ))}
-            </div>
-            <div>
-              <h4 style={{ fontSize:14, fontWeight:900, color:'var(--text)', textTransform:'uppercase', letterSpacing:1.5, marginBottom:32 }}>Platform</h4>
-              {['Features', 'Security', 'Enterprise', 'API', 'Status'].map(l => (
-                <Link key={l} to={`/${l.toLowerCase()}`} style={{ display:'block', fontSize:15, color:'var(--text3)', textDecoration:'none', padding:'10px 0', transition:'var(--transition)', fontWeight:500 }}
-                  onMouseEnter={e => e.target.style.color='var(--brand)'} onMouseLeave={e => e.target.style.color='var(--text3)'}>{l}</Link>
+            <div style={{ marginTop: 32, display: 'flex', gap: 20 }}>
+              {SOCIAL.map(s => (
+                <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--text3)', textDecoration: 'none', fontWeight: 800, fontSize: 13, textTransform:'uppercase', letterSpacing:1 }} className="link-hover">{s.label}</a>
               ))}
             </div>
           </div>
 
-          {/* Map Preview */}
+          {/* Links Column */}
           <div>
-             <h4 style={{ fontSize:14, fontWeight:900, color:'var(--text)', textTransform:'uppercase', letterSpacing:1.5, marginBottom:32 }}>Headquarters</h4>
-             <div style={{ width:'100%', height:220, borderRadius:24, overflow:'hidden', border:'1px solid var(--border)', background:'var(--bg2)', position:'relative', boxShadow:'var(--shadow-lg)' }}>
-                <a href="https://maps.app.goo.gl/V2rwyZe58N3MpkuD6" target="_blank" rel="noopener noreferrer" style={{ display:'block', width:'100%', height:'100%', backgroundImage:'url(https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=1000)', backgroundSize:'cover', backgroundPosition:'center', transition:'transform 0.5s ease' }}
-                  onMouseEnter={e => e.target.style.transform='scale(1.05)'} onMouseLeave={e => e.target.style.transform='scale(1)'}>
-                  <div style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.4)', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontWeight:800, fontSize:14, backdropFilter:'blur(2px)' }}>OPEN GOOGLE MAPS</div>
-                </a>
-             </div>
+            <h4 style={{ color: 'var(--text)', fontWeight: 900, marginBottom: 32, fontSize: 14, textTransform: 'uppercase', letterSpacing: 2 }}>Intelligence</h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {[
+                { l: 'Command Center', to: '/dashboard' },
+                { l: 'Communication', to: '/chat' },
+                { l: 'Timeline', to: '/calendar' },
+                { l: 'Knowledge Base', to: '/wiki' },
+                { l: 'Resource Library', to: '/files' }
+              ].map(item => (
+                <Link key={item.l} to={item.to} style={{ color: 'var(--text2)', textDecoration: 'none', fontSize: 15, fontWeight:600 }} className="link-hover">{item.l}</Link>
+              ))}
+            </div>
+          </div>
+
+          {/* Map & Presence */}
+          <div>
+            <h4 style={{ color: 'var(--text)', fontWeight: 900, marginBottom: 32, fontSize: 14, textTransform: 'uppercase', letterSpacing: 2 }}>Regional HQ</h4>
+            <div style={{ borderRadius: 24, overflow: 'hidden', border: '1px solid var(--border)', height: 200, background: 'var(--bg2)', position:'relative' }}>
+              <iframe 
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d127606.31952219808!2d29.988081691357422!3d-1.9440733!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x19dca429ed308f25%3A0x10c9e03307d90!2sKigali%2C%20Rwanda!5e0!3m2!1sen!2sus!4v1714777860601!5m2!1sen!2sus" 
+                width="100%" height="100%" style={{ border: 0, filter: 'grayscale(1) invert(1) opacity(0.6)' }} allowFullScreen="" loading="lazy">
+              </iframe>
+              <div style={{ position:'absolute', bottom:16, left:16, right:16, background:'rgba(var(--bg-rgb), 0.8)', backdropFilter:'blur(10px)', padding:'8px 12px', borderRadius:12, fontSize:11, fontWeight:800, color:'var(--text)', border:'1px solid var(--border)', textAlign:'center' }}>
+                 📍 KIGALI INNOVATION CITY, RWANDA
+              </div>
+            </div>
+            <p style={{ color: 'var(--text3)', fontSize: 13, marginTop: 16, fontWeight: 700, textAlign:'center' }}>Support: dieumercin21@gmail.com</p>
           </div>
         </div>
 
         {/* Bottom Bar */}
-        <div style={{ borderTop:'1px solid var(--border)', paddingTop:40, display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:24 }}>
-          <p style={{ fontSize:14, color:'var(--text3)', fontWeight:500 }}>
-            © 2026 NexusTeams. All rights reserved. Built with 💎 by <strong style={{ color:'var(--text)' }}>Dieu-Merci Niyonkuru</strong>.
-          </p>
-          <div style={{ display:'flex', gap:32 }}>
-            {SOCIAL.map(s => (
-              <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer" style={{ fontSize:22, textDecoration:'none', color:'var(--text3)', transition:'var(--transition)' }}
-                onMouseEnter={e => e.target.style.color='var(--brand)'} onMouseLeave={e => e.target.style.color='var(--text3)'}>{s.icon}</a>
-            ))}
+        <div style={{ paddingTop: 40, borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 24 }}>
+          <div style={{ color: 'var(--text3)', fontSize: 14, fontWeight: 600 }}>
+            © 2026 NexusTeams Technologies. Engineered for the future of Rwanda.
+          </div>
+          <div style={{ display: 'flex', gap: 32, fontSize:14, fontWeight:800, color:'var(--text)' }}>
+             Built by Dieu-Merci Niyonkuru
           </div>
         </div>
       </div>
+      <style>{`
+        .link-hover:hover { color: var(--brand) !important; transform: translateX(4px); }
+        .link-hover { transition: 0.2s; display: inline-block; }
+      `}</style>
     </footer>
   )
 }

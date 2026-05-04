@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useStore } from '../store'
+import Dashboard from './Dashboard'
 
 const BACKGROUNDS = [
   'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=2069',
@@ -43,13 +44,19 @@ const FEATURES = [
 ]
 
 export default function Home() {
-  const { theme } = useStore()
+  const { isAuth, theme } = useStore()
   const [bgIndex, setBgIndex] = useState(0)
 
   useEffect(() => {
+    if (isAuth) return
     const timer = setInterval(() => setBgIndex(i => (i + 1) % BACKGROUNDS.length), 8000)
     return () => clearInterval(timer)
-  }, [])
+  }, [isAuth])
+
+  // If logged in, show the Platform Mission Control (Dashboard)
+  if (isAuth) {
+    return <Dashboard />
+  }
 
   return (
     <div className={theme} style={{ background:'var(--bg)' }}>
@@ -131,8 +138,8 @@ export default function Home() {
              <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80&w=1000" alt="About Us" style={{ width:'100%', borderRadius:32, boxShadow: '0 40px 100px -20px rgba(0,0,0,0.5)' }} />
              <div style={{ position:'absolute', bottom:-40, right:-40, width:200, height:200, background:'var(--brand)', borderRadius:24, display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', padding:32, boxShadow:'var(--shadow-lg)' }} className="float">
                 <div style={{ textAlign:'center' }}>
-                  <div style={{ fontSize:48, fontWeight:900 }}>100%</div>
-                  <div style={{ fontSize:14, fontWeight:700 }}>REMOTE FIRST</div>
+                   <div style={{ fontSize:48, fontWeight:900 }}>100%</div>
+                   <div style={{ fontSize:14, fontWeight:700 }}>REMOTE FIRST</div>
                 </div>
              </div>
           </div>
