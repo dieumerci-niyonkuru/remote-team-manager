@@ -2,6 +2,11 @@
   command = "npm run build"
   publish = "dist"
 
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
 [build.environment]
   PYTHON_VERSION = "3.11" # Dummy version to stop it from using 3.14
   NODE_VERSION = "20"
