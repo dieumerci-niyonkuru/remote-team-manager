@@ -23,7 +23,7 @@ def authenticated_client(api_client, create_user):
 @pytest.fixture
 def create_user(db):
     """Factory fixture to create users."""
-    from apps.users.models import User
+    from apps.accounts.models import User
 
     def make_user(
         email='test@example.com',

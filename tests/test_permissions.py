@@ -1,6 +1,6 @@
 import pytest
 from django.test import TestCase
-from apps.users.models import User
+from apps.accounts.models import User
 from apps.workspaces.models import Workspace, WorkspaceMember
 
 

@@ -1,6 +1,6 @@
 import pytest
 from rest_framework.test import APIClient
-from apps.users.models import User
+from apps.accounts.models import User
 from apps.workspaces.models import Workspace, WorkspaceMember
 
 
@@ -250,7 +250,7 @@ class TestTaskEndpoints:
         assert res.status_code == 200
 
     def test_manager_can_delete_task(self):
-        from apps.tasks.models import Task
+        from apps.projects.models import Task
         task = Task.objects.create(
             project=self.project,
             title='Delete Me',
@@ -261,7 +261,7 @@ class TestTaskEndpoints:
         assert res.status_code == 200
 
     def test_developer_cannot_delete_task(self):
-        from apps.tasks.models import Task
+        from apps.projects.models import Task
         task = Task.objects.create(
             project=self.project,
             title='Cant Delete',
@@ -272,7 +272,7 @@ class TestTaskEndpoints:
         assert res.status_code == 403
 
     def test_viewer_cannot_delete_task(self):
-        from apps.tasks.models import Task
+        from apps.projects.models import Task
         task = Task.objects.create(
             project=self.project,
             title='Viewer Cant Delete',
@@ -283,7 +283,7 @@ class TestTaskEndpoints:
         assert res.status_code == 403
 
     def test_task_filter_by_status(self):
-        from apps.tasks.models import Task
+        from apps.projects.models import Task
         Task.objects.create(
             project=self.project, title='Todo Task',
             status='todo', created_by=self.owner
@@ -298,7 +298,7 @@ class TestTaskEndpoints:
         assert all(t['status'] == 'todo' for t in res.data['data'])
 
     def test_task_filter_by_priority(self):
-        from apps.tasks.models import Task
+        from apps.projects.models import Task
         Task.objects.create(
             project=self.project, title='High Task',
             priority='high', created_by=self.owner
@@ -323,7 +323,7 @@ class TestSubtaskAndProgress:
 
     def setup_method(self):
         from apps.projects.models import Project
-        from apps.tasks.models import Task
+        from apps.projects.models import Task
         self.client = APIClient()
         self.owner  = User.objects.create_user(
             email='subowner@test.com', password='Test1234x',
@@ -364,7 +364,7 @@ class TestSubtaskAndProgress:
         assert res.status_code == 200
 
     def test_complete_subtask_updates_progress(self):
-        from apps.tasks.models import Subtask, Task
+        from apps.projects.models import Subtask, Task
         s1 = Subtask.objects.create(task=self.task, title='Step 1')
         s2 = Subtask.objects.create(task=self.task, title='Step 2')
         s3 = Subtask.objects.create(task=self.task, title='Step 3')
@@ -380,7 +380,7 @@ class TestSubtaskAndProgress:
         assert self.task.progress == 50
 
     def test_all_subtasks_done_progress_is_100(self):
-        from apps.tasks.models import Subtask, Task
+        from apps.projects.models import Subtask, Task
         s1 = Subtask.objects.create(task=self.task, title='Step 1')
         s2 = Subtask.objects.create(task=self.task, title='Step 2')
 
@@ -395,7 +395,7 @@ class TestSubtaskAndProgress:
         assert self.task.progress == 0
 
     def test_delete_subtask_updates_progress(self):
-        from apps.tasks.models import Subtask
+        from apps.projects.models import Subtask
         s1 = Subtask.objects.create(task=self.task, title='Step 1', is_completed=True)
         s2 = Subtask.objects.create(task=self.task, title='Step 2', is_completed=False)
 
@@ -427,7 +427,7 @@ class TestTaskFilters:
 
     def setup_method(self):
         from apps.projects.models import Project
-        from apps.tasks.models import Task
+        from apps.projects.models import Task
         import datetime
         self.client = APIClient()
         self.owner  = User.objects.create_user(
@@ -523,7 +523,7 @@ class TestTimeLogEndpoints:
 
     def setup_method(self):
         from apps.projects.models import Project
-        from apps.tasks.models import Task
+        from apps.projects.models import Task
         import datetime
         self.client    = APIClient()
         self.owner     = User.objects.create_user(
@@ -580,7 +580,7 @@ class TestTimeLogEndpoints:
         assert float(res.data['data']['hours']) == 2.50
 
     def test_developer_sees_only_own_logs(self):
-        from apps.tasks.models import TimeLog
+        from apps.timetracking.models import TimeLog
         import datetime
         TimeLog.objects.create(
             task=self.task, user=self.owner,
@@ -596,7 +596,7 @@ class TestTimeLogEndpoints:
         assert len(res.data['data']) == 1
 
     def test_manager_sees_all_logs(self):
-        from apps.tasks.models import TimeLog
+        from apps.timetracking.models import TimeLog
         import datetime
         TimeLog.objects.create(
             task=self.task, user=self.owner,
@@ -612,7 +612,7 @@ class TestTimeLogEndpoints:
         assert len(res.data['data']) == 2
 
     def test_owner_sees_all_logs(self):
-        from apps.tasks.models import TimeLog
+        from apps.timetracking.models import TimeLog
         import datetime
         TimeLog.objects.create(
             task=self.task, user=self.developer,
@@ -666,7 +666,7 @@ class TestActivityFeed:
         assert res.status_code == 200
 
     def test_creating_task_logs_activity(self):
-        from apps.tasks.models import ActivityFeed
+        from apps.workspaces.models import ActivityFeed
         task_url = (
             f'/api/workspaces/{self.workspace.id}'
             f'/projects/{self.project.id}/tasks/'
@@ -692,7 +692,7 @@ class TestActivityFeed:
         assert res.status_code == 403
 
     def test_activity_feed_has_correct_fields(self):
-        from apps.tasks.models import ActivityFeed
+        from apps.workspaces.models import ActivityFeed
         ActivityFeed.objects.create(
             workspace=self.workspace,
             actor=self.owner,

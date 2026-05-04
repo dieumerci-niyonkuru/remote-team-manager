@@ -4,8 +4,14 @@ from django.http import JsonResponse
 from django.conf import settings
 from django.conf.urls.static import static
 
+import datetime
+
 def health_check(request):
-    return JsonResponse({'status': 'ok'})
+    return JsonResponse({
+        'status': 'ok',
+        'timestamp': datetime.datetime.now().isoformat(),
+        'version': '1.0.0'
+    })
 
 urlpatterns = [
     path('admin/', admin.site.urls),

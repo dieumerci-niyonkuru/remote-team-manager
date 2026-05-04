@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     'apps.ai',
     'apps.automation',
     'apps.wiki',
+    'apps.timetracking',
 ]
 
 MIDDLEWARE = [
