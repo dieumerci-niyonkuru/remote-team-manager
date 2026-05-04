@@ -22,7 +22,7 @@ const Automations   = lazy(() => import('./pages/Automations'))
 const Wiki          = lazy(() => import('./pages/Wiki'))
 const Search        = lazy(() => import('./pages/Search'))
 const Integrations  = lazy(() => import('./pages/Integrations'))
-const Pricing       = lazy(() => import('./pages/Pricing'))
+const About         = lazy(() => import('./pages/About'))
 const Settings      = lazy(() => import('./pages/Settings'))
 const Notifications = lazy(() => import('./pages/Notifications'))
 
@@ -53,7 +53,7 @@ export default function App() {
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Public><Login /></Public>} />
               <Route path="/register" element={<Public><Register /></Public>} />
-              <Route path="/pricing" element={<Pricing />} />
+              <Route path="/about" element={<About />} />
               <Route path="/dashboard" element={<Protected><Dashboard /></Protected>} />
               <Route path="/workspaces" element={<Protected><Workspaces /></Protected>} />
               <Route path="/workspaces/:id" element={<Protected><WorkspaceDetail /></Protected>} />
