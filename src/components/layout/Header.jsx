@@ -74,14 +74,14 @@ export default function Header() {
 
         {hasItems && activeDropdown === label && (
           <div className="glass fade-in" style={{ 
-            position:'absolute', top:'100%', left:'50%', transform:'translateX(-50%)', width:280, padding:12, borderRadius:20, 
-            boxShadow:'0 30px 60px rgba(0,0,0,0.3)', zIndex:100, border:'1px solid var(--border)', background:'var(--bg-card)'
+            position:'absolute', top:'100%', left:'50%', transform:'translateX(-50%)', width:300, padding:14, borderRadius:24, 
+            boxShadow:'0 40px 80px -10px rgba(0,0,0,0.5)', zIndex:100, border:'1px solid rgba(255,255,255,0.08)', background:'rgba(10, 15, 30, 0.95)', backdropFilter:'blur(40px)'
           }}>
             {items.map(item => (
               <Link key={item.label} to={item.to} style={{ 
-                display:'flex', alignItems:'center', gap:12, padding:10, borderRadius:12, textDecoration:'none', transition:'0.2s'
+                display:'flex', alignItems:'center', gap:14, padding:12, borderRadius:16, textDecoration:'none', transition:'0.3s'
               }} className="dropdown-item-hover">
-                <span style={{ fontSize:14, fontWeight:900, color:'var(--brand)', opacity:0.6 }}>{item.icon}</span>
+                <span style={{ fontSize:12, fontWeight:900, color:'var(--brand)', opacity:0.7, background:'var(--brand-bg)', width:28, height:28, display:'flex', alignItems:'center', justifyContent:'center', borderRadius:8 }}>{item.icon}</span>
                 <div>
                   <div style={{ fontSize:13, fontWeight:800, color:'var(--text)' }}>{item.label}</div>
                   <div style={{ fontSize:10, color:'var(--text3)', marginTop:2, lineHeight:1.3 }}>{item.desc}</div>
@@ -97,8 +97,8 @@ export default function Header() {
   return (
     <header style={{ 
       position:'fixed', top:0, left:0, right:0, zIndex:1000, 
-      background: scrolled ? 'rgba(var(--bg-rgb), 0.8)' : 'transparent',
-      backdropFilter: scrolled ? 'blur(24px)' : 'none',
+      background: scrolled ? 'rgba(var(--bg-rgb), 0.85)' : 'transparent',
+      backdropFilter: scrolled ? 'blur(30px)' : 'none',
       borderBottom: scrolled ? '1px solid var(--border)' : '1px solid transparent',
       height: scrolled ? 80 : 100, transition: '0.4s cubic-bezier(0.4, 0, 0.2, 1)'
     }}>
@@ -145,7 +145,7 @@ export default function Header() {
 
       {/* Mobile Mega Menu */}
       {showMenu && (
-        <div className="fade-in" style={{ position:'fixed', top:scrolled ? 80 : 100, inset:'0 0 0 0', background:'rgba(var(--bg-rgb), 0.98)', backdropFilter:'blur(20px)', zIndex:1001, padding:24, overflowY:'auto' }}>
+        <div className="fade-in" style={{ position:'fixed', top:scrolled ? 80 : 100, inset:'0 0 0 0', background:'rgba(10, 15, 30, 0.98)', backdropFilter:'blur(40px)', zIndex:1001, padding:24, overflowY:'auto' }}>
            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16, marginBottom:32 }}>
               <Link to="/" onClick={() => setShowMenu(false)} className="mobile-nav-link" style={{ textAlign:'center' }}>Home</Link>
               <Link to="/about" onClick={() => setShowMenu(false)} className="mobile-nav-link" style={{ textAlign:'center' }}>About Us</Link>
@@ -183,10 +183,10 @@ export default function Header() {
           .mobile-only { display: flex !important; }
         }
         .nav-link-hover:hover { color: var(--brand) !important; background: var(--brand-bg) !important; }
-        .dropdown-item-hover:hover { background: var(--brand-bg); transform: translateX(6px); }
+        .dropdown-item-hover:hover { background: rgba(255,255,255,0.05); transform: translateX(8px); }
         .mobile-nav-link {
           padding: 16px 20px; font-size: 15px; font-weight: 800; color: var(--text); text-decoration: none;
-          border-radius: 16px; background: var(--bg2); border: 1px solid var(--border); transition: 0.2s;
+          border-radius: 16px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); transition: 0.2s;
         }
         .mobile-nav-link:active { transform: scale(0.98); }
       `}</style>
