@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
-import { useStore } from '../../store'
-import { ai } from '../../services/api'
+import { useStore } from '../store'
+import { ai } from '../services/api'
 
 const QUICK_PROMPTS = [
   "What should I prioritize today?",

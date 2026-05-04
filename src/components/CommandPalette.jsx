@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useStore } from '../../store'
+import { useStore } from '../store'
 
 const COMMANDS = [
   { group: 'Navigate', icon: '🏠', label: 'Dashboard', action: 'nav', to: '/dashboard' },
