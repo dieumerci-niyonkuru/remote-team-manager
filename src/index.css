@@ -210,13 +210,53 @@ h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: -0.02em; line
 @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
 .float { animation: float 4s ease-in-out infinite; }
 
-/* Responsive Utilities */
-.container { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
-.flex-center { display: flex; align-items: center; justify-content: center; }
-
-@media (max-width: 1024px) {
-  .hide-tablet { display: none !important; }
+/* Moving Code Background Animation */
+@keyframes codeMove {
+  from { background-position: 0 0; }
+  to { background-position: 0 1000px; }
 }
+.moving-code-bg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(rgba(6, 11, 24, 0.9), rgba(6, 11, 24, 0.9)), url('https://www.transparenttextures.com/patterns/carbon-fibre.png');
+  overflow: hidden;
+  z-index: -1;
+}
+.moving-code-bg::after {
+  content: "0101010110101010101011010101101010101010110101011010101010101101";
+  position: absolute;
+  top: -100%;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  color: rgba(51, 102, 255, 0.05);
+  line-height: 1;
+  word-break: break-all;
+  animation: codeMove 30s linear infinite;
+  pointer-events: none;
+}
+
+/* Professional Logo Font */
+.logo-font {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 900;
+  font-size: 24px;
+  background: linear-gradient(135deg, #fff 0%, #3366ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -1px;
+}
+
+/* Global Responsiveness */
+.grid-responsive {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+}
+
 @media (max-width: 768px) {
-  .hide-mobile { display: none !important; }
+  .logo-font { font-size: 20px; }
+  .grid-responsive { grid-template-columns: 1fr; }
 }

@@ -16,6 +16,14 @@ export default function Header() {
 
   const NAV_GROUPS = [
     {
+      label: 'Home',
+      to: '/'
+    },
+    {
+      label: 'About',
+      to: '/#about'
+    },
+    {
       label: 'Product',
       items: [
         { to: '/#features', label: 'Features', desc: 'Everything you need to scale' },
@@ -38,48 +46,50 @@ export default function Header() {
         { to: '/ai', label: 'AI Power', desc: 'Next-gen productivity tools' },
         { to: '/search', label: 'Deep Search', desc: 'Find anything in seconds' },
       ]
-    },
-    {
-      label: 'Platform',
-      items: [
-        { to: '/dashboard', label: 'Dashboard', desc: 'Your central mission control' },
-        { to: '/workspaces', label: 'Workspaces', desc: 'Isolated team environments' },
-        { to: '/chat', label: 'Real-time Chat', desc: 'Instant team communication' },
-      ]
     }
   ]
 
   const isActive = to => to === '/' ? pathname === '/' : pathname.startsWith(to)
 
   return (
-    <header style={{ position:'sticky', top:0, zIndex:1000, background:'rgba(var(--bg-rgb), 0.8)', backdropFilter:'blur(20px)', borderBottom:'1px solid var(--border)' }}>
-      <div className="container" style={{ height:72, display:'flex', alignItems:'center', gap:32 }}>
-        {/* Logo */}
-        <Link to="/" style={{ display:'flex', alignItems:'center', gap:10, textDecoration:'none', flexShrink:0 }}>
-          <div style={{ width:40, height:40, borderRadius:12, background:'linear-gradient(135deg,#3366ff,#8b5cf6)', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontFamily:'var(--font-display)', fontWeight:800, fontSize:18, boxShadow:'0 4px 12px rgba(51,102,255,0.3)' }}>R</div>
-          <span style={{ fontFamily:'var(--font-display)', fontWeight:800, fontSize:18, color:'var(--text)', letterSpacing:'-0.03em' }}>Nexus<span style={{ color:'var(--brand)' }}>Teams</span></span>
+    <header style={{ position:'sticky', top:0, zIndex:1000, background:'rgba(var(--bg-rgb), 0.9)', backdropFilter:'blur(20px)', borderBottom:'1px solid var(--border)' }}>
+      <div className="container" style={{ height:80, display:'flex', alignItems:'center', gap:40 }}>
+        {/* Professional Logo */}
+        <Link to="/" style={{ display:'flex', alignItems:'center', gap:12, textDecoration:'none', flexShrink:0 }}>
+          <div style={{ width:44, height:44, borderRadius:14, background:'linear-gradient(135deg,#3366ff,#8b5cf6)', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', boxShadow:'0 10px 20px -5px rgba(51,102,255,0.4)' }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          </div>
+          <span className="logo-font">NexusTeams</span>
         </Link>
 
         {/* Desktop Nav */}
-        <nav className="hide-tablet" style={{ display:'flex', gap:8, flex:1 }}>
+        <nav className="hide-tablet" style={{ display:'flex', gap:4, flex:1 }}>
           {NAV_GROUPS.map(group => (
             <div key={group.label} className="nav-item" style={{ position:'relative', padding:'10px 0' }}>
-              <button style={{ background:'none', border:'none', color:'var(--text2)', fontSize:14, fontWeight:600, cursor:'pointer', display:'flex', alignItems:'center', gap:4, padding:'8px 12px', borderRadius:8, transition:'var(--transition)' }} className="btn-ghost">
-                {group.label} <span style={{ fontSize:10, opacity:0.5 }}>▼</span>
-              </button>
+              {group.to ? (
+                <Link to={group.to} style={{ color:'var(--text2)', fontSize:14, fontWeight:700, textDecoration:'none', padding:'8px 16px', borderRadius:8, transition:'var(--transition)' }} className="btn-ghost">
+                  {group.label}
+                </Link>
+              ) : (
+                <button style={{ background:'none', border:'none', color:'var(--text2)', fontSize:14, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:8, transition:'var(--transition)' }} className="btn-ghost">
+                  {group.label} <span style={{ fontSize:10, opacity:0.5 }}>▼</span>
+                </button>
+              )}
               
-              <div className="dropdown-menu">
-                <div style={{ padding:8, display:'flex', flexDirection:'column', gap:4 }}>
-                  {group.items.map(item => (
-                    <Link key={item.label} to={item.to} className="dropdown-item">
-                      <div style={{ flex:1 }}>
-                        <div style={{ fontWeight:700, color:'var(--text)', marginBottom:2 }}>{item.label}</div>
-                        <div style={{ fontSize:11, color:'var(--text3)' }}>{item.desc}</div>
-                      </div>
-                    </Link>
-                  ))}
+              {group.items && (
+                <div className="dropdown-menu" style={{ width:280 }}>
+                  <div style={{ padding:12, display:'flex', flexDirection:'column', gap:6 }}>
+                    {group.items.map(item => (
+                      <Link key={item.label} to={item.to} className="dropdown-item" style={{ padding:12 }}>
+                        <div style={{ flex:1 }}>
+                          <div style={{ fontWeight:800, color:'var(--text)', marginBottom:4, fontSize:14 }}>{item.label}</div>
+                          <div style={{ fontSize:12, color:'var(--text3)', lineHeight:1.4 }}>{item.desc}</div>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           ))}
         </nav>

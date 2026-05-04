@@ -40,15 +40,13 @@ export default function Register() {
 
   const validate = () => {
     const e = {}
-    if (!form.first_name) e.first_name = 'First name required'
-    if (!form.last_name) e.last_name = 'Last name required'
-    if (!form.email) e.email = 'Email required'
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = 'Invalid email'
-    
-    if (!form.password) e.password = 'Password required'
-    else if (form.password.length < 8) e.password = 'Min 8 characters'
-    
-    if (form.password !== form.password2) e.password2 = 'Passwords mismatch'
+    if (!form.first_name) e.first_name = 'Required'
+    if (!form.last_name) e.last_name = 'Required'
+    if (!form.email) e.email = 'Required'
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = 'Invalid'
+    if (!form.password) e.password = 'Required'
+    else if (form.password.length < 8) e.password = 'Min 8 chars'
+    if (form.password !== form.password2) e.password2 = 'Mismatch'
     setErrors(e)
     return !Object.keys(e).length
   }
@@ -76,28 +74,32 @@ export default function Register() {
   }
 
   const F = ({ name, label, type='text', placeholder, children }) => (
-    <div style={{ marginBottom:16 }}>
-      <label className="label" style={{ marginBottom:8, fontSize:13 }}>{label}</label>
-      {children || <input className={`input ${errors[name]?'error':''}`} type={type} placeholder={placeholder} value={form[name]} onChange={e => set(name, e.target.value)} />}
-      {errors[name] && <div className="error-msg" style={{ marginTop:6 }}>⚠ {errors[name]}</div>}
+    <div style={{ flex:1 }}>
+      <label className="label" style={{ marginBottom:8, fontSize:12, fontWeight:700, color:'var(--text3)', textTransform:'uppercase', letterSpacing:1 }}>{label}</label>
+      {children || <input className={`input ${errors[name]?'error':''}`} type={type} placeholder={placeholder} value={form[name]} onChange={e => set(name, e.target.value)} style={{ padding:'14px 20px', borderRadius:14 }} />}
+      {errors[name] && <div className="error-msg" style={{ marginTop:4, fontSize:11 }}>⚠ {errors[name]}</div>}
     </div>
   )
 
   return (
-    <div className={theme} style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'var(--bg)', padding:'60px 24px' }}>
-      <div className="card fade-in" style={{ width:'100%', maxWidth:540, padding:48, background:'var(--bg-card)', backdropFilter:'blur(20px)' }}>
+    <div className={theme} style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'var(--bg)', padding:'80px 24px', position:'relative', overflow:'hidden' }}>
+      <div className="moving-code-bg" />
+      
+      <div className="card fade-in" style={{ width:'100%', maxWidth:580, padding:56, background:'rgba(var(--bg-card-rgb), 0.7)', backdropFilter:'blur(40px)', border:'1px solid rgba(255,255,255,0.05)', boxShadow:'0 40px 100px -20px rgba(0,0,0,0.5)', borderRadius:32 }}>
         <div style={{ textAlign:'center', marginBottom:40 }}>
-          <div style={{ width:56, height:56, borderRadius:16, background:'linear-gradient(135deg,#3366ff,#8b5cf6)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 20px', fontSize:26, fontWeight:800, color:'#fff', boxShadow:'0 8px 20px rgba(51,102,255,0.3)' }}>R</div>
-          <h2 style={{ fontSize:28, fontWeight:800, color:'var(--text)', marginBottom:8 }}>Join NexusTeams</h2>
-          <p style={{ color:'var(--text2)', fontSize:15 }}>Create your professional identity</p>
+          <Link to="/" style={{ display:'inline-flex', width:64, height:64, borderRadius:18, background:'linear-gradient(135deg,#3366ff,#8b5cf6)', alignItems:'center', justifyContent:'center', color:'#fff', margin:'0 auto 24px', boxShadow:'0 10px 25px -5px rgba(51,102,255,0.5)' }}>
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          </Link>
+          <h2 style={{ fontSize:32, fontWeight:900, color:'var(--text)', marginBottom:12, letterSpacing:'-0.03em' }}>Create Account</h2>
+          <p style={{ color:'var(--text2)', fontSize:16, fontWeight:500 }}>Join the world's most advanced remote workspace</p>
         </div>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} style={{ display:'flex', flexDirection:'column', gap:20 }}>
           {/* Avatar Upload */}
-          <div style={{ display:'flex', flexDirection:'column', alignItems:'center', marginBottom:32 }}>
+          <div style={{ display:'flex', justifyContent:'center', marginBottom:10 }}>
             <div 
               onClick={() => fileInputRef.current?.click()}
-              style={{ width:100, height:100, borderRadius:'50%', border:'2px dashed var(--border)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', overflow:'hidden', position:'relative', transition:'var(--transition)' }}
+              style={{ width:96, height:96, borderRadius:32, border:'2px dashed var(--border)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', overflow:'hidden', position:'relative', transition:'var(--transition)', background:'var(--bg2)' }}
               onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--brand)'}
               onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
             >
@@ -105,39 +107,39 @@ export default function Register() {
                 <img src={avatarPreview} alt="Preview" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
               ) : (
                 <div style={{ textAlign:'center', color:'var(--text3)' }}>
-                  <div style={{ fontSize:24 }}>📸</div>
-                  <div style={{ fontSize:10, fontWeight:600, marginTop:4 }}>OPTIONAL</div>
+                  <div style={{ fontSize:28 }}>👤</div>
+                  <div style={{ fontSize:10, fontWeight:800, marginTop:4 }}>AVATAR</div>
                 </div>
               )}
             </div>
             <input ref={fileInputRef} type="file" hidden accept="image/*" onChange={handleFileChange} />
           </div>
 
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
+          <div style={{ display:'flex', gap:16 }}>
             <F name="first_name" label="First Name" placeholder="John" />
             <F name="last_name" label="Last Name" placeholder="Doe" />
           </div>
 
           <F name="email" label="Professional Email" type="email" placeholder="john@company.com" />
           
-          <F name="role" label="Your Role">
-            <select className="input" value={form.role} onChange={e => set('role', e.target.value)}>
+          <F name="role" label="Your Primary Role">
+            <select className="input" value={form.role} onChange={e => set('role', e.target.value)} style={{ padding:'14px 20px', borderRadius:14, cursor:'pointer' }}>
               {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
             </select>
           </F>
 
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
+          <div style={{ display:'flex', gap:16 }}>
             <F name="password" label="Password" type="password" placeholder="••••••••" />
             <F name="password2" label="Confirm" type="password" placeholder="••••••••" />
           </div>
 
-          <button type="submit" className="btn btn-primary" disabled={loading} style={{ width:'100%', padding:16, fontSize:16, borderRadius:14, marginTop:12 }}>
-            {loading ? <div className="spinner" style={{ width:20, height:20, border:'3px solid rgba(255,255,255,0.3)', borderTop:'3px solid #fff' }} /> : 'Create My Account →'}
+          <button type="submit" className="btn btn-primary" disabled={loading} style={{ width:'100%', padding:'18px', fontSize:17, borderRadius:16, fontWeight:800, marginTop:10 }}>
+            {loading ? <div className="spinner" style={{ width:24, height:24, border:'3px solid rgba(255,255,255,0.3)', borderTop:'3px solid #fff' }} /> : 'Create My Workspace ➜'}
           </button>
         </form>
 
-        <p style={{ textAlign:'center', fontSize:14, color:'var(--text2)', marginTop:32 }}>
-          Already have an account? <Link to="/login" style={{ color:'var(--brand)', fontWeight:700, textDecoration:'none' }}>Sign In</Link>
+        <p style={{ textAlign:'center', fontSize:15, color:'var(--text2)', marginTop:40, fontWeight:500 }}>
+          Already have an account? <Link to="/login" style={{ color:'var(--brand)', fontWeight:800, textDecoration:'none' }}>Sign In</Link>
         </p>
       </div>
     </div>
