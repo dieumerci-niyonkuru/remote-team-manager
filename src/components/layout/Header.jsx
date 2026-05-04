@@ -17,21 +17,19 @@ export default function Header() {
 
   const navLinks = [
     { to: '/', label: t.home },
-    { to: '/#features', label: t.features },
+    { to: '/pricing', label: '💎 Pricing' },
     ...(isAuth ? [
       { to: '/dashboard', label: t.dashboard },
       { to: '/workspaces', label: t.workspaces },
-      { to: '/team', label: t.team },
-      { to: '/activity', label: t.activity },
-      { to: '/chat', label: 'Chat' },
-      { to: '/calendar', label: 'Calendar' },
-      { to: '/hr', label: 'HR' },
-      { to: '/files', label: 'Files' },
+      { to: '/chat', label: '💬 Chat' },
+      { to: '/calendar', label: '📅 Calendar' },
       { to: '/ai', label: '🧠 AI' },
-      { to: '/automations', label: '⚡ Automations' },
-      { to: '/wiki', label: '📚 Wiki' },
       { to: '/search', label: '🔍 Search' },
+      { to: '/wiki', label: '📚 Wiki' },
+      { to: '/automations', label: '⚡ Auto' },
       { to: '/integrations', label: '🔗 Integrations' },
+      { to: '/hr', label: '👥 HR' },
+      { to: '/files', label: '📁 Files' },
     ] : []),
   ]
 
@@ -73,7 +71,18 @@ export default function Header() {
 
           {isAuth ? (
             <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-              <div style={{ width:32, height:32, borderRadius:'50%', background:'linear-gradient(135deg,#3366ff,#8b5cf6)', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer' }} onClick={() => navigate('/dashboard')}>
+              {/* Notification Bell */}
+              <Link to="/notifications" title="Notifications"
+                style={{ width:34, height:34, borderRadius:10, background:'var(--bg2)', border:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:17, textDecoration:'none', position:'relative', transition:'var(--transition)' }}>
+                🔔
+                <div style={{ position:'absolute', top:5, right:5, width:8, height:8, borderRadius:'50%', background:'#dc2626', border:'2px solid var(--bg)' }} />
+              </Link>
+              {/* Settings */}
+              <Link to="/settings" title="Settings"
+                style={{ width:34, height:34, borderRadius:10, background:'var(--bg2)', border:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:16, textDecoration:'none', transition:'var(--transition)' }}>
+                ⚙️
+              </Link>
+              <div style={{ width:32, height:32, borderRadius:'50%', background:'linear-gradient(135deg,#3366ff,#8b5cf6)', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:12, fontWeight:700, cursor:'pointer' }} onClick={() => navigate('/settings')}>
                 {user?.first_name?.[0]}{user?.last_name?.[0]}
               </div>
               <button className="btn-ghost" onClick={handleLogout} style={{ fontSize:12, padding:'6px 12px' }}>{t.logout}</button>
