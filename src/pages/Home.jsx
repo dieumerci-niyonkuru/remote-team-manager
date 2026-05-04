@@ -3,19 +3,31 @@ import { Link } from 'react-router-dom'
 import { useStore } from '../store'
 
 const BACKGROUNDS = [
-  'https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&q=80&w=2070',
-  'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&q=80&w=2070',
-  'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80&w=2070',
+  'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=2069',
+  'https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&q=80&w=2074',
+  'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80&w=2071',
   'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=2070'
 ]
 
 const FEATURES = [
-  { icon:'⚡', title:'Real-time Sync', desc:'Websocket-powered chat and instant notifications keep your team in perfect rhythm.' },
-  { icon:'🧠', title:'AI Copilot', desc:'Advanced AI helps breakdown complex goals into manageable tasks automatically.' },
-  { icon:'📊', title:'Project Insights', desc:'Visual dashboards and time tracking give you deep visibility into productivity.' },
-  { icon:'🔒', title:'Enterprise Security', desc:'Bank-grade encryption and role-based access control protect your sensitive data.' },
-  { icon:'🏢', title:'Multi-Tenant', desc:'Isolate different organizations with dedicated workspaces and team permissions.' },
-  { icon:'🚀', title:'Global Performance', desc:'Edge-optimized delivery ensures low latency for remote teams worldwide.' },
+  { 
+    icon:'⚡', 
+    title:'Real-time Collaboration', 
+    desc:'Connect with your team instantly. Our WebSocket architecture ensures that messages, task updates, and notifications happen in the blink of an eye.',
+    img: 'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&q=80&w=800'
+  },
+  { 
+    icon:'🧠', 
+    title:'AI-Driven Insights', 
+    desc:'Stop guessing and start knowing. Our built-in AI assistant analyzes your project data to predict bottlenecks and suggest the most efficient path forward.',
+    img: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&q=80&w=800'
+  },
+  { 
+    icon:'📊', 
+    title:'Advanced Visual Analytics', 
+    desc:'Track every hour and every task with precision. Beautifully designed dashboards give you a 360-degree view of your organization health.',
+    img: 'https://images.unsplash.com/photo-1551288049-bbdac8a28a1e?auto=format&fit=crop&q=80&w=800'
+  }
 ]
 
 export default function Home() {
@@ -23,86 +35,79 @@ export default function Home() {
   const [bgIndex, setBgIndex] = useState(0)
 
   useEffect(() => {
-    const timer = setInterval(() => setBgIndex(i => (i + 1) % BACKGROUNDS.length), 8000)
+    const timer = setInterval(() => setBgIndex(i => (i + 1) % BACKGROUNDS.length), 10000)
     return () => clearInterval(timer)
   }, [])
 
   return (
     <div className={theme} style={{ background:'var(--bg)' }}>
-      {/* Hero Section with Changeable Background */}
-      <section style={{ position:'relative', minHeight:'90vh', display:'flex', alignItems:'center', justifyContent:'center', padding:'100px 24px', overflow:'hidden' }}>
-        {/* Dynamic Background */}
+      {/* Hero Section */}
+      <section style={{ position:'relative', minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', padding:'120px 24px', overflow:'hidden' }}>
         {BACKGROUNDS.map((bg, i) => (
-          <div key={bg} style={{ position:'absolute', inset:0, backgroundImage:`url(${bg})`, backgroundSize:'cover', backgroundPosition:'center', opacity: i === bgIndex ? 0.15 : 0, transition:'opacity 2s ease-in-out', zIndex:0 }} />
+          <div key={bg} style={{ position:'absolute', inset:0, backgroundImage:`url(${bg})`, backgroundSize:'cover', backgroundPosition:'center', opacity: i === bgIndex ? 0.2 : 0, transition:'opacity 2s ease-in-out', zIndex:0 }} />
         ))}
-        {/* Overlay Gradient */}
-        <div style={{ position:'absolute', inset:0, background:'radial-gradient(circle at center, transparent 0%, var(--bg) 100%)', zIndex:1 }} />
+        <div style={{ position:'absolute', inset:0, background:'linear-gradient(to bottom, transparent, var(--bg))', zIndex:1 }} />
         
-        <div className="container fade-in" style={{ position:'relative', zIndex:2, textAlign:'center' }}>
-          <div style={{ display:'inline-flex', alignItems:'center', gap:8, background:'var(--brand-bg)', border:'1px solid var(--brand)', borderRadius:30, padding:'8px 20px', fontSize:12, fontWeight:700, color:'var(--brand)', marginBottom:32, textTransform:'uppercase', letterSpacing:1.5 }}>
-            <span style={{ width:8, height:8, borderRadius:'50%', background:'var(--brand)', boxShadow:'0 0 10px var(--brand)', animation:'pulse-dot 2s infinite' }} />
-            The Future of Remote Work is Here
+        <div className="container" style={{ position:'relative', zIndex:2, textAlign:'center' }}>
+          <div className="fade-in" style={{ display:'inline-flex', alignItems:'center', gap:10, background:'var(--brand-bg)', border:'1px solid var(--brand)', borderRadius:40, padding:'10px 24px', fontSize:13, fontWeight:700, color:'var(--brand)', marginBottom:40, textTransform:'uppercase', letterSpacing:2 }}>
+            <span style={{ width:10, height:10, borderRadius:'50%', background:'var(--brand)', boxShadow:'0 0 15px var(--brand)', animation:'pulse-dot 2s infinite' }} />
+            The Next Generation of Teamwork
           </div>
           
-          <h1 style={{ fontSize:'clamp(42px, 8vw, 84px)', fontWeight:800, color:'var(--text)', marginBottom:24, maxWidth:1000, margin:'0 auto 24px' }}>
-            Manage your global team <span style={{ background:'linear-gradient(135deg, var(--brand), var(--accent))', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>effortlessly.</span>
+          <h1 className="fade-in" style={{ fontSize:'clamp(48px, 10vw, 96px)', fontWeight:800, color:'var(--text)', marginBottom:32, lineHeight:0.9, letterSpacing:'-0.05em' }}>
+            Build faster. <br/> Together. <span style={{ background:'linear-gradient(135deg, var(--brand), var(--accent))', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>Anywhere.</span>
           </h1>
           
-          <p style={{ fontSize:'clamp(16px, 2vw, 22px)', color:'var(--text2)', maxWidth:680, margin:'0 auto 48px', lineHeight:1.6 }}>
-            The all-in-one workspace for remote-first companies. Real-time chat, AI-powered project management, and global-scale security.
+          <p className="fade-in" style={{ fontSize:'clamp(18px, 2.5vw, 24px)', color:'var(--text2)', maxWidth:720, margin:'0 auto 64px', lineHeight:1.6, animationDelay:'0.2s' }}>
+            Unleash your team's potential with a unified platform designed for the modern remote era. Scalable, secure, and powered by AI.
           </p>
           
-          <div style={{ display:'flex', gap:16, justifyContent:'center', flexWrap:'wrap' }}>
-            <Link to="/register" className="btn btn-primary" style={{ padding:'16px 40px', fontSize:16, borderRadius:14 }}>Get Started for Free</Link>
-            <button className="btn btn-secondary" style={{ padding:'16px 40px', fontSize:16, borderRadius:14 }} onClick={() => setBgIndex(i => (i + 1) % BACKGROUNDS.length)}>Change Background 🖼️</button>
+          <div className="fade-in" style={{ display:'flex', gap:20, justifyContent:'center', flexWrap:'wrap', animationDelay:'0.3s' }}>
+            <Link to="/register" className="btn btn-primary" style={{ padding:'20px 52px', fontSize:18, borderRadius:18 }}>Join NexusTeams Today</Link>
+            <Link to="/login" className="btn btn-secondary" style={{ padding:'20px 52px', fontSize:18, borderRadius:18 }}>Live Demo ➜</Link>
           </div>
         </div>
+
+        {/* Floating Moving Elements */}
+        <div className="float" style={{ position:'absolute', bottom:'10%', left:'5%', width:120, height:120, borderRadius:24, background:'var(--brand-bg)', border:'1px solid var(--brand)', backdropFilter:'blur(10px)', zIndex:2, display:'flex', alignItems:'center', justifyContent:'center', fontSize:40, opacity:0.6 }}>💬</div>
+        <div className="float" style={{ position:'absolute', top:'15%', right:'8%', width:100, height:100, borderRadius:'50%', background:'var(--accent-bg)', border:'1px solid var(--accent)', backdropFilter:'blur(10px)', zIndex:2, display:'flex', alignItems:'center', justifyContent:'center', fontSize:32, opacity:0.5, animationDelay:'1s' }}>🧠</div>
       </section>
 
-      {/* Stats Section */}
-      <section style={{ padding:'40px 24px', background:'var(--bg2)', borderY:'1px solid var(--border)' }}>
-        <div className="container" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(200px, 1fr))', gap:32, textAlign:'center' }}>
-          {[
-            { label:'Active Teams', val:'2,500+' },
-            { label:'Tasks Completed', val:'1.2M' },
-            { label:'Uptime SLA', val:'99.99%' },
-            { label:'Global Support', val:'24/7' },
-          ].map(s => (
-            <div key={s.label}>
-              <div style={{ fontSize:32, fontWeight:800, color:'var(--text)', marginBottom:4 }}>{s.val}</div>
-              <div style={{ fontSize:14, color:'var(--text3)', fontWeight:600, textTransform:'uppercase', letterSpacing:1 }}>{s.label}</div>
+      {/* Feature Showcases with Images */}
+      {FEATURES.map((f, i) => (
+        <section key={i} style={{ padding:'120px 24px', background: i % 2 === 0 ? 'var(--bg)' : 'var(--bg2)' }}>
+          <div className="container" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(320px, 1fr))', gap:80, alignItems:'center' }}>
+            <div style={{ order: i % 2 === 0 ? 1 : 2 }}>
+              <div style={{ width:64, height:64, borderRadius:20, background:'var(--brand-bg)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:32, marginBottom:32, color:'var(--brand)' }}>{f.icon}</div>
+              <h2 style={{ fontSize:'clamp(32px, 4vw, 48px)', fontWeight:800, marginBottom:24, color:'var(--text)' }}>{f.title}</h2>
+              <p style={{ fontSize:18, color:'var(--text2)', lineHeight:1.8, marginBottom:40 }}>{f.desc}</p>
+              <ul style={{ listStyle:'none', display:'flex', flexDirection:'column', gap:16 }}>
+                {['Industry-leading performance', 'Enterprise-grade security', 'Customizable workflows'].map(item => (
+                  <li key={item} style={{ display:'flex', alignItems:'center', gap:12, color:'var(--text)', fontWeight:600, fontSize:15 }}>
+                    <div style={{ width:20, height:20, borderRadius:'50%', background:'var(--brand)', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:10 }}>✓</div> {item}
+                  </li>
+                ))}
+              </ul>
             </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Features Grid */}
-      <section id="features" style={{ padding:'120px 24px' }}>
-        <div className="container">
-          <div style={{ textAlign:'center', marginBottom:80 }}>
-            <h2 style={{ fontSize:'clamp(32px, 5vw, 48px)', fontWeight:800, marginBottom:20 }}>Built for high-performance teams</h2>
-            <p style={{ color:'var(--text2)', fontSize:18, maxWidth:600, margin:'0 auto' }}>Advanced tools to help you scale your organization without losing speed or security.</p>
-          </div>
-          
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(320px, 1fr))', gap:24 }}>
-            {FEATURES.map((f, i) => (
-              <div key={i} className="card card-hover" style={{ padding:40, background:'var(--bg-card)', backdropFilter:'blur(10px)' }}>
-                <div style={{ width:56, height:56, borderRadius:16, background:'var(--brand-bg)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:28, marginBottom:24, color:'var(--brand)' }}>{f.icon}</div>
-                <h3 style={{ fontSize:20, fontWeight:700, marginBottom:16 }}>{f.title}</h3>
-                <p style={{ color:'var(--text2)', lineHeight:1.7, fontSize:15 }}>{f.desc}</p>
+            <div style={{ order: i % 2 === 0 ? 2 : 1 }} className="fade-in">
+              <div className="card" style={{ overflow:'hidden', borderRadius:24, border:'1px solid var(--border2)', transform: i % 2 === 0 ? 'rotate(2deg)' : 'rotate(-2deg)', transition:'transform 0.5s ease' }}>
+                <img src={f.img} alt={f.title} style={{ width:'100%', height:480, objectFit:'cover', display:'block' }} />
+                <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top, rgba(0,0,0,0.6), transparent)' }} />
               </div>
-            ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      ))}
 
-      {/* Final CTA */}
-      <section style={{ padding:'120px 24px', background:'linear-gradient(135deg, #0a1628 0%, #060b18 100%)', position:'relative', overflow:'hidden' }}>
-        <div style={{ position:'absolute', top:0, left:'50%', transform:'translateX(-50%)', width:800, height:400, background:'radial-gradient(circle, rgba(51,102,255,0.1) 0%, transparent 70%)', zIndex:0 }} />
-        <div className="container" style={{ position:'relative', zIndex:1, textAlign:'center' }}>
-          <h2 style={{ fontSize:'clamp(36px, 6vw, 56px)', fontWeight:800, color:'#fff', marginBottom:24 }}>Ready to unite your team?</h2>
-          <p style={{ fontSize:18, color:'rgba(255,255,255,0.6)', marginBottom:48, maxWidth:580, margin:'0 auto 48px' }}>Join thousands of organizations scaling with NexusTeams today.</p>
-          <Link to="/register" className="btn btn-primary" style={{ padding:'18px 48px', fontSize:18, borderRadius:16 }}>Start Your Free Trial</Link>
+      {/* Subscription Section */}
+      <section style={{ padding:'120px 24px', background:'var(--bg3)' }}>
+        <div className="container" style={{ textAlign:'center' }}>
+          <h2 style={{ fontSize:40, fontWeight:800, marginBottom:16 }}>Stay updated with the latest AI tools</h2>
+          <p style={{ color:'var(--text2)', marginBottom:48 }}>Join 10,000+ professionals receiving our weekly productivity digest.</p>
+          <form style={{ maxWidth:500, margin:'0 auto', display:'flex', gap:12 }}>
+            <input className="input" type="email" placeholder="dieumercin21@gmail.com" style={{ padding:'16px 24px', fontSize:16 }} />
+            <button className="btn btn-primary" type="button" style={{ padding:'0 32px' }}>Subscribe</button>
+          </form>
         </div>
       </section>
     </div>

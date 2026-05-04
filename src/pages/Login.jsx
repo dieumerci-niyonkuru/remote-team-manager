@@ -41,51 +41,36 @@ export default function Login() {
   return (
     <div className={theme} style={{ minHeight:'calc(100vh - 64px)', display:'flex', alignItems:'stretch', background:'var(--bg)' }}>
       {/* Left */}
-      <div style={{ flex:1, background:'linear-gradient(135deg,#060b18,#0f2043,#060b18)', display:'flex', flexDirection:'column', justifyContent:'center', padding:48, position:'relative', overflow:'hidden' }}>
-        <div style={{ position:'absolute', top:-80, right:-80, width:300, height:300, borderRadius:'50%', background:'rgba(51,102,255,0.1)', filter:'blur(60px)' }} />
-        <div style={{ position:'absolute', bottom:-40, left:-40, width:200, height:200, borderRadius:'50%', background:'rgba(139,92,246,0.08)', filter:'blur(40px)' }} />
-        <div style={{ position:'relative' }}>
-          <div style={{ fontSize:48, marginBottom:8 }} className="float">🚀</div>
-          <h2 style={{ fontFamily:'var(--font-display)', fontSize:'clamp(28px, 3vw, 42px)', fontWeight:800, color:'#fff', marginBottom:14, lineHeight:1.2 }}>Collaborate<br />without borders</h2>
-          <p style={{ color:'rgba(255,255,255,0.5)', fontSize:15, lineHeight:1.7, maxWidth:340, marginBottom:36 }}>Manage your remote team, track tasks, and ship faster — all in one workspace.</p>
-          <div style={{ display:'flex', gap:12, flexWrap:'wrap' }}>
-            {[['70+','Tests'],['4','Roles'],['Live','API'],['3','Languages']].map(([v,l]) => (
-              <div key={l} style={{ background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.08)', borderRadius:12, padding:'10px 16px', textAlign:'center' }}>
-                <div style={{ fontFamily:'var(--font-display)', fontSize:18, fontWeight:700, color:'#fff' }}>{v}</div>
-                <div style={{ fontSize:11, color:'rgba(255,255,255,0.4)', marginTop:2 }}>{l}</div>
-              </div>
-            ))}
+    <div className={theme} style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'var(--bg)', padding:24 }}>
+      <div className="card fade-in" style={{ width:'100%', maxWidth:440, padding:48, background:'var(--bg-card)', backdropFilter:'blur(20px)' }}>
+        <div style={{ textAlign:'center', marginBottom:40 }}>
+          <div style={{ width:56, height:56, borderRadius:16, background:'linear-gradient(135deg,#3366ff,#8b5cf6)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 20px', fontSize:26, fontWeight:800, color:'#fff', boxShadow:'0 8px 20px rgba(51,102,255,0.3)' }}>R</div>
+          <h2 style={{ fontSize:28, fontWeight:800, color:'var(--text)', marginBottom:8 }}>Welcome Back</h2>
+          <p style={{ color:'var(--text2)', fontSize:15 }}>Access your workspace to continue</p>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <div style={{ marginBottom:20 }}>
+            <label className="label" style={{ marginBottom:8, fontSize:13 }}>Professional Email</label>
+            <input className="input" type="email" placeholder="john@company.com" required value={form.email} onChange={e => setForm({...form, email:e.target.value})} />
           </div>
-        </div>
-      </div>
-
-      {/* Right */}
-      <div style={{ width:'min(440px, 100%)', background:'var(--bg2)', display:'flex', flexDirection:'column', justifyContent:'center', padding:'48px 40px' }}>
-        <div className="fade-in">
-          <h2 style={{ fontFamily:'var(--font-display)', fontSize:26, fontWeight:800, color:'var(--text)', marginBottom:6 }}>{t.welcomeBack} 👋</h2>
-          <p style={{ color:'var(--text2)', fontSize:14, marginBottom:32 }}>Sign in to manage your remote team</p>
-
-          <form onSubmit={handleSubmit} style={{ display:'flex', flexDirection:'column', gap:16 }}>
-            <div>
-              <label className="label">{t.email}</label>
-              <input className={`input ${errors.email?'error':''}`} type="email" placeholder="you@example.com" value={form.email} onChange={e => { setForm({...form, email:e.target.value}); setErrors({...errors, email:''}) }} />
-              {errors.email && <div className="error-msg">⚠ {errors.email}</div>}
+          
+          <div style={{ marginBottom:28 }}>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
+              <label className="label" style={{ marginBottom:0, fontSize:13 }}>Password</label>
+              <Link to="/forgot-password" style={{ fontSize:12, color:'var(--brand)', textDecoration:'none', fontWeight:600 }}>Forgot?</Link>
             </div>
-            <div>
-              <label className="label">{t.password}</label>
-              <input className={`input ${errors.password?'error':''}`} type="password" placeholder="••••••••" value={form.password} onChange={e => { setForm({...form, password:e.target.value}); setErrors({...errors, password:''}) }} />
-              {errors.password && <div className="error-msg">⚠ {errors.password}</div>}
-            </div>
-            <button type="submit" className="btn btn-primary" disabled={loading} style={{ padding:13, fontSize:15, borderRadius:10, marginTop:4 }}>
-              {loading ? <div className="spinner" style={{ width:18, height:18, border:'2px solid rgba(255,255,255,0.3)', borderTop:'2px solid #fff' }} /> : `${t.login} →`}
-            </button>
-          </form>
+            <input className="input" type="password" placeholder="••••••••" required value={form.password} onChange={e => setForm({...form, password:e.target.value})} />
+          </div>
 
-          <p style={{ textAlign:'center', fontSize:13, color:'var(--text2)', marginTop:20 }}>
-            {t.noAccount}{' '}
-            <Link to="/register" style={{ color:'#3366ff', fontWeight:700, textDecoration:'none' }}>{t.signupFree}</Link>
-          </p>
-        </div>
+          <button type="submit" className="btn btn-primary" disabled={loading} style={{ width:'100%', padding:16, fontSize:16, borderRadius:14 }}>
+            {loading ? <div className="spinner" style={{ width:20, height:20, border:'3px solid rgba(255,255,255,0.3)', borderTop:'3px solid #fff' }} /> : 'Sign In →'}
+          </button>
+        </form>
+
+        <p style={{ textAlign:'center', fontSize:14, color:'var(--text2)', marginTop:32 }}>
+          New to NexusTeams? <Link to="/register" style={{ color:'var(--brand)', fontWeight:700, textDecoration:'none' }}>Create Account</Link>
+        </p>
       </div>
     </div>
   )

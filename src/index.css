@@ -207,6 +207,9 @@ h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: -0.02em; line
   100% { transform: scale(0.9); opacity: 1; }
 }
 
+@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+.float { animation: float 4s ease-in-out infinite; }
+
 /* Responsive Utilities */
 .container { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
 .flex-center { display: flex; align-items: center; justify-content: center; }

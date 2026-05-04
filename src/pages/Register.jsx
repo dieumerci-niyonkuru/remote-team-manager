@@ -1,43 +1,54 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useStore } from '../store'
-import { useT } from '../i18n'
 import { auth } from '../services/api'
 import toast from 'react-hot-toast'
 
+const ROLES = [
+  { value: 'viewer', label: 'Viewer' },
+  { value: 'developer', label: 'Developer' },
+  { value: 'manager', label: 'Manager' },
+  { value: 'owner', label: 'Owner' },
+  { value: 'frontend', label: 'Frontend Developer' },
+  { value: 'backend', label: 'Backend Developer' },
+  { value: 'designer', label: 'UI/UX Designer' },
+  { value: 'hr', label: 'HR Manager' },
+]
+
 export default function Register() {
-  const { setUser, theme, lang } = useStore()
-  const t = useT(lang)
+  const { setUser, theme } = useStore()
   const navigate = useNavigate()
-  const [form, setForm] = useState({ email:'', first_name:'', last_name:'', password:'', password2:'' })
+  const fileInputRef = useRef(null)
+  
+  const [form, setForm] = useState({ 
+    email:'', first_name:'', last_name:'', password:'', password2:'', role: 'viewer' 
+  })
+  const [avatar, setAvatar] = useState(null)
+  const [avatarPreview, setAvatarPreview] = useState(null)
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
 
   const set = (k, v) => { setForm(p => ({...p,[k]:v})); setErrors(p => ({...p,[k]:''})) }
 
-  const getPasswordStrength = (p) => {
-    if (!p) return 0
-    let s = 0
-    if (p.length >= 8) s++
-    if (/[A-Z]/.test(p)) s++
-    if (/[0-9]/.test(p)) s++
-    if (/[^A-Za-z0-9]/.test(p)) s++
-    return s
+  const handleFileChange = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      setAvatar(file)
+      setAvatarPreview(URL.createObjectURL(file))
+    }
   }
 
   const validate = () => {
     const e = {}
-    if (!form.first_name) e.first_name = t.required
-    if (!form.last_name) e.last_name = t.required
-    if (!form.email) e.email = t.required
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = t.invalidEmail
-    else if (/(temp|disposable|mailinator|guerrillamail)/.test(form.email)) e.email = 'Disposable emails are not allowed'
+    if (!form.first_name) e.first_name = 'First name required'
+    if (!form.last_name) e.last_name = 'Last name required'
+    if (!form.email) e.email = 'Email required'
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = 'Invalid email'
     
-    if (!form.password) e.password = t.required
-    else if (form.password.length < 8) e.password = t.passMin
-    else if (getPasswordStrength(form.password) < 3) e.password = 'Password is too weak. Use uppercase, numbers, and symbols.'
+    if (!form.password) e.password = 'Password required'
+    else if (form.password.length < 8) e.password = 'Min 8 characters'
     
-    if (form.password !== form.password2) e.password2 = t.passMismatch
+    if (form.password !== form.password2) e.password2 = 'Passwords mismatch'
     setErrors(e)
     return !Object.keys(e).length
   }
@@ -46,12 +57,17 @@ export default function Register() {
     ev.preventDefault()
     if (!validate()) return
     setLoading(true)
+
+    const formData = new FormData()
+    Object.keys(form).forEach(k => formData.append(k, form[k]))
+    if (avatar) formData.append('avatar', avatar)
+
     try {
-      const res = await auth.register(form)
+      const res = await auth.register(formData)
       localStorage.setItem('rtm_access', res.data.data.access)
       localStorage.setItem('rtm_refresh', res.data.data.refresh)
       setUser(res.data.data.user)
-      toast.success('Account created! Welcome 🎉')
+      toast.success('Welcome to NexusTeams! 🚀')
       navigate('/dashboard')
     } catch (err) {
       const msg = err.response?.data?.message
@@ -59,44 +75,69 @@ export default function Register() {
     } finally { setLoading(false) }
   }
 
-  const strength = getPasswordStrength(form.password)
-  const strengthColor = strength < 2 ? '#ef4444' : strength < 4 ? '#f59e0b' : '#22c55e'
-
-  const F = ({ name, label, type='text', placeholder, showStrength }) => (
-    <div>
-      <label className="label">{label}</label>
-      <input className={`input ${errors[name]?'error':''}`} type={type} placeholder={placeholder} value={form[name]} onChange={e => set(name, e.target.value)} />
-      {showStrength && form.password && (
-        <div style={{ height: 4, background: 'var(--border)', borderRadius: 2, marginTop: 6, overflow: 'hidden' }}>
-          <div style={{ height: '100%', background: strengthColor, width: (strength / 4) * 100 + '%', transition: 'var(--transition)' }} />
-        </div>
-      )}
-      {errors[name] && <div className="error-msg">⚠ {errors[name]}</div>}
+  const F = ({ name, label, type='text', placeholder, children }) => (
+    <div style={{ marginBottom:16 }}>
+      <label className="label" style={{ marginBottom:8, fontSize:13 }}>{label}</label>
+      {children || <input className={`input ${errors[name]?'error':''}`} type={type} placeholder={placeholder} value={form[name]} onChange={e => set(name, e.target.value)} />}
+      {errors[name] && <div className="error-msg" style={{ marginTop:6 }}>⚠ {errors[name]}</div>}
     </div>
   )
 
   return (
-    <div className={theme} style={{ minHeight:'calc(100vh - 64px)', display:'flex', alignItems:'center', justifyContent:'center', background:'var(--bg)', padding:24 }}>
-      <div className="card fade-in" style={{ width:'100%', maxWidth:480, padding:40 }}>
-        <div style={{ textAlign:'center', marginBottom:32 }}>
-          <div style={{ width:48, height:48, borderRadius:14, background:'linear-gradient(135deg,#3366ff,#6699ff)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 14px', fontSize:22, fontWeight:800, color:'#fff', fontFamily:'var(--font-display)' }}>R</div>
-          <h2 style={{ fontFamily:'var(--font-display)', fontSize:24, fontWeight:800, color:'var(--text)', marginBottom:6 }}>Create your account</h2>
-          <p style={{ color:'var(--text2)', fontSize:14 }}>Start collaborating with your team today</p>
+    <div className={theme} style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'var(--bg)', padding:'60px 24px' }}>
+      <div className="card fade-in" style={{ width:'100%', maxWidth:540, padding:48, background:'var(--bg-card)', backdropFilter:'blur(20px)' }}>
+        <div style={{ textAlign:'center', marginBottom:40 }}>
+          <div style={{ width:56, height:56, borderRadius:16, background:'linear-gradient(135deg,#3366ff,#8b5cf6)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 20px', fontSize:26, fontWeight:800, color:'#fff', boxShadow:'0 8px 20px rgba(51,102,255,0.3)' }}>R</div>
+          <h2 style={{ fontSize:28, fontWeight:800, color:'var(--text)', marginBottom:8 }}>Join NexusTeams</h2>
+          <p style={{ color:'var(--text2)', fontSize:15 }}>Create your professional identity</p>
         </div>
-        <form onSubmit={handleSubmit} style={{ display:'flex', flexDirection:'column', gap:14 }}>
-          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
-            <F name="first_name" label={t.firstName} placeholder="John" />
-            <F name="last_name" label={t.lastName} placeholder="Doe" />
+
+        <form onSubmit={handleSubmit}>
+          {/* Avatar Upload */}
+          <div style={{ display:'flex', flexDirection:'column', alignItems:'center', marginBottom:32 }}>
+            <div 
+              onClick={() => fileInputRef.current?.click()}
+              style={{ width:100, height:100, borderRadius:'50%', border:'2px dashed var(--border)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', overflow:'hidden', position:'relative', transition:'var(--transition)' }}
+              onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--brand)'}
+              onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
+            >
+              {avatarPreview ? (
+                <img src={avatarPreview} alt="Preview" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
+              ) : (
+                <div style={{ textAlign:'center', color:'var(--text3)' }}>
+                  <div style={{ fontSize:24 }}>📸</div>
+                  <div style={{ fontSize:10, fontWeight:600, marginTop:4 }}>OPTIONAL</div>
+                </div>
+              )}
+            </div>
+            <input ref={fileInputRef} type="file" hidden accept="image/*" onChange={handleFileChange} />
           </div>
-          <F name="email" label={t.email} type="email" placeholder="you@example.com" />
-          <F name="password" label={t.password} type="password" placeholder="Min 8 characters" showStrength={true} />
-          <F name="password2" label={t.confirmPass} type="password" placeholder="Repeat password" />
-          <button type="submit" className="btn btn-primary" disabled={loading} style={{ padding:13, fontSize:15, borderRadius:10, marginTop:6, display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
-            {loading ? <div className="spinner" style={{ width:18, height:18, border:'2px solid rgba(255,255,255,0.3)', borderTop:'2px solid #fff' }} /> : 'Create Account →'}
+
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
+            <F name="first_name" label="First Name" placeholder="John" />
+            <F name="last_name" label="Last Name" placeholder="Doe" />
+          </div>
+
+          <F name="email" label="Professional Email" type="email" placeholder="john@company.com" />
+          
+          <F name="role" label="Your Role">
+            <select className="input" value={form.role} onChange={e => set('role', e.target.value)}>
+              {ROLES.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+            </select>
+          </F>
+
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
+            <F name="password" label="Password" type="password" placeholder="••••••••" />
+            <F name="password2" label="Confirm" type="password" placeholder="••••••••" />
+          </div>
+
+          <button type="submit" className="btn btn-primary" disabled={loading} style={{ width:'100%', padding:16, fontSize:16, borderRadius:14, marginTop:12 }}>
+            {loading ? <div className="spinner" style={{ width:20, height:20, border:'3px solid rgba(255,255,255,0.3)', borderTop:'3px solid #fff' }} /> : 'Create My Account →'}
           </button>
         </form>
-        <p style={{ textAlign:'center', fontSize:13, color:'var(--text2)', marginTop:20 }}>
-          {t.hasAccount}{' '}<Link to="/login" style={{ color:'#3366ff', fontWeight:700, textDecoration:'none' }}>{t.login}</Link>
+
+        <p style={{ textAlign:'center', fontSize:14, color:'var(--text2)', marginTop:32 }}>
+          Already have an account? <Link to="/login" style={{ color:'var(--brand)', fontWeight:700, textDecoration:'none' }}>Sign In</Link>
         </p>
       </div>
     </div>

@@ -27,7 +27,10 @@ api.interceptors.response.use(r => r, async err => {
 })
 
 export const auth = {
-  register: d => api.post('/auth/register/', d),
+  register: d => {
+    if (d instanceof FormData) return api.post('/auth/register/', d, { headers: { 'Content-Type': 'multipart/form-data' } })
+    return api.post('/auth/register/', d)
+  },
   login: d => api.post('/auth/login/', d),
   me: () => api.get('/auth/me/'),
   logout: r => api.post('/auth/logout/', { refresh: r }),
