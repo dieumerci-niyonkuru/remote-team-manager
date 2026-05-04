@@ -10,7 +10,11 @@ class ProjectViewSet(viewsets.ModelViewSet):
     queryset = Project.objects.none()
 
     def get_queryset(self):
-        return Project.objects.filter(workspace__members=self.request.user)
+        qs = Project.objects.filter(workspace__members=self.request.user)
+        workspace_id = self.request.query_params.get('workspace')
+        if workspace_id:
+            qs = qs.filter(workspace_id=workspace_id)
+        return qs
 
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
@@ -21,7 +25,11 @@ class TaskViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.none()
 
     def get_queryset(self):
-        return Task.objects.filter(project__workspace__members=self.request.user)
+        qs = Task.objects.filter(project__workspace__members=self.request.user)
+        project_id = self.request.query_params.get('project')
+        if project_id:
+            qs = qs.filter(project_id=project_id)
+        return qs
 
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)

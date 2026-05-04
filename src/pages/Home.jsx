@@ -4,42 +4,42 @@ import { useStore } from '../store'
 import Dashboard from './Dashboard'
 
 const BACKGROUNDS = [
-  'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=2069',
-  'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=2070',
-  'https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=80&w=2074',
-  'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&q=80&w=2070'
+  'https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2000',
+  'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2000',
+  'https://images.unsplash.com/photo-1557804506-669a67965ba0?q=80&w=2000',
+  'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?q=80&w=2000'
 ]
 
 const FEATURES = [
   { 
     title:'Real-time Sync', 
     desc:'Websocket-powered chat and instant notifications keep your team in perfect rhythm.',
-    img: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80&w=800'
+    img: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=800'
   },
   { 
     title:'AI Copilot', 
     desc:'Advanced AI helps breakdown complex goals into manageable tasks automatically.',
-    img: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&q=80&w=800'
+    img: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?q=80&w=800'
   },
   { 
     title:'Project Insights', 
     desc:'Visual dashboards and time tracking give you deep visibility into productivity.',
-    img: 'https://images.unsplash.com/photo-1551288049-bbdac8a28a1e?auto=format&fit=crop&q=80&w=800'
+    img: 'https://images.unsplash.com/photo-1551288049-bbdac8a28a1e?q=80&w=800'
   },
   { 
     title:'Enterprise Security', 
     desc:'Bank-grade encryption and role-based access control protect your sensitive data.',
-    img: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&q=80&w=800'
+    img: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?q=80&w=800'
   },
   { 
     title:'Multi-Tenant', 
     desc:'Isolate different organizations with dedicated workspaces and team permissions.',
-    img: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=800'
+    img: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=800'
   },
   { 
     title:'Global Delivery', 
     desc:'Edge-optimized performance ensures low latency for remote teams worldwide.',
-    img: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80&w=800'
+    img: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=800'
   }
 ]
 
@@ -53,7 +53,6 @@ export default function Home() {
     return () => clearInterval(timer)
   }, [isAuth])
 
-  // If logged in, show the Platform Mission Control (Dashboard)
   if (isAuth) {
     return <Dashboard />
   }
@@ -135,7 +134,7 @@ export default function Home() {
              </div>
           </div>
           <div className="fade-in" style={{ position:'relative' }}>
-             <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80&w=1000" alt="About Us" style={{ width:'100%', borderRadius:32, boxShadow: '0 40px 100px -20px rgba(0,0,0,0.5)' }} />
+             <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=1000" alt="About Us" style={{ width:'100%', borderRadius:32, boxShadow: '0 40px 100px -20px rgba(0,0,0,0.5)' }} />
              <div style={{ position:'absolute', bottom:-40, right:-40, width:200, height:200, background:'var(--brand)', borderRadius:24, display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', padding:32, boxShadow:'var(--shadow-lg)' }} className="float">
                 <div style={{ textAlign:'center' }}>
                    <div style={{ fontSize:48, fontWeight:900 }}>100%</div>
