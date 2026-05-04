@@ -218,7 +218,7 @@ h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: -0.02em; line
 .moving-code-bg {
   position: absolute;
   inset: 0;
-  background: linear-gradient(rgba(6, 11, 24, 0.9), rgba(6, 11, 24, 0.9)), url('https://www.transparenttextures.com/patterns/carbon-fibre.png');
+  background: linear-gradient(rgba(6, 11, 24, 0.95), rgba(6, 11, 24, 0.95)), url('https://www.transparenttextures.com/patterns/carbon-fibre.png');
   overflow: hidden;
   z-index: -1;
 }
@@ -242,21 +242,51 @@ h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: -0.02em; line
 .logo-font {
   font-family: 'Outfit', sans-serif;
   font-weight: 900;
-  font-size: 24px;
+  font-size: 26px;
   background: linear-gradient(135deg, #fff 0%, #3366ff 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   letter-spacing: -1px;
 }
 
-/* Global Responsiveness */
-.grid-responsive {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 24px;
+/* Glassmorphism Utilities */
+.glass {
+  background: rgba(var(--bg-card-rgb), 0.7);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.5);
 }
 
-@media (max-width: 768px) {
-  .logo-font { font-size: 20px; }
-  .grid-responsive { grid-template-columns: 1fr; }
+.glass-brand {
+  background: rgba(51, 102, 255, 0.1);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(51, 102, 255, 0.2);
 }
+
+/* Premium Text Gradients */
+.text-gradient {
+  background: linear-gradient(135deg, #fff 0%, #3366ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Activity Dot */
+.activity-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 10px #10b981;
+  animation: pulse-dot 2s infinite;
+}
+
+@keyframes pulse-dot {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+/* Responsive Utilities */
+.container { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+.grid-responsive { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
+@media (max-width: 768px) { .grid-responsive { grid-template-columns: 1fr; } }
