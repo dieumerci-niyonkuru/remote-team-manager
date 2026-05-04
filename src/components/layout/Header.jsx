@@ -49,12 +49,6 @@ export default function Header() {
     { label: 'Integrations', to: '/integrations', desc: 'Third-party node connections', icon: '12' },
   ]
 
-  const RESOURCES_MENU = [
-    { label: 'Help Center', to: '/help', desc: '24/7 technical assistance', icon: '13' },
-    { label: 'Community', to: '/community', desc: 'Global node operator forum', icon: '14' },
-    { label: 'Documentation', to: '/docs', desc: 'Technical mission specs', icon: '15' },
-  ]
-
   const NavItem = ({ label, items, to }) => {
     const hasItems = items && items.length > 0
     return (
@@ -66,31 +60,31 @@ export default function Header() {
         {to ? (
           <Link to={to} style={{ 
             textDecoration:'none', color: pathname === to ? 'var(--brand)' : 'var(--text2)', 
-            fontSize:12, fontWeight:800, padding:'8px 12px', borderRadius:10, transition:'0.2s',
+            fontSize:13, fontWeight:800, padding:'8px 16px', borderRadius:12, transition:'0.2s',
             background: pathname === to ? 'var(--brand-bg)' : 'transparent'
           }} className="nav-link-hover">{label}</Link>
         ) : (
           <button style={{ 
             background:'none', border:'none', color: activeDropdown === label ? 'var(--brand)' : 'var(--text2)', 
-            fontSize:12, fontWeight:800, cursor:'pointer', display:'flex', alignItems:'center', gap:4, padding:'8px 12px'
+            fontSize:13, fontWeight:800, cursor:'pointer', display:'flex', alignItems:'center', gap:6, padding:'8px 16px'
           }} className="nav-link-hover">
-            {label} <span style={{ fontSize:9, opacity:0.5 }}>▼</span>
+            {label} <span style={{ fontSize:10, opacity:0.5 }}>▼</span>
           </button>
         )}
 
         {hasItems && activeDropdown === label && (
           <div className="glass fade-in" style={{ 
-            position:'absolute', top:'100%', left:'50%', transform:'translateX(-50%)', width:280, padding:12, borderRadius:20, 
+            position:'absolute', top:'100%', left:'50%', transform:'translateX(-50%)', width:300, padding:14, borderRadius:24, 
             boxShadow:'0 40px 80px -10px rgba(0,0,0,0.5)', zIndex:100, border:'1px solid rgba(255,255,255,0.08)', background:'rgba(10, 15, 30, 0.95)', backdropFilter:'blur(40px)'
           }}>
             {items.map(item => (
               <Link key={item.label} to={item.to} style={{ 
-                display:'flex', alignItems:'center', gap:12, padding:10, borderRadius:14, textDecoration:'none', transition:'0.3s'
+                display:'flex', alignItems:'center', gap:14, padding:12, borderRadius:16, textDecoration:'none', transition:'0.3s'
               }} className="dropdown-item-hover">
-                <span style={{ fontSize:11, fontWeight:900, color:'var(--brand)', opacity:0.7, background:'var(--brand-bg)', width:24, height:24, display:'flex', alignItems:'center', justifyContent:'center', borderRadius:8 }}>{item.icon}</span>
+                <span style={{ fontSize:12, fontWeight:900, color:'var(--brand)', opacity:0.7, background:'var(--brand-bg)', width:28, height:28, display:'flex', alignItems:'center', justifyContent:'center', borderRadius:8 }}>{item.icon}</span>
                 <div>
-                  <div style={{ fontSize:12, fontWeight:800, color:'var(--text)' }}>{item.label}</div>
-                  <div style={{ fontSize:9, color:'var(--text3)', marginTop:2, lineHeight:1.3 }}>{item.desc}</div>
+                  <div style={{ fontSize:13, fontWeight:800, color:'var(--text)' }}>{item.label}</div>
+                  <div style={{ fontSize:10, color:'var(--text3)', marginTop:2, lineHeight:1.3 }}>{item.desc}</div>
                 </div>
               </Link>
             ))}
@@ -111,41 +105,40 @@ export default function Header() {
       <div className="container" style={{ height:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', maxWidth:1400 }}>
         
         {/* Brand */}
-        <Link to="/" style={{ display:'flex', alignItems:'center', gap:10, textDecoration:'none' }}>
-           <div style={{ width:44, height:44, borderRadius:12, background:'linear-gradient(135deg,#3366ff,#8b5cf6)', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', boxShadow:'0 10px 20px -5px rgba(51,102,255,0.4)' }}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        <Link to="/" style={{ display:'flex', alignItems:'center', gap:12, textDecoration:'none' }}>
+           <div style={{ width:48, height:48, borderRadius:14, background:'linear-gradient(135deg,#3366ff,#8b5cf6)', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', boxShadow:'0 10px 20px -5px rgba(51,102,255,0.4)' }}>
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
            </div>
-           <span className="logo-font desktop-only" style={{ fontSize:22, letterSpacing:'-0.03em' }}>NexusTeams</span>
+           <span className="logo-font" style={{ fontSize:26, letterSpacing:'-0.03em' }}>NexusTeams</span>
         </Link>
 
-        {/* Desktop Nav - 7 Nodes */}
+        {/* Desktop Nav - Exactly 7 Nodes as requested */}
         <nav className="desktop-only" style={{ display:'flex', alignItems:'center', gap:2, height:'100%' }}>
            <NavItem label="Home" to="/" />
-           <NavItem label="About" to="/about" />
+           <NavItem label="About Us" to="/about" />
            <NavItem label="Product" items={PRODUCT_MENU} />
            <NavItem label="Solutions" items={SOLUTIONS_MENU} />
            <NavItem label="Enterprise" items={ENTERPRISE_MENU} />
            <NavItem label="Platform" items={PLATFORM_MENU} />
-           <NavItem label="Resources" items={RESOURCES_MENU} />
            <NavItem label="Pricing" to="/pricing" />
         </nav>
 
         {/* Actions */}
-        <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-          <button className="btn-icon desktop-only" onClick={() => setTheme(theme==='dark'?'light':'dark')} style={{ background:'var(--bg3)', borderRadius:12, width:40, height:40 }}>
+        <div style={{ display:'flex', alignItems:'center', gap:14 }}>
+          <button className="btn-icon desktop-only" onClick={() => setTheme(theme==='dark'?'light':'dark')} style={{ background:'var(--bg3)', borderRadius:14 }}>
              {theme==='dark' ? '☀️' : '🌙'}
           </button>
 
           {isAuth ? (
-            <button className="btn btn-secondary" onClick={handleLogout} style={{ borderRadius:12, padding:'10px 20px', fontWeight:800, fontSize:13 }}>Exit</button>
+            <button className="btn btn-secondary" onClick={handleLogout} style={{ borderRadius:14, padding:'12px 24px', fontWeight:800 }}>Exit</button>
           ) : (
-            <div style={{ display:'flex', gap:10 }}>
-               <Link to="/login" className="btn btn-secondary desktop-only" style={{ borderRadius:12, padding:'10px 20px', fontWeight:800, fontSize:13 }}>Login</Link>
-               <Link to="/register" className="btn btn-primary" style={{ borderRadius:12, padding:'10px 24px', fontWeight:800, fontSize:13 }}>Initialize</Link>
+            <div style={{ display:'flex', gap:12 }}>
+               <Link to="/login" className="btn btn-secondary desktop-only" style={{ borderRadius:14, padding:'12px 24px', fontWeight:800 }}>Login</Link>
+               <Link to="/register" className="btn btn-primary" style={{ borderRadius:14, padding:'12px 28px', fontWeight:800 }}>Initialize</Link>
             </div>
           )}
 
-          <button className="mobile-only btn-icon" onClick={() => setShowMenu(!showMenu)} style={{ fontSize:22, background:'var(--bg3)', borderRadius:10, width:40, height:40 }}>
+          <button className="mobile-only btn-icon" onClick={() => setShowMenu(!showMenu)} style={{ fontSize:24, background:'var(--bg3)', borderRadius:12 }}>
              {showMenu ? '✕' : '☰'}
           </button>
         </div>
@@ -161,15 +154,14 @@ export default function Header() {
            
            {[
              { l:'Product', i:PRODUCT_MENU }, { l:'Solutions', i:SOLUTIONS_MENU },
-             { l:'Enterprise', i:ENTERPRISE_MENU }, { l:'Platform', i:PLATFORM_MENU },
-             { l:'Resources', i:RESOURCES_MENU }
+             { l:'Enterprise', i:ENTERPRISE_MENU }, { l:'Platform', i:PLATFORM_MENU }
            ].map(cat => (
              <div key={cat.l} style={{ marginBottom:24 }}>
-                <div style={{ fontSize:11, fontWeight:900, color:'var(--brand)', textTransform:'uppercase', letterSpacing:2, marginBottom:12, paddingLeft:12 }}>{cat.l}</div>
+                <div style={{ fontSize:12, fontWeight:900, color:'var(--brand)', textTransform:'uppercase', letterSpacing:2, marginBottom:12, paddingLeft:12 }}>{cat.l}</div>
                 <div style={{ display:'grid', gap:8 }}>
                   {cat.i.map(item => (
                     <Link key={item.to} to={item.to} onClick={() => setShowMenu(false)} className="mobile-nav-link" style={{ display:'flex', alignItems:'center', gap:12 }}>
-                       <span style={{ fontSize:11, fontWeight:900, opacity:0.5 }}>{item.icon}</span>
+                       <span style={{ fontSize:12, fontWeight:900, opacity:0.5 }}>{item.icon}</span>
                        <span>{item.label}</span>
                     </Link>
                   ))}
@@ -179,8 +171,8 @@ export default function Header() {
 
            <div style={{ marginTop:32, display:'grid', gap:12 }}>
               <Link to="/pricing" onClick={() => setShowMenu(false)} className="mobile-nav-link" style={{ textAlign:'center' }}>Pricing</Link>
-             {!isAuth && <Link to="/login" onClick={() => setShowMenu(false)} className="btn btn-secondary" style={{ padding:18, textAlign:'center', borderRadius:18 }}>Sign In</Link>}
-             <button onClick={() => { setTheme(theme==='dark'?'light':'dark'); setShowMenu(false); }} className="btn btn-secondary" style={{ padding:18, borderRadius:18 }}>Toggle Theme</button>
+             {!isAuth && <Link to="/login" onClick={() => setShowMenu(false)} className="btn btn-secondary" style={{ padding:20, textAlign:'center', borderRadius:20 }}>Sign In</Link>}
+             <button onClick={() => { setTheme(theme==='dark'?'light':'dark'); setShowMenu(false); }} className="btn btn-secondary" style={{ padding:20, borderRadius:20 }}>Toggle Theme</button>
            </div>
         </div>
       )}
@@ -195,7 +187,7 @@ export default function Header() {
         .nav-link-hover:hover { color: var(--brand) !important; background: var(--brand-bg) !important; }
         .dropdown-item-hover:hover { background: rgba(255,255,255,0.05); transform: translateX(8px); }
         .mobile-nav-link {
-          padding: 16px 20px; font-size: 14px; font-weight: 800; color: var(--text); text-decoration: none;
+          padding: 16px 20px; font-size: 15px; font-weight: 800; color: var(--text); text-decoration: none;
           border-radius: 16px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); transition: 0.2s;
         }
         .mobile-nav-link:active { transform: scale(0.98); }
