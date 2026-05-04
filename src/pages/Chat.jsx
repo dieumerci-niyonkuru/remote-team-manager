@@ -13,6 +13,8 @@ export default function Chat() {
   const [typing, setTyping] = useState(false)
   const ws = useRef(null)
   const messagesEndRef = useRef(null)
+  const reconnectTimeout = useRef(null)
+  const reconnectAttempts = useRef(0)
 
   useEffect(() => {
     loadSidebar()
@@ -44,15 +46,23 @@ export default function Chat() {
 
   const connectWebSocket = (channelId) => {
     if (ws.current) {
+      ws.current.onclose = null
       ws.current.close()
     }
+    
+    clearTimeout(reconnectTimeout.current)
     const token = localStorage.getItem('rtm_access')
-    // Build websocket URL
     const wsScheme = window.location.protocol === 'https:' ? 'wss' : 'ws'
     const wsUrl = `${wsScheme}://${window.location.host}/ws/chat/${channelId}/?token=${token}`
     
+    console.log(`Connecting to WebSocket: ${wsUrl}`)
     ws.current = new WebSocket(wsUrl)
     
+    ws.current.onopen = () => {
+      console.log('WebSocket Connected')
+      reconnectAttempts.current = 0
+    }
+
     ws.current.onmessage = (event) => {
       const data = JSON.parse(event.data)
       if (data.type === 'typing') {
@@ -67,10 +77,31 @@ export default function Chat() {
       }
     }
     
-    ws.current.onerror = () => {
-      // toast.error('WebSocket connection error')
+    ws.current.onclose = (e) => {
+      console.log(`WebSocket Closed: ${e.code}. Reconnecting...`)
+      if (reconnectAttempts.current < 10) {
+        const delay = Math.min(1000 * Math.pow(2, reconnectAttempts.current), 30000)
+        reconnectTimeout.current = setTimeout(() => {
+          reconnectAttempts.current++
+          connectWebSocket(channelId)
+        }, delay)
+      } else {
+        toast.error('Chat connection lost. Please refresh.')
+      }
+    }
+    
+    ws.current.onerror = (err) => {
+      console.error('WebSocket Error:', err)
+      ws.current.close()
     }
   }
+
+  useEffect(() => {
+    return () => {
+      if (ws.current) ws.current.close()
+      clearTimeout(reconnectTimeout.current)
+    }
+  }, [])
 
   const scrollToBottom = () => {
     setTimeout(() => {

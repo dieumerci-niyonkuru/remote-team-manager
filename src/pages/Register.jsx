@@ -15,14 +15,28 @@ export default function Register() {
 
   const set = (k, v) => { setForm(p => ({...p,[k]:v})); setErrors(p => ({...p,[k]:''})) }
 
+  const getPasswordStrength = (p) => {
+    if (!p) return 0
+    let s = 0
+    if (p.length >= 8) s++
+    if (/[A-Z]/.test(p)) s++
+    if (/[0-9]/.test(p)) s++
+    if (/[^A-Za-z0-9]/.test(p)) s++
+    return s
+  }
+
   const validate = () => {
     const e = {}
     if (!form.first_name) e.first_name = t.required
     if (!form.last_name) e.last_name = t.required
     if (!form.email) e.email = t.required
-    else if (!/\S+@\S+\.\S+/.test(form.email)) e.email = t.invalidEmail
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = t.invalidEmail
+    else if (/(temp|disposable|mailinator|guerrillamail)/.test(form.email)) e.email = 'Disposable emails are not allowed'
+    
     if (!form.password) e.password = t.required
     else if (form.password.length < 8) e.password = t.passMin
+    else if (getPasswordStrength(form.password) < 3) e.password = 'Password is too weak. Use uppercase, numbers, and symbols.'
+    
     if (form.password !== form.password2) e.password2 = t.passMismatch
     setErrors(e)
     return !Object.keys(e).length
@@ -45,10 +59,18 @@ export default function Register() {
     } finally { setLoading(false) }
   }
 
-  const F = ({ name, label, type='text', placeholder }) => (
+  const strength = getPasswordStrength(form.password)
+  const strengthColor = strength < 2 ? '#ef4444' : strength < 4 ? '#f59e0b' : '#22c55e'
+
+  const F = ({ name, label, type='text', placeholder, showStrength }) => (
     <div>
       <label className="label">{label}</label>
       <input className={`input ${errors[name]?'error':''}`} type={type} placeholder={placeholder} value={form[name]} onChange={e => set(name, e.target.value)} />
+      {showStrength && form.password && (
+        <div style={{ height: 4, background: 'var(--border)', borderRadius: 2, marginTop: 6, overflow: 'hidden' }}>
+          <div style={{ height: '100%', background: strengthColor, width: (strength / 4) * 100 + '%', transition: 'var(--transition)' }} />
+        </div>
+      )}
       {errors[name] && <div className="error-msg">⚠ {errors[name]}</div>}
     </div>
   )
@@ -67,7 +89,7 @@ export default function Register() {
             <F name="last_name" label={t.lastName} placeholder="Doe" />
           </div>
           <F name="email" label={t.email} type="email" placeholder="you@example.com" />
-          <F name="password" label={t.password} type="password" placeholder="Min 8 characters" />
+          <F name="password" label={t.password} type="password" placeholder="Min 8 characters" showStrength={true} />
           <F name="password2" label={t.confirmPass} type="password" placeholder="Repeat password" />
           <button type="submit" className="btn btn-primary" disabled={loading} style={{ padding:13, fontSize:15, borderRadius:10, marginTop:6, display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
             {loading ? <div className="spinner" style={{ width:18, height:18, border:'2px solid rgba(255,255,255,0.3)', borderTop:'2px solid #fff' }} /> : 'Create Account →'}

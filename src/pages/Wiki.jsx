@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useStore } from '../store'
 import { wiki, ws } from '../services/api'
+import useAutosave from '../hooks/useAutosave'
 import toast from 'react-hot-toast'
 
 export default function Wiki() {
@@ -12,6 +13,8 @@ export default function Wiki() {
   const [mode, setMode] = useState('list') // 'list' | 'view' | 'edit'
   const [searchQ, setSearchQ] = useState('')
   const [form, setForm] = useState({ title: '', content: '', category: '', workspace: '' })
+
+  const { isDirty, hasSaved, clearSaved, loadSaved } = useAutosave('wiki-article', form, 1500)
 
   useEffect(() => {
     Promise.all([wiki.list(), ws.list()])
@@ -46,9 +49,20 @@ export default function Wiki() {
         setSelected(res.data)
         toast.success('Article created!')
       }
+      clearSaved()
       setMode('view')
     } catch { toast.error('Failed to save article') }
   }
+
+  const restoreAutosave = () => {
+    const saved = loadSaved()
+    if (saved) {
+      setForm(saved.data)
+      toast.success('Content restored from ' + new Date(saved.savedAt).toLocaleTimeString())
+    }
+  }
+
+  const hasDraft = !!localStorage.getItem('rtm_autosave_wiki-article')
 
   const handleDelete = async (id) => {
     if (!confirm('Delete this article?')) return
@@ -121,7 +135,17 @@ export default function Wiki() {
 
           {mode === 'edit' && (
             <div>
-              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 800, color: 'var(--text)', marginBottom: 24 }}>{selected ? 'Edit Article' : 'New Article'}</h2>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 800, color: 'var(--text)' }}>{selected ? 'Edit Article' : 'New Article'}</h2>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  {hasDraft && !isDirty && (
+                    <button type="button" className="btn btn-ghost" style={{ fontSize: 11, color: 'var(--brand)' }} onClick={restoreAutosave}>↺ Restore Draft</button>
+                  )}
+                  <span style={{ fontSize: 11, color: isDirty ? 'var(--text3)' : 'var(--success)', transition: 'all 0.3s' }}>
+                    {isDirty ? 'Drafting...' : '✓ Autosaved'}
+                  </span>
+                </div>
+              </div>
               <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
                 <div>
                   <label className="label">Workspace</label>
