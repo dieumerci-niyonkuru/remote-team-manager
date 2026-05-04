@@ -11,13 +11,20 @@ export default function Chat() {
   const [messages, setMessages] = useState([])
   const [inputText, setInputText] = useState('')
   const [typing, setTyping] = useState(false)
+  const [showSidebar, setShowSidebar] = useState(true)
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
   const ws = useRef(null)
   const messagesEndRef = useRef(null)
-  const reconnectTimeout = useRef(null)
-  const reconnectAttempts = useRef(0)
 
   useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth <= 768
+      setIsMobile(mobile)
+      if (!mobile) setShowSidebar(true)
+    }
+    window.addEventListener('resize', handleResize)
     loadSidebar()
+    return () => window.removeEventListener('resize', handleResize)
   }, [])
 
   const loadSidebar = async () => {
@@ -25,46 +32,29 @@ export default function Chat() {
       const [chRes, dmRes] = await Promise.all([chat.channels(), chat.dms()])
       setChannels(chRes.data)
       setDms(dmRes.data)
-      if (chRes.data.length > 0 && !activeChannel) {
-        selectChannel(chRes.data[0])
-      }
-    } catch (err) {
-      toast.error('Failed to load chat channels')
-    }
+      if (chRes.data.length > 0 && !activeChannel) selectChannel(chRes.data[0])
+    } catch (err) { toast.error('System synchronization failed') }
   }
 
   const selectChannel = async (channel) => {
     setActiveChannel(channel)
+    if (isMobile) setShowSidebar(false)
     try {
       const res = await chat.messages({ channel: channel.id })
       setMessages(res.data)
       connectWebSocket(channel.id)
-    } catch (err) {
-      toast.error('Failed to load messages')
-    }
+    } catch (err) { toast.error('Failed to link channel') }
   }
 
   const connectWebSocket = (channelId) => {
-    if (ws.current) {
-      ws.current.onclose = null
-      ws.current.close()
-    }
-    
-    clearTimeout(reconnectTimeout.current)
+    if (ws.current) ws.current.close()
     const token = localStorage.getItem('rtm_access')
     const wsScheme = window.location.protocol === 'https:' ? 'wss' : 'ws'
     const wsUrl = `${wsScheme}://${window.location.host}/ws/chat/${channelId}/?token=${token}`
-    
-    console.log(`Connecting to WebSocket: ${wsUrl}`)
     ws.current = new WebSocket(wsUrl)
     
-    ws.current.onopen = () => {
-      console.log('WebSocket Connected')
-      reconnectAttempts.current = 0
-    }
-
-    ws.current.onmessage = (event) => {
-      const data = JSON.parse(event.data)
+    ws.current.onmessage = (e) => {
+      const data = JSON.parse(e.data)
       if (data.type === 'typing') {
         if (data.user_id !== user.id) {
           setTyping(true)
@@ -73,52 +63,13 @@ export default function Chat() {
       } else {
         setMessages(prev => [...prev, data])
         setTyping(false)
-        scrollToBottom()
       }
-    }
-    
-    ws.current.onclose = (e) => {
-      console.log(`WebSocket Closed: ${e.code}. Reconnecting...`)
-      if (reconnectAttempts.current < 10) {
-        const delay = Math.min(1000 * Math.pow(2, reconnectAttempts.current), 30000)
-        reconnectTimeout.current = setTimeout(() => {
-          reconnectAttempts.current++
-          connectWebSocket(channelId)
-        }, delay)
-      } else {
-        toast.error('Chat connection lost. Please refresh.')
-      }
-    }
-    
-    ws.current.onerror = (err) => {
-      console.error('WebSocket Error:', err)
-      ws.current.close()
     }
   }
 
   useEffect(() => {
-    return () => {
-      if (ws.current) ws.current.close()
-      clearTimeout(reconnectTimeout.current)
-    }
-  }, [])
-
-  const scrollToBottom = () => {
-    setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-    }, 100)
-  }
-
-  useEffect(() => {
-    scrollToBottom()
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
-
-  const handleInput = (e) => {
-    setInputText(e.target.value)
-    if (ws.current) {
-      ws.current.send(JSON.stringify({ type: 'typing', user_id: user.id }))
-    }
-  }
 
   const sendMessage = (e) => {
     e.preventDefault()
@@ -128,28 +79,33 @@ export default function Chat() {
   }
 
   return (
-    <div className={theme} style={{ display: 'flex', height: 'calc(100vh - 64px)', background: 'var(--bg)' }}>
+    <div className={theme} style={{ display: 'flex', height: 'calc(100vh - 64px)', background: 'var(--bg)', position:'relative', overflow:'hidden' }}>
+      
       {/* Sidebar */}
-      <div style={{ width: 280, background: 'var(--bg2)', borderRight: '1px solid var(--border)', display: 'flex', flexDirection: 'column' }}>
-        <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)' }}>
-          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 800, color: 'var(--text)' }}>Chat</h2>
+      <div style={{ 
+        width: isMobile ? '100%' : 280, 
+        background: 'var(--bg2)', 
+        borderRight: '1px solid var(--border)', 
+        display: (isMobile && !showSidebar) ? 'none' : 'flex', 
+        flexDirection: 'column',
+        position: isMobile ? 'absolute' : 'relative',
+        inset: isMobile ? 0 : 'auto',
+        zIndex: 10
+      }}>
+        <div style={{ padding: '24px', borderBottom: '1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+          <h2 style={{ fontSize: 20, fontWeight: 900, color: 'var(--text)', letterSpacing:'-0.02em' }}>Communication</h2>
         </div>
         
         <div style={{ padding: '16px 12px', flex: 1, overflowY: 'auto' }}>
-          <div style={{ marginBottom: 24 }}>
-            <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text2)', textTransform: 'uppercase', marginBottom: 8, paddingLeft: 12 }}>
-              Channels
-            </div>
+          <div style={{ marginBottom: 32 }}>
+            <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing:1, marginBottom: 12, paddingLeft: 12 }}>Nodes</div>
             {channels.map(c => (
-              <button 
-                key={c.id}
-                onClick={() => selectChannel(c)}
+              <button key={c.id} onClick={() => selectChannel(c)}
                 style={{ 
-                  width: '100%', textAlign: 'left', padding: '8px 12px', borderRadius: 8, border: 'none',
-                  background: activeChannel?.id === c.id ? 'var(--brand-bg)' : 'transparent',
-                  color: activeChannel?.id === c.id ? 'var(--brand)' : 'var(--text)',
-                  fontWeight: activeChannel?.id === c.id ? 600 : 500,
-                  cursor: 'pointer', transition: 'var(--transition)'
+                  width: '100%', textAlign: 'left', padding: '12px 16px', borderRadius: 12, border: 'none', marginBottom:4,
+                  background: activeChannel?.id === c.id ? 'var(--brand)' : 'transparent',
+                  color: activeChannel?.id === c.id ? '#fff' : 'var(--text2)',
+                  fontWeight: 700, cursor: 'pointer', transition: '0.2s'
                 }}>
                 # {c.name}
               </button>
@@ -157,86 +113,63 @@ export default function Chat() {
           </div>
 
           <div>
-            <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text2)', textTransform: 'uppercase', marginBottom: 8, paddingLeft: 12 }}>
-              Direct Messages
-            </div>
-            {dms.map(dm => (
-              <button 
-                key={dm.id}
-                style={{ 
-                  width: '100%', textAlign: 'left', padding: '8px 12px', borderRadius: 8, border: 'none',
-                  background: 'transparent', color: 'var(--text)', cursor: 'pointer'
-                }}>
-                👤 DM
-              </button>
-            ))}
+             <div style={{ fontSize: 11, fontWeight: 800, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing:1, marginBottom: 12, paddingLeft: 12 }}>Direct Links</div>
+             {dms.length === 0 && <div style={{ fontSize:13, color:'var(--text3)', paddingLeft:12 }}>No active links.</div>}
           </div>
         </div>
       </div>
 
-      {/* Main Chat Area */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', background: 'var(--bg)' }}>
+      {/* Main Chat */}
+      <div style={{ 
+        flex: 1, 
+        display: (isMobile && showSidebar) ? 'none' : 'flex', 
+        flexDirection: 'column', 
+        background: 'var(--bg)',
+        width: '100%'
+      }}>
         {activeChannel ? (
           <>
-            {/* Header */}
-            <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border)', background: 'var(--bg-card)' }}>
-              <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)' }}># {activeChannel.name}</h3>
+            <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border)', background: 'rgba(var(--bg-card-rgb), 0.5)', backdropFilter:'blur(10px)', display:'flex', alignItems:'center', gap:16 }}>
+              {isMobile && <button onClick={() => setShowSidebar(true)} style={{ background:'none', border:'none', fontSize:20, cursor:'pointer' }}>⬅</button>}
+              <div className="activity-dot" />
+              <h3 style={{ fontSize: 18, fontWeight: 800, color: 'var(--text)' }}>{activeChannel.name}</h3>
             </div>
             
-            {/* Messages */}
-            <div style={{ flex: 1, padding: 24, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ flex: 1, padding: 24, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap:20 }}>
               {messages.map((m, i) => (
-                <div key={i} style={{ display: 'flex', gap: 12 }}>
-                  <div className="avatar" style={{ width: 36, height: 36, fontSize: 13 }}>
-                    {m.username ? m.username[0].toUpperCase() : (m.user?.first_name ? m.user.first_name[0] : '?')}
+                <div key={i} style={{ display: 'flex', gap: 14, maxWidth:isMobile ? '100%' : '80%' }}>
+                  <div style={{ width: 40, height: 40, borderRadius:12, background:'var(--bg2)', display:'flex', alignItems:'center', justifyContent:'center', fontWeight:800, color:'var(--brand)', flexShrink:0 }}>
+                    {(m.username || m.user?.first_name || '?')[0].toUpperCase()}
                   </div>
                   <div>
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-                      <span style={{ fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>
-                        {m.username || m.user?.first_name || 'User'}
-                      </span>
-                      <span style={{ fontSize: 11, color: 'var(--text3)' }}>
-                        {new Date(m.created_at || m.timestamp).toLocaleTimeString()}
-                      </span>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom:4 }}>
+                      <span style={{ fontWeight: 800, fontSize: 14, color: 'var(--text)' }}>{m.username || m.user?.first_name}</span>
+                      <span style={{ fontSize: 10, color: 'var(--text3)', fontWeight:700 }}>{new Date(m.created_at || m.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
                     </div>
-                    <div style={{ fontSize: 14, color: 'var(--text2)', marginTop: 4, lineHeight: 1.5 }}>
+                    <div style={{ fontSize: 15, color: 'var(--text2)', lineHeight: 1.6, background:'var(--bg2)', padding:'12px 16px', borderRadius:'0 16px 16px 16px' }}>
                       {m.content || m.message}
                     </div>
                   </div>
                 </div>
               ))}
-              {typing && (
-                <div style={{ display: 'flex', gap: 12 }}>
-                  <div className="avatar" style={{ width: 36, height: 36 }}>💭</div>
-                  <div style={{ padding: '8px 12px', borderRadius: 12, background: 'var(--bg2)', color: 'var(--text2)', fontStyle: 'italic', fontSize: 13 }}>
-                    Someone is typing...
-                  </div>
-                </div>
-              )}
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Input */}
             <div style={{ padding: 24, background: 'var(--bg)', borderTop: '1px solid var(--border)' }}>
               <form onSubmit={sendMessage} style={{ display: 'flex', gap: 12 }}>
-                <input 
-                  className="input" 
-                  style={{ flex: 1, borderRadius: 24, padding: '12px 20px' }} 
-                  placeholder="Type a message..." 
-                  value={inputText} 
-                  onChange={handleInput} 
-                />
-                <button type="submit" className="btn btn-primary" style={{ borderRadius: 24, padding: '0 24px' }} disabled={!inputText.trim()}>
-                  Send
+                <input className="input" style={{ flex: 1, borderRadius: 16, padding: '16px 20px', background:'var(--bg2)', border:'none' }} 
+                  placeholder="Transmit message..." value={inputText} onChange={(e) => setInputText(e.target.value)} />
+                <button type="submit" className="btn btn-primary" style={{ borderRadius: 16, width:56, height:56, display:'flex', alignItems:'center', justifyContent:'center', padding:0 }} disabled={!inputText.trim()}>
+                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
                 </button>
               </form>
             </div>
           </>
         ) : (
-          <div className="empty-state" style={{ flex: 1 }}>
-            <div className="empty-icon">💬</div>
-            <div className="empty-title">Select a channel</div>
-            <div className="empty-desc">Choose a channel from the sidebar to start chatting</div>
+          <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:16, color:'var(--text3)' }}>
+             <div style={{ fontSize:64 }}>💬</div>
+             <div style={{ fontWeight:800 }}>SELECT A FREQUENCY TO START</div>
+             {isMobile && <button onClick={() => setShowSidebar(true)} className="btn btn-primary">Show Channels</button>}
           </div>
         )}
       </div>

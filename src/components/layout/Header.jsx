@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useStore } from '../../store'
 import { auth } from '../../services/api'
@@ -8,120 +8,137 @@ export default function Header() {
   const { isAuth, user, logout, theme, setTheme } = useStore()
   const navigate = useNavigate()
   const { pathname } = useLocation()
+  const [showMenu, setShowMenu] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 20)
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  useEffect(() => setShowMenu(false), [pathname])
 
   const handleLogout = async () => {
     try { await auth.logout(localStorage.getItem('rtm_refresh')) } catch {}
     logout(); toast.success('Goodbye! 👋'); navigate('/login')
   }
 
-  const NAV_GROUPS = [
-    {
-      label: 'Home',
-      to: '/'
-    },
-    {
-      label: 'About',
-      to: '/#about'
-    },
-    {
-      label: 'Product',
-      items: [
-        { to: '/#features', label: 'Features', desc: 'Everything you need to scale' },
-        { to: '/automations', label: 'Automations', desc: 'Work smarter, not harder' },
-        { to: '/integrations', label: 'Integrations', desc: 'Connect your favorite tools' },
-      ]
-    },
-    {
-      label: 'Solutions',
-      items: [
-        { to: '/hr', label: 'HR & People', desc: 'Manage your global workforce' },
-        { to: '/wiki', label: 'Knowledge Base', desc: 'Organize team intelligence' },
-        { to: '/files', label: 'File Management', desc: 'Secure cloud storage' },
-      ]
-    },
-    {
-      label: 'Enterprise',
-      items: [
-        { to: '/pricing', label: 'Plans', desc: 'Flexible pricing for any size' },
-        { to: '/ai', label: 'AI Power', desc: 'Next-gen productivity tools' },
-        { to: '/search', label: 'Deep Search', desc: 'Find anything in seconds' },
-      ]
-    }
-  ]
-
-  const isActive = to => to === '/' ? pathname === '/' : pathname.startsWith(to)
+  const NavLink = ({ to, label }) => (
+    <Link to={to} style={{ 
+      textDecoration:'none', color: pathname === to ? 'var(--brand)' : 'var(--text2)', 
+      fontSize:15, fontWeight:700, padding:'8px 16px', borderRadius:10, transition:'0.2s',
+      background: pathname === to ? 'var(--brand-bg)' : 'transparent'
+    }} onMouseEnter={e => !pathname.includes(to) && (e.target.style.color = 'var(--brand)')}
+       onMouseLeave={e => !pathname.includes(to) && (e.target.style.color = 'var(--text2)')}>
+      {label}
+    </Link>
+  )
 
   return (
-    <header style={{ position:'sticky', top:0, zIndex:1000, background:'rgba(var(--bg-rgb), 0.9)', backdropFilter:'blur(20px)', borderBottom:'1px solid var(--border)' }}>
-      <div className="container" style={{ height:80, display:'flex', alignItems:'center', gap:40 }}>
-        {/* Professional Logo */}
-        <Link to="/" style={{ display:'flex', alignItems:'center', gap:12, textDecoration:'none', flexShrink:0 }}>
-          <div style={{ width:44, height:44, borderRadius:14, background:'linear-gradient(135deg,#3366ff,#8b5cf6)', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', boxShadow:'0 10px 20px -5px rgba(51,102,255,0.4)' }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-          </div>
-          <span className="logo-font">NexusTeams</span>
+    <header style={{ 
+      position:'sticky', top:0, zIndex:1000, 
+      background: scrolled ? 'rgba(var(--bg-rgb), 0.8)' : 'transparent',
+      backdropFilter: scrolled ? 'blur(24px)' : 'none',
+      borderBottom: scrolled ? '1px solid var(--border)' : '1px solid transparent',
+      height: 72, transition: '0.3s'
+    }}>
+      <div className="container" style={{ height:'100%', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+        
+        {/* Brand */}
+        <Link to="/" style={{ display:'flex', alignItems:'center', gap:12, textDecoration:'none' }}>
+           <div style={{ width:40, height:40, borderRadius:12, background:'linear-gradient(135deg,#3366ff,#8b5cf6)', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', boxShadow:'0 8px 16px -4px rgba(51,102,255,0.4)' }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+           </div>
+           <span className="logo-font" style={{ fontSize:22 }}>NexusTeams</span>
         </Link>
 
-        {/* Desktop Nav */}
-        <nav className="hide-tablet" style={{ display:'flex', gap:4, flex:1 }}>
-          {NAV_GROUPS.map(group => (
-            <div key={group.label} className="nav-item" style={{ position:'relative', padding:'10px 0' }}>
-              {group.to ? (
-                <Link to={group.to} style={{ color:'var(--text2)', fontSize:14, fontWeight:700, textDecoration:'none', padding:'8px 16px', borderRadius:8, transition:'var(--transition)' }} className="btn-ghost">
-                  {group.label}
-                </Link>
-              ) : (
-                <button style={{ background:'none', border:'none', color:'var(--text2)', fontSize:14, fontWeight:700, cursor:'pointer', display:'flex', alignItems:'center', gap:6, padding:'8px 16px', borderRadius:8, transition:'var(--transition)' }} className="btn-ghost">
-                  {group.label} <span style={{ fontSize:10, opacity:0.5 }}>▼</span>
-                </button>
-              )}
-              
-              {group.items && (
-                <div className="dropdown-menu" style={{ width:280 }}>
-                  <div style={{ padding:12, display:'flex', flexDirection:'column', gap:6 }}>
-                    {group.items.map(item => (
-                      <Link key={item.label} to={item.to} className="dropdown-item" style={{ padding:12 }}>
-                        <div style={{ flex:1 }}>
-                          <div style={{ fontWeight:800, color:'var(--text)', marginBottom:4, fontSize:14 }}>{item.label}</div>
-                          <div style={{ fontSize:12, color:'var(--text3)', lineHeight:1.4 }}>{item.desc}</div>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          ))}
+        {/* Desktop Links */}
+        <nav className="hide-tablet" style={{ display:'flex', alignItems:'center', gap:4 }}>
+           <NavLink to="/" label="Home" />
+           {isAuth ? (
+             <>
+               <NavLink to="/dashboard" label="Workspaces" />
+               <NavLink to="/chat" label="Communication" />
+               <NavLink to="/calendar" label="Timeline" />
+               <NavLink to="/wiki" label="Knowledge" />
+               <NavLink to="/files" label="Resources" />
+             </>
+           ) : (
+             <NavLink to="/about" label="About Us" />
+           )}
         </nav>
 
-        {/* Right controls */}
-        <div style={{ display:'flex', alignItems:'center', gap:12, flexShrink:0 }}>
-          {/* Theme */}
-          <button className="btn-icon" onClick={() => setTheme(theme==='dark'?'light':'dark')} title="Toggle theme">
-            {theme==='dark' ? '☀️' : '🌙'}
-          </button>
+        {/* Controls */}
+        <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+           <button className="btn-icon" onClick={() => setTheme(theme==='dark'?'light':'dark')}>
+              {theme==='dark' ? '☀️' : '🌙'}
+           </button>
 
-          {isAuth ? (
-            <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-              <Link to="/notifications" className="btn-icon" style={{ position:'relative' }}>
-                🔔
-                <div style={{ position:'absolute', top:8, right:8, width:8, height:8, borderRadius:'50%', background:'#dc2626', border:'2px solid var(--bg)' }} />
-              </Link>
-              
-              <div style={{ width:36, height:36, borderRadius:'50%', background:'linear-gradient(135deg,#3366ff,#8b5cf6)', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontSize:13, fontWeight:800, cursor:'pointer', border:'2px solid var(--border)' }} onClick={() => navigate('/settings')}>
-                {user?.first_name?.[0]}{user?.last_name?.[0]}
-              </div>
-              
-              <button className="btn btn-ghost hide-mobile" onClick={handleLogout} style={{ fontSize:13 }}>Logout</button>
-            </div>
-          ) : (
-            <div style={{ display:'flex', gap:10 }}>
-              <Link to="/login" className="btn btn-ghost" style={{ padding:'10px 18px' }}>Log in</Link>
-              <Link to="/register" className="btn btn-primary" style={{ padding:'10px 20px' }}>Get Started</Link>
-            </div>
-          )}
+           <div className="hide-tablet">
+              {isAuth ? (
+                <div style={{ display:'flex', alignItems:'center', gap:16 }}>
+                   <div style={{ width:36, height:36, borderRadius:10, overflow:'hidden', border:'2px solid var(--border)', cursor:'pointer' }} onClick={() => navigate('/settings')}>
+                      {user?.avatar ? <img src={user.avatar} style={{ width:'100%', height:'100%', objectFit:'cover' }} /> : <div style={{ width:'100%', height:'100%', background:'var(--bg2)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14 }}>👤</div>}
+                   </div>
+                   <button className="btn btn-secondary" onClick={handleLogout} style={{ padding:'8px 16px', fontSize:13 }}>Sign Out</button>
+                </div>
+              ) : (
+                <div style={{ display:'flex', gap:10 }}>
+                   <Link to="/login" className="btn btn-secondary" style={{ padding:'10px 18px', textDecoration:'none', fontSize:14 }}>Log in</Link>
+                   <Link to="/register" className="btn btn-primary" style={{ padding:'10px 20px', textDecoration:'none', fontSize:14 }}>Get Started</Link>
+                </div>
+              )}
+           </div>
+
+           {/* Burger Toggle */}
+           <button className="hide-desktop btn-icon" onClick={() => setShowMenu(!showMenu)} style={{ fontSize:24 }}>
+              {showMenu ? '✕' : '☰'}
+           </button>
         </div>
       </div>
+
+      {/* Mobile Sidebar Overlay */}
+      {showMenu && (
+        <div className="glass" style={{ 
+          position:'fixed', top:72, inset: '72px 0 0 0', zIndex: 1001, padding:24, display:'flex', flexDirection:'column', gap:12,
+          animation: 'slideInLeft 0.3s ease-out', background: 'var(--bg)'
+        }}>
+           <Link to="/" className="mobile-nav-link">Home</Link>
+           {isAuth ? (
+             <>
+               <Link to="/dashboard" className="mobile-nav-link">Workspaces</Link>
+               <Link to="/chat" className="mobile-nav-link">Communication</Link>
+               <Link to="/calendar" className="mobile-nav-link">Timeline</Link>
+               <Link to="/wiki" className="mobile-nav-link">Knowledge</Link>
+               <Link to="/files" className="mobile-nav-link">Resources</Link>
+               <button onClick={handleLogout} className="btn btn-primary" style={{ marginTop:24, padding:16 }}>Sign Out</button>
+             </>
+           ) : (
+             <>
+               <Link to="/about" className="mobile-nav-link">About Us</Link>
+               <Link to="/login" className="btn btn-secondary" style={{ marginTop:24, padding:16, textAlign:'center', textDecoration:'none' }}>Log In</Link>
+               <Link to="/register" className="btn btn-primary" style={{ padding:16, textAlign:'center', textDecoration:'none' }}>Get Started</Link>
+             </>
+           )}
+        </div>
+      )}
+
+      <style>{`
+        @media (max-width: 992px) { .hide-tablet { display: none !important; } }
+        @media (min-width: 993px) { .hide-desktop { display: none !important; } }
+        .mobile-nav-link {
+          padding: 18px;
+          font-size: 18px;
+          font-weight: 800;
+          color: var(--text);
+          text-decoration: none;
+          border-radius: 16px;
+          background: var(--bg2);
+          transition: 0.2s;
+        }
+        .mobile-nav-link:active { transform: scale(0.98); background: var(--border); }
+      `}</style>
     </header>
   )
 }

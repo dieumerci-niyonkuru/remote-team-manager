@@ -64,7 +64,7 @@ export default function Dashboard() {
         </div>
 
         {/* Intelligence Grid */}
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(240px, 1fr))', gap:24, marginBottom:48 }}>
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap:24, marginBottom:48 }}>
           {[
             { icon:'🏢', label:'Active Workspaces', value:workspaces.length, color:'#3366ff' },
             { icon:'👥', label:'Global Members', value:workspaces.reduce((a,w) => a+(w.member_count||0), 0), color:'#8b5cf6' },
@@ -79,7 +79,7 @@ export default function Dashboard() {
         </div>
 
         {/* Analytics & Pulse */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: 24, marginBottom: 48 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 400px), 1fr))', gap: 24, marginBottom: 48 }}>
           <div className="card glass" style={{ padding: 40 }}>
             <h3 style={{ fontSize: 18, fontWeight: 800, color: 'var(--text)', marginBottom: 32 }}>Recent Activity Pulse</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
