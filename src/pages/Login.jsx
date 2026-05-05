@@ -21,7 +21,17 @@ export default function Login() {
       toast.success('Secure Connection Established')
       navigate('/dashboard')
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Unauthorized: Check Neural ID')
+      const data = err.response?.data
+      let msg = 'Unauthorized: Check Neural ID'
+      if (data) {
+        if (data.message) msg = data.message
+        else if (data.detail) msg = data.detail
+        else if (typeof data === 'object') {
+          const errors = Object.values(data).flat()
+          if (errors.length > 0) msg = errors[0]
+        }
+      }
+      toast.error(msg)
     } finally { setLoading(false) }
   }
 

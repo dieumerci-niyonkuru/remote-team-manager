@@ -72,8 +72,17 @@ export default function Register() {
       toast.success('Welcome to NexusTeams!')
       navigate('/dashboard')
     } catch (err) {
-      const msg = err.response?.data?.message
-      toast.error(typeof msg === 'object' ? Object.values(msg).flat()[0] : msg || 'Access Denied')
+      const data = err.response?.data
+      let msg = 'Access Denied'
+      if (data) {
+        if (data.message) msg = data.message
+        else if (typeof data === 'object') {
+          // Extract first error from DRF validation errors
+          const errors = Object.values(data).flat()
+          if (errors.length > 0) msg = errors[0]
+        }
+      }
+      toast.error(msg)
     } finally { setLoading(false) }
   }
 

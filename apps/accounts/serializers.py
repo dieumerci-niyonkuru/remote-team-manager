@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import User
 
 class UserSerializer(serializers.ModelSerializer):
@@ -27,3 +28,30 @@ class RegisterSerializer(serializers.ModelSerializer):
         validated_data['username'] = email
         user = User.objects.create_user(**validated_data)
         return user
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    email = serializers.EmailField(required=False)
+    # We still need password, but it's already in the base class.
+    # SimpleJWT's TokenObtainPairSerializer has username and password.
+
+    def validate(self, attrs):
+        # The frontend sends 'email' instead of 'username'
+        email = attrs.get('email')
+        password = attrs.get('password')
+
+        if email:
+            attrs['username'] = email
+        
+        data = super().validate(attrs)
+        
+        # Include user data
+        user_data = UserSerializer(self.user).data
+        
+        # Wrap in 'data' key to match frontend expectation
+        return {
+            "data": {
+                "access": data['access'],
+                "refresh": data['refresh'],
+                "user": user_data
+            }
+        }
