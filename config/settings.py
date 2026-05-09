@@ -122,7 +122,10 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
 }
 
-CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='http://localhost:3000,http://localhost:5173,https://nexus-teams.netlify.app,https://remote-teams-co.netlify.app').split(',')
+_cors_env = config('CORS_ALLOWED_ORIGINS', default='http://localhost:3000,http://localhost:5173,https://nexus-teams.netlify.app,https://remote-teams-co.netlify.app')
+CORS_ALLOWED_ORIGINS = [origin.strip() for origin in _cors_env.split(',')]
+if 'https://remote-teams-co.netlify.app' not in CORS_ALLOWED_ORIGINS:
+    CORS_ALLOWED_ORIGINS.append('https://remote-teams-co.netlify.app')
 CORS_ALLOW_CREDENTIALS = True
 
 CHANNEL_LAYERS = {
