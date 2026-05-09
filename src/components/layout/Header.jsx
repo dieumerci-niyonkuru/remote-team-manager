@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { useStore } from '../store'
-import { auth } from '../services/api'
+import { useStore } from '../../store'
+import { auth } from '../../services/api'
 import toast from 'react-hot-toast'
 
 export default function Header() {

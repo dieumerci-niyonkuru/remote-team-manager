@@ -4,11 +4,9 @@ from apps.projects.views import ProjectViewSet, TaskViewSet, CommentViewSet, Sug
 from apps.chat.views import ChannelViewSet, MessageViewSet, DirectMessageViewSet
 from apps.hr.views import EmployeeProfileViewSet, JobPostingViewSet, PayrollRecordViewSet
 from apps.notifications.views import NotificationViewSet
-from apps.presence.views import UserPresenceViewSet
-from apps.communications.views import MeetingViewSet, EmailLogViewSet, CallLogViewSet
-from apps.timetracking.views import TimeLogViewSet
+from apps.presence.views import PresenceViewSet
+from apps.communications.views import FriendRequestViewSet, FileAttachmentViewSet
 from apps.okr.views import ObjectiveViewSet, KeyResultViewSet
-from apps.ai.views import AISuggestionViewSet
 from apps.automation.views import AutomationRuleViewSet
 from apps.wiki.views import WikiArticleViewSet
 
@@ -38,22 +36,15 @@ router.register(r'payroll', PayrollRecordViewSet, basename='payroll')
 router.register(r'notifications', NotificationViewSet, basename='notification')
 
 # Presence
-router.register(r'presence', UserPresenceViewSet, basename='userpresence')
+router.register(r'presence', PresenceViewSet, basename='userpresence')
 
 # Communications
-router.register(r'meetings', MeetingViewSet, basename='meeting')
-router.register(r'email-logs', EmailLogViewSet, basename='emaillog')
-router.register(r'call-logs', CallLogViewSet, basename='calllog')
-
-# Time Tracking
-router.register(r'timelogs', TimeLogViewSet, basename='timelog')
+router.register(r'friend-requests', FriendRequestViewSet, basename='friendrequest')
+router.register(r'file-attachments', FileAttachmentViewSet, basename='fileattachment')
 
 # OKR
 router.register(r'objectives', ObjectiveViewSet, basename='objective')
 router.register(r'key-results', KeyResultViewSet, basename='keyresult')
-
-# AI
-router.register(r'ai-suggestions', AISuggestionViewSet, basename='aisuggestion')
 
 # Automation
 router.register(r'automation-rules', AutomationRuleViewSet, basename='automationrule')

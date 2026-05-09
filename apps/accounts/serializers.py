@@ -11,6 +11,7 @@ class UserSerializer(serializers.ModelSerializer):
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
     password2 = serializers.CharField(write_only=True, required=True)
+    email = serializers.EmailField(required=True)
 
     class Meta:
         model = User
@@ -31,16 +32,18 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     email = serializers.EmailField(required=False)
-    # We still need password, but it's already in the base class.
-    # SimpleJWT's TokenObtainPairSerializer has username and password.
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.username_field in self.fields:
+            self.fields[self.username_field].required = False
 
     def validate(self, attrs):
         # The frontend sends 'email' instead of 'username'
         email = attrs.get('email')
-        password = attrs.get('password')
-
+        
         if email:
-            attrs['username'] = email
+            attrs[self.username_field] = email
         
         data = super().validate(attrs)
         
