@@ -24,7 +24,7 @@ const FEATURES = [
   { 
     title:'Project Insights', 
     desc:'Visual dashboards and time tracking give you deep visibility into productivity.',
-    img: 'https://images.unsplash.com/photo-1551288049-bbdac8a28a1e?q=80&w=800'
+    img: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=800'
   },
   { 
     title:'Enterprise Security', 
