@@ -99,7 +99,7 @@ if DATABASE_URL:
 else:
     MEDIA_ROOT = config('MEDIA_ROOT', default=BASE_DIR / 'media')
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
 
 AUTH_USER_MODEL = 'accounts.User'
 

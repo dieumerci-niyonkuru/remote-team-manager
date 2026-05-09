@@ -65,12 +65,9 @@ export default function Register() {
     if (avatar) formData.append('avatar', avatar)
 
     try {
-      const res = await auth.register(formData)
-      localStorage.setItem('rtm_access', res.data.data.access)
-      localStorage.setItem('rtm_refresh', res.data.data.refresh)
-      setUser(res.data.data.user)
-      toast.success('Welcome to NexusTeams!')
-      navigate('/dashboard')
+      await auth.register(formData)
+      toast.success('Registration successful! Please log in.')
+      navigate('/login')
     } catch (err) {
       const data = err.response?.data
       let msg = 'Access Denied'
@@ -95,7 +92,7 @@ export default function Register() {
           <Link to="/" style={{ display: 'inline-flex', width: 72, height: 72, borderRadius: 20, background: 'linear-gradient(135deg,#3366ff,#8b5cf6)', alignItems: 'center', justifyContent: 'center', color: '#fff', margin: '0 auto 24px', boxShadow: '0 15px 30px -5px rgba(51,102,255,0.4)' }}>
             <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /></svg>
           </Link>
-          <h2 style={{ fontSize: 36, fontWeight: 900, color: 'var(--text)', marginBottom: 12, letterSpacing: '-0.03em' }}>Initialize Identity</h2>
+          <h2 style={{ fontSize: 36, fontWeight: 900, color: 'var(--text)', marginBottom: 12, letterSpacing: '-0.03em' }}>Create Account</h2>
           <p style={{ color: 'var(--text2)', fontSize: 16, fontWeight: 500 }}>Join the world's most advanced remote workspace</p>
         </div>
 
@@ -111,7 +108,7 @@ export default function Register() {
               ) : (
                 <div style={{ textAlign: 'center', color: 'var(--text3)' }}>
                    <img src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?auto=format&fit=crop&q=80&w=100" style={{ width:44, height:44, borderRadius:'50%', opacity:0.5, marginBottom:4 }} />
-                   <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 1 }}>SET PHOTO</div>
+                   <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 1 }}>UPLOAD PHOTO</div>
                 </div>
               )}
             </div>
@@ -123,11 +120,11 @@ export default function Register() {
             <F name="last_name" label="Last Name" placeholder="Doe" value={form.last_name} onChange={set} error={errors.last_name} />
           </div>
 
-          <F name="email" label="Neural ID (Email)" type="email" placeholder="john@nexus.com" value={form.email} onChange={set} error={errors.email} />
+          <F name="email" label="Email Address" type="email" placeholder="john@example.com" value={form.email} onChange={set} error={errors.email} />
 
           {/* Role Selection Grid with Photos */}
           <div>
-            <label className="label" style={{ marginBottom: 16, fontSize: 11, fontWeight: 800, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: 1.5 }}>Select Your Mission Role</label>
+            <label className="label" style={{ marginBottom: 16, fontSize: 11, fontWeight: 800, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: 1.5 }}>Select Your Role</label>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
               {ROLES.map(r => (
                 <div key={r.value} onClick={() => set('role', r.value)} style={{ padding: 18, borderRadius: 20, background: form.role === r.value ? 'var(--brand-bg)' : 'var(--bg3)', border: form.role === r.value ? '2px solid var(--brand)' : '2px solid transparent', cursor: 'pointer', transition: '0.3s', display: 'flex', alignItems: 'center', gap: 16 }}>
@@ -142,17 +139,17 @@ export default function Register() {
           </div>
 
           <div style={{ display: 'flex', gap: 20 }}>
-            <F name="password" label="Access Key" type="password" placeholder="••••••••" value={form.password} onChange={set} error={errors.password} />
-            <F name="password2" label="Confirm Key" type="password" placeholder="••••••••" value={form.password2} onChange={set} error={errors.password2} />
+            <F name="password" label="Password" type="password" placeholder="••••••••" value={form.password} onChange={set} error={errors.password} />
+            <F name="password2" label="Confirm Password" type="password" placeholder="••••••••" value={form.password2} onChange={set} error={errors.password2} />
           </div>
 
           <button type="submit" className="btn btn-primary" disabled={loading} style={{ width: '100%', padding: '20px', fontSize: 18, borderRadius: 20, fontWeight: 900, marginTop: 12 }}>
-            {loading ? 'Processing...' : 'Authorize Registration ➜'}
+            {loading ? 'Processing...' : 'Create Account ➜'}
           </button>
         </form>
 
         <p style={{ textAlign: 'center', fontSize: 15, color: 'var(--text2)', marginTop: 48, fontWeight: 600 }}>
-          Already registered? <Link to="/login" style={{ color: 'var(--brand)', fontWeight: 800, textDecoration: 'none' }}>Initiate Login</Link>
+          Already registered? <Link to="/login" style={{ color: 'var(--brand)', fontWeight: 800, textDecoration: 'none' }}>Log In</Link>
         </p>
       </div>
 
