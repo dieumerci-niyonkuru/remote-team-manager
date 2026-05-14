@@ -3,23 +3,43 @@ from django.conf import settings
 from apps.workspaces.models import Workspace
 
 class Project(models.Model):
+    PROJECT_TYPE_CHOICES = (
+        ('software', 'Software Development'),
+        ('design', 'Design'),
+        ('marketing', 'Marketing'),
+        ('research', 'Research'),
+        ('custom', 'Custom'),
+    )
+    STATUS_CHOICES = (
+        ('active', 'Active'),
+        ('completed', 'Completed'),
+        ('on_hold', 'On Hold'),
+    )
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     workspace = models.ForeignKey(Workspace, on_delete=models.CASCADE, related_name='projects')
+    project_type = models.CharField(max_length=20, choices=PROJECT_TYPE_CHOICES, default='custom')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    members = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='assigned_projects', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.workspace.name} | {self.name}"
 
 class Task(models.Model):
     STATUS_CHOICES = (
         ('todo', 'To Do'),
         ('in_progress', 'In Progress'),
+        ('review', 'Review'),
         ('done', 'Done'),
     )
     PRIORITY_CHOICES = (
         ('low', 'Low'),
         ('medium', 'Medium'),
         ('high', 'High'),
+        ('urgent', 'Urgent'),
     )
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)

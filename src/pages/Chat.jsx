@@ -18,11 +18,11 @@ const MOCK_DMS = [
 ];
 
 export default function Chat() {
-  const { user, theme } = useStore();
-  const [channels, setChannels] = useState(MOCK_CHANNELS);
-  const [dms, setDms] = useState(MOCK_DMS);
+  const { user, theme, activeWorkspace } = useStore();
+  const [channels, setChannels] = useState([]);
+  const [dms, setDms] = useState([]);
   
-  const [activeTab, setActiveTab] = useState('general');
+  const [activeTab, setActiveTab] = useState(null);
   const [messages, setMessages] = useState([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -41,23 +41,27 @@ export default function Chat() {
   const wsRef = useRef(null);
   const reconnectTimeoutRef = useRef(null);
   const typingTimeoutRef = useRef(null);
-
-  // Load Channels & DMs on mount
+  
+  // Load Channels & DMs when activeWorkspace changes
   useEffect(() => {
     const fetchData = async () => {
+      if (!activeWorkspace) return;
       try {
         const [chData, dmData] = await Promise.all([
-          chat.channels(),
+          api.get(`/channels/?workspace=${activeWorkspace.id}`),
           chat.dms()
         ]);
-        if (chData?.data?.length) setChannels(chData.data);
+        if (chData?.data?.length) {
+          setChannels(chData.data);
+          setActiveTab(chData.data[0].id);
+        }
         if (dmData?.data?.length) setDms(dmData.data);
       } catch (err) {
-        console.warn('Backend unavailable, using mock data for channels.');
+        console.warn('Failed to fetch chat data:', err);
       }
     };
     fetchData();
-  }, []);
+  }, [activeWorkspace]);
 
   // Window Resize
   useEffect(() => {

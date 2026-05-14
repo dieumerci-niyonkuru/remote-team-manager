@@ -102,6 +102,7 @@ class AnalyticsEvent(models.Model):
         ('reaction_added', 'Reaction Added'),
         ('channel_created', 'Channel Created'),
         ('user_login', 'User Login'),
+        ('workspace_switched', 'Workspace Switched'),
     ]
     event_type = models.CharField(max_length=30, choices=EVENT_TYPES)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)

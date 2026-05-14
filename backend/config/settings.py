@@ -139,6 +139,19 @@ if config('REDIS_URL', default=None):
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {"hosts": [config('REDIS_URL')]},
     }
+try:
+    import sentry_sdk
+    from sentry_sdk.integrations.django import DjangoIntegration
+    SENTRY_DSN = config('SENTRY_DSN', default=None)
+    if SENTRY_DSN:
+        sentry_sdk.init(
+            dsn=SENTRY_DSN,
+            integrations=[DjangoIntegration()],
+            traces_sample_rate=1.0,
+            send_default_pii=True
+        )
+except ImportError:
+    pass
 
 # Celery Settings
 CELERY_BROKER_URL = config('REDIS_URL', default='redis://localhost:6379/0')
@@ -149,20 +162,12 @@ CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
 
-INSTALLED_APPS += [
-    'django_celery_results',
-    'django_celery_beat',
-]
-
-# Sentry Error Tracking
-import sentry_sdk
-from sentry_sdk.integrations.django import DjangoIntegration
-
-SENTRY_DSN = config('SENTRY_DSN', default=None)
-if SENTRY_DSN:
-    sentry_sdk.init(
-        dsn=SENTRY_DSN,
-        integrations=[DjangoIntegration()],
-        traces_sample_rate=1.0,
-        send_default_pii=True
-    )
+try:
+    import django_celery_results
+    import django_celery_beat
+    INSTALLED_APPS += [
+        'django_celery_results',
+        'django_celery_beat',
+    ]
+except ImportError:
+    pass

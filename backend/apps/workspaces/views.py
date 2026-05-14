@@ -25,19 +25,39 @@ class WorkspaceViewSet(viewsets.ModelViewSet):
         workspace = self.get_object()
         try:
             member = workspace.workspacemember_set.get(user=request.user)
-            if member.role not in ['owner', 'manager']:
+            if member.role not in ['owner', 'admin']:
                 return Response({'error': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
         except WorkspaceMember.DoesNotExist:
             return Response({'error': 'Not a member'}, status=status.HTTP_403_FORBIDDEN)
         
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
         user_id = request.data.get('user_id')
-        role = request.data.get('role', 'viewer')
+        role = request.data.get('role', 'member')
         try:
-            user = settings.AUTH_USER_MODEL.objects.get(id=user_id)
+            user = User.objects.get(id=user_id)
             WorkspaceMember.objects.get_or_create(workspace=workspace, user=user, defaults={'role': role})
             return Response({'status': 'member added'})
-        except settings.AUTH_USER_MODEL.DoesNotExist:
+        except User.DoesNotExist:
             return Response({'error': 'User not found'}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['post'])
+    def switch(self, request, pk=None):
+        workspace = self.get_object()
+        # Log the switch event
+        from apps.chat.models import AnalyticsEvent
+        AnalyticsEvent.objects.create(
+            user=request.user,
+            event_type='workspace_switched',
+            payload={'workspace_id': workspace.id, 'workspace_name': workspace.name}
+        )
+        return Response({'status': 'switched', 'workspace': WorkspaceSerializer(workspace).data})
+
+    @action(detail=True, methods=['get'])
+    def members(self, request, pk=None):
+        workspace = self.get_object()
+        members = workspace.workspacemember_set.all()
+        return Response(WorkspaceMemberSerializer(members, many=True).data)
 
     @action(detail=True, methods=['post'])
     def invite(self, request, pk=None):

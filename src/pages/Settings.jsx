@@ -1,217 +1,163 @@
-import { useState } from 'react'
-import { useStore } from '../store'
-import api from '../services/api'
-import toast from 'react-hot-toast'
-
-const TIMEZONES = ['UTC', 'Africa/Kigali', 'Europe/Paris', 'America/New_York', 'America/Los_Angeles', 'Asia/Tokyo', 'Asia/Dubai', 'Australia/Sydney']
-const LANGUAGES = [{ code: 'en', label: '🇺🇸 English' }, { code: 'fr', label: '🇫🇷 Français' }, { code: 'rw', label: '🇷🇼 Kinyarwanda' }]
-const CURRENCIES = ['USD', 'EUR', 'RWF', 'GBP', 'JPY', 'AED']
+import React, { useState } from 'react';
+import { useStore } from '../store';
+import { 
+  User, 
+  Shield, 
+  Bell, 
+  Palette, 
+  CreditCard, 
+  Globe, 
+  LogOut,
+  Save,
+  Moon,
+  Sun,
+  Laptop
+} from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export default function Settings() {
-  const { theme, setTheme, lang, setLang, user } = useStore()
-  const [tab, setTab] = useState('profile')
-  const [profile, setProfile] = useState({
-    first_name: user?.first_name || '',
-    last_name: user?.last_name || '',
-    email: user?.email || '',
-    timezone: 'UTC',
-    currency: 'USD',
-  })
-  const [security, setSecurity] = useState({ current_password: '', new_password: '', confirm_password: '', twofa_enabled: false })
-  const [notifs, setNotifs] = useState({ email_digest: true, push_alerts: true, task_updates: true, ai_insights: true, mentions: true, deadline_reminders: true })
-  const [saving, setSaving] = useState(false)
+  const { user, logout } = useStore();
+  const [activeTab, setActiveTab] = useState('profile');
 
-  const saveProfile = async (e) => {
-    e.preventDefault()
-    setSaving(true)
-    try {
-      await api.patch('/users/me/', profile)
-      toast.success('Profile updated!')
-    } catch {
-      toast.error('Failed to update profile')
-    } finally { setSaving(false) }
-  }
-
-  const savePassword = async (e) => {
-    e.preventDefault()
-    if (security.new_password !== security.confirm_password) { toast.error('Passwords do not match'); return }
-    setSaving(true)
-    try {
-      await api.post('/users/change-password/', { old_password: security.current_password, new_password: security.new_password })
-      toast.success('Password changed!')
-      setSecurity(s => ({...s, current_password:'', new_password:'', confirm_password:''}))
-    } catch {
-      toast.error('Failed to change password')
-    } finally { setSaving(false) }
-  }
-
-  const TABS = [
-    { id: 'profile', icon: '👤', label: 'Profile' },
-    { id: 'appearance', icon: '🎨', label: 'Appearance' },
-    { id: 'security', icon: '🔐', label: 'Security & 2FA' },
-    { id: 'notifications', icon: '🔔', label: 'Notifications' },
-    { id: 'billing', icon: '💳', label: 'Billing & Plan' },
-  ]
+  const tabs = [
+    { id: 'profile', label: 'Profile', icon: <User size={18} /> },
+    { id: 'security', label: 'Security', icon: <Shield size={18} /> },
+    { id: 'notifications', label: 'Notifications', icon: <Bell size={18} /> },
+    { id: 'appearance', label: 'Appearance', icon: <Palette size={18} /> },
+    { id: 'billing', label: 'Billing', icon: <CreditCard size={18} /> },
+  ];
 
   return (
-    <div className={theme} style={{ background: 'var(--bg)', minHeight: 'calc(100vh - 64px)', padding: '32px 24px' }}>
-      <div style={{ maxWidth: 900, margin: '0 auto', display: 'flex', gap: 32, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-        {/* Sidebar tabs */}
-        <div className="card" style={{ padding: 16, width: 220, flexShrink: 0 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', marginBottom: 12, padding: '0 8px' }}>Settings</div>
-          {TABS.map(t => (
-            <button key={t.id} onClick={() => setTab(t.id)} style={{ width: '100%', textAlign: 'left', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 8, border: 'none', cursor: 'pointer', background: tab === t.id ? 'var(--brand-bg)' : 'transparent', color: tab === t.id ? 'var(--brand)' : 'var(--text)', fontWeight: tab === t.id ? 700 : 500, fontSize: 14, transition: 'var(--transition)', marginBottom: 2 }}>
-              <span>{t.icon}</span> {t.label}
+    <div className="p-8 max-w-6xl mx-auto">
+      <div className="mb-10">
+        <h1 className="text-3xl font-black text-white tracking-tight">Settings</h1>
+        <p className="text-gray-400 mt-1 font-medium">Manage your account preferences and system configuration.</p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-10">
+        {/* Navigation */}
+        <div className="lg:col-span-1 space-y-2">
+          {tabs.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`w-full flex items-center gap-3 px-5 py-3 rounded-2xl text-sm font-bold transition-all ${activeTab === tab.id ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'text-gray-500 hover:bg-gray-800/40 hover:text-white'}`}
+            >
+              {tab.icon}
+              {tab.label}
             </button>
           ))}
+          <div className="pt-6">
+            <button 
+              onClick={logout}
+              className="w-full flex items-center gap-3 px-5 py-3 rounded-2xl text-sm font-bold text-rose-500 hover:bg-rose-500/10 transition-all"
+            >
+              <LogOut size={18} />
+              Logout
+            </button>
+          </div>
         </div>
 
         {/* Content */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-
-          {/* PROFILE */}
-          {tab === 'profile' && (
-            <div className="card" style={{ padding: 32 }}>
-              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 800, color: 'var(--text)', marginBottom: 24 }}>Profile Settings</h2>
-              <form onSubmit={saveProfile} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-                <div style={{ display: 'flex', gap: 16 }}>
-                  <div style={{ flex: 1 }}><label className="label">First Name</label><input className="input" value={profile.first_name} onChange={e => setProfile({...profile, first_name: e.target.value})} /></div>
-                  <div style={{ flex: 1 }}><label className="label">Last Name</label><input className="input" value={profile.last_name} onChange={e => setProfile({...profile, last_name: e.target.value})} /></div>
-                </div>
-                <div><label className="label">Email Address</label><input className="input" type="email" value={profile.email} onChange={e => setProfile({...profile, email: e.target.value})} /></div>
-                <div style={{ display: 'flex', gap: 16 }}>
-                  <div style={{ flex: 1 }}>
-                    <label className="label">Timezone</label>
-                    <select className="input" value={profile.timezone} onChange={e => setProfile({...profile, timezone: e.target.value})}>
-                      {TIMEZONES.map(tz => <option key={tz} value={tz}>{tz}</option>)}
-                    </select>
+        <div className="lg:col-span-3">
+          <div className="bg-gray-800/20 border border-gray-800 rounded-[32px] p-8 md:p-10">
+            {activeTab === 'profile' && (
+              <div className="space-y-8 animate-in fade-in duration-500">
+                <div className="flex items-center gap-6">
+                  <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-3xl font-black text-white shadow-2xl">
+                    {user?.username?.charAt(0).toUpperCase()}
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <label className="label">Currency</label>
-                    <select className="input" value={profile.currency} onChange={e => setProfile({...profile, currency: e.target.value})}>
-                      {CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
-                    </select>
-                  </div>
-                </div>
-                <button type="submit" className="btn btn-primary" style={{ alignSelf: 'flex-start' }} disabled={saving}>{saving ? 'Saving...' : '💾 Save Profile'}</button>
-              </form>
-            </div>
-          )}
-
-          {/* APPEARANCE */}
-          {tab === 'appearance' && (
-            <div className="card" style={{ padding: 32 }}>
-              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 800, color: 'var(--text)', marginBottom: 24 }}>Appearance</h2>
-              <div style={{ marginBottom: 28 }}>
-                <label className="label">Theme</label>
-                <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
-                  {[['dark','🌙 Dark'], ['light','☀️ Light']].map(([val, label]) => (
-                    <button key={val} onClick={() => setTheme(val)}
-                      style={{ padding: '14px 28px', borderRadius: 12, border: `2px solid ${theme === val ? 'var(--brand)' : 'var(--border)'}`, background: theme === val ? 'var(--brand-bg)' : 'transparent', color: theme === val ? 'var(--brand)' : 'var(--text)', fontWeight: 700, fontSize: 15, cursor: 'pointer', transition: 'var(--transition)' }}>
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <label className="label">Language</label>
-                <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
-                  {LANGUAGES.map(l => (
-                    <button key={l.code} onClick={() => setLang(l.code)}
-                      style={{ padding: '12px 20px', borderRadius: 12, border: `2px solid ${lang === l.code ? 'var(--brand)' : 'var(--border)'}`, background: lang === l.code ? 'var(--brand-bg)' : 'transparent', color: lang === l.code ? 'var(--brand)' : 'var(--text)', fontWeight: 700, fontSize: 14, cursor: 'pointer', transition: 'var(--transition)' }}>
-                      {l.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* SECURITY */}
-          {tab === 'security' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div className="card" style={{ padding: 32 }}>
-                <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 800, color: 'var(--text)', marginBottom: 24 }}>Change Password</h2>
-                <form onSubmit={savePassword} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                  <div><label className="label">Current Password</label><input className="input" type="password" value={security.current_password} onChange={e => setSecurity({...security, current_password: e.target.value})} required /></div>
-                  <div><label className="label">New Password</label><input className="input" type="password" value={security.new_password} onChange={e => setSecurity({...security, new_password: e.target.value})} required /></div>
-                  <div><label className="label">Confirm New Password</label><input className="input" type="password" value={security.confirm_password} onChange={e => setSecurity({...security, confirm_password: e.target.value})} required /></div>
-                  <button type="submit" className="btn btn-primary" style={{ alignSelf: 'flex-start' }} disabled={saving}>🔒 Update Password</button>
-                </form>
-              </div>
-              <div className="card" style={{ padding: 32 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
-                    <h3 style={{ fontWeight: 700, fontSize: 16, color: 'var(--text)', marginBottom: 4 }}>Two-Factor Authentication (2FA)</h3>
-                    <p style={{ color: 'var(--text2)', fontSize: 13 }}>Adds an extra layer of security. You'll need your phone each time you log in.</p>
+                    <h3 className="text-xl font-bold text-white">{user?.username}</h3>
+                    <p className="text-gray-500 text-sm">{user?.email}</p>
+                    <button className="text-xs font-bold text-blue-500 mt-2 hover:underline">Change Avatar</button>
                   </div>
-                  <button onClick={() => { setSecurity(s => ({...s, twofa_enabled: !s.twofa_enabled})); toast.success(security.twofa_enabled ? '2FA disabled' : '2FA enabled! ✅') }}
-                    className={`btn ${security.twofa_enabled ? 'btn-danger' : 'btn-primary'}`} style={{ flexShrink: 0 }}>
-                    {security.twofa_enabled ? '🔓 Disable 2FA' : '🔐 Enable 2FA'}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Username</label>
+                    <input type="text" defaultValue={user?.username} className="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500/50" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Email Address</label>
+                    <input type="email" defaultValue={user?.email} className="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500/50" />
+                  </div>
+                </div>
+
+                <div className="pt-6 flex justify-end">
+                  <button onClick={() => toast.success('Profile saved!')} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-2xl font-bold transition-all shadow-lg shadow-blue-600/20">
+                    <Save size={18} />
+                    Save Changes
                   </button>
                 </div>
-                {security.twofa_enabled && (
-                  <div style={{ marginTop: 20, padding: 16, background: 'var(--brand-bg)', borderRadius: 10, fontSize: 13, color: 'var(--brand)' }}>
-                    ✅ 2FA is active. You will be asked for a verification code on each login. Connect an authenticator app (e.g., Google Authenticator) to your account.
-                  </div>
-                )}
               </div>
-            </div>
-          )}
+            )}
 
-          {/* NOTIFICATIONS */}
-          {tab === 'notifications' && (
-            <div className="card" style={{ padding: 32 }}>
-              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 800, color: 'var(--text)', marginBottom: 24 }}>Notification Preferences</h2>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-                {[
-                  ['email_digest', '📧 Weekly Email Digest', 'Receive a summary of activity every Monday'],
-                  ['push_alerts', '📱 Push Notifications', 'Receive alerts on your device (requires PWA install)'],
-                  ['task_updates', '📋 Task Updates', 'When tasks are created, updated, or completed'],
-                  ['ai_insights', '🧠 AI Insights', 'Burnout warnings, project risk alerts'],
-                  ['mentions', '@ Mentions', 'When someone mentions you in chat'],
-                  ['deadline_reminders', '⏰ Deadline Reminders', '24h and 1h before due dates'],
-                ].map(([key, label, desc], i, arr) => (
-                  <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 0', borderBottom: i < arr.length - 1 ? '1px solid var(--border)' : 'none' }}>
-                    <div>
-                      <div style={{ fontWeight: 600, color: 'var(--text)', fontSize: 14 }}>{label}</div>
-                      <div style={{ color: 'var(--text3)', fontSize: 12, marginTop: 2 }}>{desc}</div>
+            {activeTab === 'appearance' && (
+              <div className="space-y-8 animate-in fade-in duration-500">
+                <div>
+                  <h3 className="text-lg font-bold text-white mb-4">Color Theme</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <ThemeCard active id="dark" label="Deep Space" icon={<Moon size={24} />} />
+                    <ThemeCard id="light" label="Cloudy Day" icon={<Sun size={24} />} />
+                    <ThemeCard id="system" label="System Sync" icon={<Laptop size={24} />} />
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                   <h3 className="text-lg font-bold text-white">Interface Density</h3>
+                   <div className="flex gap-4">
+                      <button className="flex-1 bg-gray-900 border border-gray-800 p-4 rounded-2xl text-center hover:border-blue-500 transition-all">
+                        <p className="text-sm font-bold text-white">Default</p>
+                        <p className="text-[10px] text-gray-500 mt-1">Comfortable spacing</p>
+                      </button>
+                      <button className="flex-1 bg-gray-900 border border-gray-800 p-4 rounded-2xl text-center hover:border-blue-500 transition-all">
+                        <p className="text-sm font-bold text-white">Compact</p>
+                        <p className="text-[10px] text-gray-500 mt-1">Maximum data density</p>
+                      </button>
+                   </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'billing' && (
+              <div className="space-y-8 animate-in fade-in duration-500">
+                 <div className="bg-gradient-to-br from-blue-600 to-indigo-600 p-8 rounded-[24px] text-white">
+                    <p className="text-xs font-black uppercase tracking-widest opacity-60">Current Plan</p>
+                    <h2 className="text-3xl font-black mt-2">Enterprise Pro</h2>
+                    <p className="text-sm mt-4 font-medium opacity-80">Your plan includes unlimited workspaces and full AI automation capabilities.</p>
+                    <div className="mt-8 flex items-center justify-between">
+                       <div className="text-sm font-black">$49.00 <span className="opacity-60 font-normal">/ month</span></div>
+                       <button className="bg-white text-blue-600 px-6 py-2 rounded-xl font-bold text-sm">Manage Billing</button>
                     </div>
-                    <button onClick={() => { setNotifs(n => ({...n, [key]: !n[key]})); toast.success('Preference updated') }}
-                      style={{ width: 48, height: 26, borderRadius: 50, border: 'none', background: notifs[key] ? 'var(--brand)' : 'var(--border)', cursor: 'pointer', position: 'relative', transition: 'var(--transition)', flexShrink: 0 }}>
-                      <div style={{ position: 'absolute', top: 3, left: notifs[key] ? 25 : 3, width: 20, height: 20, borderRadius: '50%', background: '#fff', transition: 'var(--transition)' }} />
-                    </button>
-                  </div>
-                ))}
+                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* BILLING */}
-          {tab === 'billing' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div className="card" style={{ padding: 32 }}>
-                <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 800, color: 'var(--text)', marginBottom: 8 }}>Current Plan</h2>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '20px', background: 'var(--brand-bg)', borderRadius: 12, border: '1.5px solid var(--brand)' }}>
-                  <div style={{ fontSize: 36 }}>🚀</div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 800, fontSize: 18, color: 'var(--brand)' }}>Free Plan</div>
-                    <div style={{ color: 'var(--text2)', fontSize: 13, marginTop: 2 }}>Up to 3 workspaces · Up to 5 members</div>
-                  </div>
-                  <button className="btn btn-primary" onClick={() => window.location.href='/pricing'}>⬆️ Upgrade Plan</button>
+            {(activeTab === 'security' || activeTab === 'notifications') && (
+              <div className="py-20 text-center space-y-4">
+                <div className="w-16 h-16 bg-gray-800/50 rounded-full flex items-center justify-center mx-auto text-gray-600">
+                  <Globe size={32} />
                 </div>
+                <h3 className="text-xl font-bold text-white">Settings Coming Soon</h3>
+                <p className="text-gray-500 max-w-xs mx-auto">We're finalizing these configuration modules for the next Workspace OS update.</p>
               </div>
-              <div className="card" style={{ padding: 32 }}>
-                <h3 style={{ fontWeight: 700, fontSize: 16, color: 'var(--text)', marginBottom: 16 }}>Payment Methods</h3>
-                <div style={{ padding: '16px 20px', background: 'var(--bg2)', borderRadius: 10, color: 'var(--text2)', fontSize: 13, textAlign: 'center' }}>
-                  No payment method added. <button style={{ color: 'var(--brand)', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }} onClick={() => alert('Stripe integration — add your STRIPE_SECRET_KEY to the backend.')}>+ Add Card (Stripe)</button>
-                </div>
-              </div>
-            </div>
-          )}
-
+            )}
+          </div>
         </div>
       </div>
     </div>
-  )
+  );
+}
+
+function ThemeCard({ id, label, icon, active }) {
+  return (
+    <button className={`flex flex-col items-center justify-center p-6 rounded-2xl border transition-all ${active ? 'bg-blue-600/10 border-blue-500/50' : 'bg-gray-900 border-gray-800 hover:border-gray-700'}`}>
+      <div className={`mb-4 ${active ? 'text-blue-500' : 'text-gray-500'}`}>
+        {icon}
+      </div>
+      <p className={`text-xs font-bold ${active ? 'text-white' : 'text-gray-500'}`}>{label}</p>
+    </button>
+  );
 }

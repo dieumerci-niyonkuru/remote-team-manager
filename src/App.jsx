@@ -9,9 +9,11 @@ const Home          = lazy(() => import('./pages/Home'))
 const Login         = lazy(() => import('./pages/Login'))
 const Register      = lazy(() => import('./pages/Register'))
 const Dashboard     = lazy(() => import('./pages/Dashboard'))
+const Projects      = lazy(() => import('./pages/Projects'))
 const WorkspaceDetail = lazy(() => import('./pages/WorkspaceDetail'))
 const Workspaces    = lazy(() => import('./pages/Workspaces'))
 const Team          = lazy(() => import('./pages/Team'))
+const Invitations   = lazy(() => import('./pages/Invitations'))
 const Activity      = lazy(() => import('./pages/Activity'))
 const Chat          = lazy(() => import('./pages/Chat'))
 const Calendar      = lazy(() => import('./pages/Calendar'))
@@ -58,7 +60,10 @@ export default function App() {
               <Route path="/dashboard" element={<Protected><Dashboard /></Protected>} />
               <Route path="/workspaces" element={<Protected><Workspaces /></Protected>} />
               <Route path="/workspaces/:id" element={<Protected><WorkspaceDetail /></Protected>} />
+              <Route path="/projects" element={<Protected><Projects /></Protected>} />
+              <Route path="/tasks" element={<Protected><Tasks /></Protected>} />
               <Route path="/team" element={<Protected><Team /></Protected>} />
+              <Route path="/invitations" element={<Protected><Invitations /></Protected>} />
               <Route path="/activity" element={<Protected><Activity /></Protected>} />
               <Route path="/chat" element={<Protected><Chat /></Protected>} />
               <Route path="/calendar" element={<Protected><Calendar /></Protected>} />

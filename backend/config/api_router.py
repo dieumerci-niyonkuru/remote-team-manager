@@ -3,7 +3,7 @@ from apps.workspaces.views import WorkspaceViewSet
 from apps.projects.views import ProjectViewSet, TaskViewSet, CommentViewSet, SuggestionViewSet, ReactionViewSet
 from apps.chat.views import ChannelViewSet, MessageViewSet, DirectMessageViewSet, AuditLogViewSet, SearchView, ChatMessageAttachmentViewSet
 from apps.hr.views import EmployeeProfileViewSet, JobPostingViewSet, PayrollRecordViewSet
-from apps.notifications.views import NotificationViewSet
+from apps.notifications.views import NotificationViewSet, InvitationViewSet
 from apps.presence.views import UserPresenceViewSet
 from apps.communications.views import MeetingViewSet, EmailLogViewSet, CallLogViewSet, FileAttachmentViewSet
 from apps.timetracking.views import TimeLogViewSet
@@ -36,8 +36,9 @@ router.register(r'employee-profiles', EmployeeProfileViewSet, basename='employee
 router.register(r'job-postings', JobPostingViewSet, basename='jobposting')
 router.register(r'payroll', PayrollRecordViewSet, basename='payroll')
 
-# Notifications
+# Notifications & Invitations
 router.register(r'notifications', NotificationViewSet, basename='notification')
+router.register(r'invitations', InvitationViewSet, basename='invitation')
 
 # Presence
 router.register(r'presence', UserPresenceViewSet, basename='userpresence')

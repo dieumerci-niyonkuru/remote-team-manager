@@ -1,184 +1,175 @@
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useStore } from '../store'
-import { ws, timer } from '../services/api'
-import toast from 'react-hot-toast'
-
-const COLORS = ['#3366ff','#8b5cf6','#ec4899','#10b981','#f59e0b','#ef4444','#06b6d4','#84cc16']
+import React, { useState, useEffect } from 'react';
+import { useStore } from '../store';
+import { 
+  LayoutDashboard, 
+  Briefcase, 
+  CheckSquare, 
+  Users, 
+  TrendingUp, 
+  Clock, 
+  ChevronRight,
+  ArrowUpRight,
+  MessageSquare
+} from 'lucide-react';
+import api from '../services/api';
 
 export default function Dashboard() {
-  const { user, theme } = useStore()
-  const navigate = useNavigate()
-  const [workspaces, setWorkspaces] = useState([])
-  const [timeLogs, setTimeLogs] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [showCreate, setShowCreate] = useState(false)
-  const [form, setForm] = useState({ name:'', description:'' })
-  const [errors, setErrors] = useState({})
-  const [saving, setSaving] = useState(false)
+  const { user, activeWorkspace } = useStore();
+  const [stats, setStats] = useState({
+    projects: 0,
+    tasks: 0,
+    members: 0,
+    activity: 0
+  });
+  const [recentTasks, setRecentTasks] = useState([]);
+  const [activeProjects, setActiveProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([ws.list(), timer.logs()])
-      .then(([wRes, tRes]) => { 
-        setWorkspaces(wRes.data.data || wRes.data)
-        setTimeLogs(tRes.data || [])
-        setLoading(false) 
-      })
-      .catch(() => setLoading(false))
-  }, [])
+    if (activeWorkspace) {
+      fetchDashboardData();
+    }
+  }, [activeWorkspace]);
 
-  const handleCreate = async ev => {
-    ev.preventDefault()
-    if (!form.name.trim()) return setErrors({ name: 'Required' })
-    setSaving(true)
+  const fetchDashboardData = async () => {
     try {
-      const r = await ws.create(form)
-      setWorkspaces(p => [...p, r.data.data])
-      setShowCreate(false)
-      toast.success('Workspace initialized! 🚀')
-      navigate(`/workspaces/${r.data.data.id}`)
-    } catch { toast.error('Activation failed') } finally { setSaving(false) }
-  }
+      const [projectsRes, tasksRes, membersRes] = await Promise.all([
+        api.get(`/projects/?workspace=${activeWorkspace.id}`),
+        api.get(`/tasks/?workspace=${activeWorkspace.id}&assignee=${user.id}`),
+        api.get(`/workspaces/${activeWorkspace.id}/members/`)
+      ]);
+
+      setStats({
+        projects: projectsRes.data.length,
+        tasks: tasksRes.data.length,
+        members: membersRes.data.length,
+        activity: 12 // Mock activity count
+      });
+
+      setRecentTasks(tasksRes.data.slice(0, 5));
+      setActiveProjects(projectsRes.data.slice(0, 3));
+    } catch (err) {
+      console.error('Dashboard fetch error:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className={theme} style={{ background:'var(--bg)', minHeight:'100vh', padding:'60px 24px' }}>
-      <div className="container" style={{ maxWidth:1200 }}>
-        
-        {/* Mission Control Header */}
-        <div style={{ marginBottom:48, display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:24 }} className="fade-in">
-          <div style={{ display:'flex', alignItems:'center', gap:24 }}>
-             <div style={{ width:80, height:80, borderRadius:24, overflow:'hidden', border:'4px solid var(--border)', background:'var(--bg2)' }}>
-                {user?.avatar ? <img src={user.avatar} style={{ width:'100%', height:'100%', objectFit:'cover' }} /> : <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:32 }}>👤</div>}
-             </div>
-             <div>
-                <h1 style={{ fontSize:36, fontWeight:900, color:'var(--text)', marginBottom:4, letterSpacing:'-0.04em' }}>
-                   Command Center: <span className="text-gradient">{user?.first_name}</span>
-                </h1>
-                <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-                   <div className="activity-dot" />
-                   <span style={{ fontSize:14, color:'var(--text3)', fontWeight:700, textTransform:'uppercase', letterSpacing:1 }}>System Status: Operational</span>
-                </div>
-             </div>
-          </div>
-          <button className="btn btn-primary" onClick={() => setShowCreate(true)} style={{ padding:'16px 32px', borderRadius:16, fontSize:16, fontWeight:800 }}>+ Initialize Workspace</button>
+    <div className="p-8 max-w-7xl mx-auto space-y-10">
+      {/* Welcome Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+          <h1 className="text-4xl font-black text-white tracking-tight">
+            Welcome back, <span className="text-blue-500">{user?.username}</span> 👋
+          </h1>
+          <p className="text-gray-400 mt-2 font-medium">Here's what's happening in <span className="text-white font-bold">{activeWorkspace?.name}</span> today.</p>
         </div>
-
-        {/* Intelligence Grid */}
-        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(100%, 240px), 1fr))', gap:24, marginBottom:48 }}>
-          {[
-            { icon:'🏢', label:'Active Workspaces', value:workspaces.length, color:'#3366ff' },
-            { icon:'👥', label:'Global Members', value:workspaces.reduce((a,w) => a+(w.member_count||0), 0), color:'#8b5cf6' },
-            { icon:'⚡', label:'Workflows Active', value:timeLogs.length, color:'#10b981' },
-            { icon:'🛡️', label:'Security Level', value:'Tier 1', color:'#f59e0b' },
-          ].map(s => (
-            <div key={s.label} className="card glass" style={{ padding:32, borderTop:`4px solid ${s.color}` }}>
-              <div style={{ fontSize:13, color:'var(--text3)', fontWeight:700, textTransform:'uppercase', letterSpacing:1.5, marginBottom:16 }}>{s.label}</div>
-              <div style={{ fontSize:40, fontWeight:900, color:'var(--text)', lineHeight:1 }}>{s.value}</div>
-            </div>
-          ))}
+        <div className="flex items-center gap-4 bg-gray-800/40 p-2 rounded-2xl border border-gray-800">
+           <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center text-green-500">
+             <TrendingUp size={20} />
+           </div>
+           <div className="pr-4">
+             <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Productivity</p>
+             <p className="text-sm font-bold text-white">+14% this week</p>
+           </div>
         </div>
-
-        {/* Analytics & Pulse */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 400px), 1fr))', gap: 24, marginBottom: 48 }}>
-          <div className="card glass" style={{ padding: 40 }}>
-            <h3 style={{ fontSize: 18, fontWeight: 800, color: 'var(--text)', marginBottom: 32 }}>Recent Activity Pulse</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-              {timeLogs.length === 0 && <div style={{ padding:40, textAlign:'center', color:'var(--text3)', fontStyle:'italic' }}>Waiting for system telemetry...</div>}
-              {timeLogs.slice(0, 4).map((log, i) => {
-                const hrs = (log.duration_seconds / 3600).toFixed(1)
-                return (
-                  <div key={i}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, marginBottom: 10 }}>
-                      <span style={{ fontWeight: 700, color: 'var(--text)' }}>{log.task_title}</span>
-                      <span style={{ color: 'var(--brand)', fontWeight:800 }}>{hrs}h</span>
-                    </div>
-                    <div style={{ height:6, background: 'var(--bg2)', borderRadius:10, overflow:'hidden' }}>
-                      <div className="progress-fill" style={{ height:'100%', width: `${Math.min((hrs/8)*100, 100)}%`, background: `linear-gradient(90deg, ${COLORS[i%COLORS.length]}, transparent)` }} />
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-          
-          <div className="card glass" style={{ padding: 40, display: 'flex', alignItems: 'center', gap:40 }}>
-             <div style={{ position: 'relative', width: 160, height: 160, borderRadius: '50%', background: `conic-gradient(var(--brand) ${Math.min(timeLogs.length*12, 100)}%, var(--border) 0)`, flexShrink:0 }}>
-                <div style={{ position: 'absolute', inset: 12, background: 'var(--bg-card)', borderRadius: '50%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', boxShadow:'inset 0 0 20px rgba(0,0,0,0.3)' }}>
-                   <span style={{ fontSize: 32, fontWeight: 900, color: 'var(--text)' }}>{timeLogs.length}</span>
-                   <span style={{ fontSize: 10, color: 'var(--text3)', fontWeight:800 }}>EVENTS</span>
-                </div>
-             </div>
-             <div>
-                <h4 style={{ fontSize:20, fontWeight:800, color:'var(--text)', marginBottom:12 }}>Productivity Index</h4>
-                <p style={{ fontSize:14, color:'var(--text2)', lineHeight:1.6 }}>System performance is currently at peak capacity. Global synchronization is stable.</p>
-             </div>
-          </div>
-        </div>
-
-        {/* Workspaces Deployment */}
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:24 }}>
-           <h2 style={{ fontSize:24, fontWeight:900, color:'var(--text)', letterSpacing:'-0.02em' }}>Deployed Workspaces</h2>
-           <div style={{ fontSize:12, fontWeight:800, color:'var(--text3)' }}>{workspaces.length} ACTIVE CLUSTERS</div>
-        </div>
-        
-        {loading ? (
-          <div className="grid-responsive">
-            {[1,2,3].map(i => <div key={i} className="skeleton" style={{ height:200, borderRadius:24 }} />)}
-          </div>
-        ) : (
-          <div className="grid-responsive">
-            {workspaces.map((w, i) => (
-              <div key={w.id} className="card glass scale-on-hover" onClick={() => navigate(`/workspaces/${w.id}`)}
-                style={{ padding:40, cursor:'pointer', position:'relative', overflow:'hidden' }}>
-                <div style={{ position:'absolute', top:0, left:0, width:'100%', height:4, background:COLORS[i%COLORS.length] }} />
-                <div style={{ display:'flex', alignItems:'center', gap:20, marginBottom:24 }}>
-                  <div style={{ width:56, height:56, borderRadius:16, background:`${COLORS[i%COLORS.length]}15`, display:'flex', alignItems:'center', justifyContent:'center', fontWeight:900, color:COLORS[i%COLORS.length], fontSize:24 }}>{w.name[0]}</div>
-                  <div>
-                    <div style={{ fontWeight:800, fontSize:18, color:'var(--text)' }}>{w.name}</div>
-                    <div style={{ fontSize:12, color:'var(--brand)', fontWeight:700 }}>{w.member_count} NODE{w.member_count!==1?'S':''} CONNECTED</div>
-                  </div>
-                </div>
-                <p style={{ fontSize:14, color:'var(--text2)', marginBottom:24, lineHeight:1.6, height:44, overflow:'hidden' }}>{w.description || 'No cluster description provided.'}</p>
-                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', borderTop:'1px solid var(--border)', paddingTop:20 }}>
-                  <span style={{ fontSize:12, fontWeight:800, color:'var(--text3)' }}>ACTIVE SINCE {new Date(w.created_at).getFullYear()}</span>
-                  <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:12, fontWeight:700, color:'var(--text)' }}>
-                     <div style={{ width:6, height:6, borderRadius:'50%', background:'#10b981' }} /> ONLINE
-                  </div>
-                </div>
-              </div>
-            ))}
-            
-            {/* Create Card */}
-            <div className="card glass scale-on-hover" onClick={() => setShowCreate(true)} style={{ padding:40, cursor:'pointer', border:'2px dashed var(--border)', background:'transparent', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:16, minHeight:200 }}>
-               <div style={{ fontSize:40 }}>➕</div>
-               <div style={{ fontWeight:800, color:'var(--text3)' }}>NEW WORKSPACE</div>
-            </div>
-          </div>
-        )}
       </div>
 
-      {/* Initialize Modal */}
-      {showCreate && (
-        <div className="overlay" onClick={e => e.target===e.currentTarget && setShowCreate(false)} style={{ backdropFilter:'blur(40px)' }}>
-          <div className="card glass fade-in" style={{ width:'100%', maxWidth:500, padding:48 }}>
-            <h3 style={{ fontSize:28, fontWeight:900, color:'var(--text)', marginBottom:32, letterSpacing:'-0.03em' }}>Initialize Workspace</h3>
-            <form onSubmit={handleCreate} style={{ display:'flex', flexDirection:'column', gap:24 }}>
-              <div>
-                <label className="label" style={{ fontWeight:800, color:'var(--text3)', fontSize:12 }}>WORKSPACE IDENTITY</label>
-                <input className={`input ${errors.name?'error':''}`} placeholder="Enter workspace name..." value={form.name} onChange={e => { setForm({...form, name:e.target.value}); setErrors({}) }} style={{ padding:18, borderRadius:16, fontSize:16 }} />
-              </div>
-              <div>
-                <label className="label" style={{ fontWeight:800, color:'var(--text3)', fontSize:12 }}>MISSION OBJECTIVE</label>
-                <textarea className="input" rows={3} placeholder="Define workspace goals..." value={form.description} onChange={e => setForm({...form, description:e.target.value})} style={{ resize:'none', padding:18, borderRadius:16, fontSize:16 }} />
-              </div>
-              <div style={{ display:'flex', gap:16, marginTop:8 }}>
-                <button type="button" className="btn btn-secondary" style={{ flex:1, padding:16, borderRadius:16 }} onClick={() => setShowCreate(false)}>Abort</button>
-                <button type="submit" className="btn btn-primary" style={{ flex:1, padding:16, borderRadius:16, fontWeight:800 }} disabled={saving}>{saving ? 'Activating...' : 'Activate Node ➜'}</button>
-              </div>
-            </form>
-          </div>
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatCard title="Active Projects" value={stats.projects} icon={<Briefcase />} color="blue" />
+        <StatCard title="My Tasks" value={stats.tasks} icon={<CheckSquare />} color="purple" />
+        <StatCard title="Team Members" value={stats.members} icon={<Users />} color="green" />
+        <StatCard title="Recent Activity" value={stats.activity} icon={<Clock />} color="orange" />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+        {/* Left Column: Recent Tasks */}
+        <div className="lg:col-span-2 space-y-6">
+           <div className="flex items-center justify-between">
+              <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                <CheckSquare className="text-purple-500" size={24} />
+                My Recent Tasks
+              </h3>
+              <button className="text-sm font-bold text-blue-500 hover:underline flex items-center gap-1">
+                View All <ChevronRight size={16} />
+              </button>
+           </div>
+
+           <div className="bg-gray-800/30 border border-gray-800 rounded-3xl overflow-hidden divide-y divide-gray-800/50">
+              {loading ? (
+                <div className="p-10 text-center text-gray-500">Loading tasks...</div>
+              ) : recentTasks.length === 0 ? (
+                <div className="p-10 text-center text-gray-500 font-medium italic">No tasks assigned to you in this workspace yet.</div>
+              ) : (
+                recentTasks.map(task => (
+                  <div key={task.id} className="p-5 flex items-center justify-between hover:bg-white/5 transition-all group cursor-pointer">
+                    <div className="flex items-center gap-4">
+                       <div className={`w-2 h-10 rounded-full ${task.priority === 'urgent' ? 'bg-rose-500' : 'bg-blue-500'} opacity-40 group-hover:opacity-100 transition-opacity`} />
+                       <div>
+                          <p className="text-sm font-bold text-white group-hover:text-blue-400 transition-colors">{task.title}</p>
+                          <p className="text-xs text-gray-500 mt-1 uppercase font-black tracking-tighter">{task.status.replace('_', ' ')} • {task.priority}</p>
+                       </div>
+                    </div>
+                    <ArrowUpRight size={18} className="text-gray-700 group-hover:text-blue-500 transition-colors" />
+                  </div>
+                ))
+              )}
+           </div>
         </div>
-      )}
+
+        {/* Right Column: Active Projects & Team */}
+        <div className="space-y-8">
+           <div>
+              <h3 className="text-xl font-bold text-white mb-6">Active Projects</h3>
+              <div className="space-y-4">
+                 {activeProjects.map(project => (
+                   <div key={project.id} className="p-4 bg-gray-800/20 border border-gray-800 rounded-2xl hover:border-gray-700 transition-all group">
+                      <div className="flex items-center justify-between mb-3">
+                         <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest">{project.project_type}</span>
+                         <span className="text-[10px] font-bold text-white">{project.progress}%</span>
+                      </div>
+                      <h4 className="text-sm font-bold text-white mb-3 group-hover:text-blue-400 transition-colors">{project.name}</h4>
+                      <div className="w-full bg-gray-900 rounded-full h-1.5 overflow-hidden">
+                         <div className="bg-blue-600 h-full rounded-full" style={{ width: `${project.progress}%` }} />
+                      </div>
+                   </div>
+                 ))}
+              </div>
+           </div>
+
+           <div className="bg-gradient-to-br from-indigo-600/20 to-blue-600/20 p-6 rounded-3xl border border-blue-500/20">
+              <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                <MessageSquare size={18} className="text-blue-400" />
+                Team Chat
+              </h3>
+              <p className="text-xs text-blue-200/60 mb-4 font-medium">Quickly jump back into the conversation.</p>
+              <button className="w-full bg-white/10 hover:bg-white/20 text-white font-bold py-2.5 rounded-xl text-sm transition-all">
+                Open Chat
+              </button>
+           </div>
+        </div>
+      </div>
     </div>
-  )
+  );
+}
+
+function StatCard({ title, value, icon, color }) {
+  const colors = {
+    blue: 'text-blue-500 bg-blue-500/10 border-blue-500/20 shadow-blue-500/5',
+    purple: 'text-purple-500 bg-purple-500/10 border-purple-500/20 shadow-purple-500/5',
+    green: 'text-green-500 bg-green-500/10 border-green-500/20 shadow-green-500/5',
+    orange: 'text-orange-500 bg-orange-500/10 border-orange-500/20 shadow-orange-500/5',
+  };
+
+  return (
+    <div className={`p-6 rounded-3xl border ${colors[color]} bg-gray-800/10 shadow-xl flex flex-col items-center text-center group hover:translate-y-[-2px] transition-all`}>
+      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-4 ${colors[color]} group-hover:scale-110 transition-transform`}>
+        {icon}
+      </div>
+      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 mb-1">{title}</p>
+      <p className="text-3xl font-black text-white">{value}</p>
+    </div>
+  );
 }

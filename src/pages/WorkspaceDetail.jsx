@@ -1,470 +1,211 @@
-import { useEffect, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import { useStore } from '../store'
-import { useT } from '../i18n'
-import { ws, proj, task, timer, ai } from '../services/api'
-import toast from 'react-hot-toast'
-
-const COLS = [
-  { key:'todo', label:'To Do', color:'#64748b' },
-  { key:'in_progress', label:'In Progress', color:'#f59e0b' },
-  { key:'done', label:'Done', color:'#22c55e' },
-]
-const PRI = { low:'badge-blue', medium:'badge-amber', high:'badge-red' }
-const ROLE_BADGE = { owner:'badge-purple', manager:'badge-blue', developer:'badge-green', viewer:'badge-gray' }
-
-const Modal = ({ title, onClose, children }) => (
-  <div className="overlay" onClick={e => e.target===e.currentTarget && onClose()}>
-    <div className="card scale-in" style={{ width:'100%', maxWidth:460, padding:36 }}>
-      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:24 }}>
-        <h3 style={{ fontFamily:'var(--font-display)', fontSize:20, fontWeight:800, color:'var(--text)' }}>{title}</h3>
-        <button className="btn-icon" onClick={onClose}>✕</button>
-      </div>
-      {children}
-    </div>
-  </div>
-)
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useStore } from '../store';
+import { Briefcase, Users, Settings, Plus, Mail, Shield, UserPlus, Trash2, ChevronRight } from 'lucide-react';
+import api from '../services/api';
+import toast from 'react-hot-toast';
 
 export default function WorkspaceDetail() {
-  const { id } = useParams()
-  const navigate = useNavigate()
-  const { lang, theme } = useStore()
-  const t = useT(lang)
-  const [data, setData] = useState({ workspace:null, members:[], projects:[], tasks:[], activity:[] })
-  const [activeProj, setActiveProj] = useState(null)
-  const [tab, setTab] = useState('board')
-  const [loading, setLoading] = useState(true)
-  const [modal, setModal] = useState(null) // 'task' | 'project' | 'invite'
-  const [form, setForm] = useState({})
-  const [saving, setSaving] = useState(false)
-  const [filter, setFilter] = useState({ status:'', priority:'' })
-  const [activeTimer, setActiveTimer] = useState(null)
-  const [aiPrompt, setAiPrompt] = useState('')
-  const [aiLoading, setAiLoading] = useState(false)
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { activeWorkspace, setActiveWorkspace } = useStore();
+  const [workspace, setWorkspace] = useState(null);
+  const [members, setMembers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [activeTab, setActiveTab] = useState('overview');
 
-  const load = async () => {
+  useEffect(() => {
+    fetchWorkspaceData();
+  }, [id]);
+
+  const fetchWorkspaceData = async () => {
     try {
-      const [w, m, p, a] = await Promise.all([ws.get(id), ws.members(id), proj.list(id), ws.activity(id)])
-      const projects = p.data.data
-      setData({ workspace:w.data.data, members:m.data.data, projects, tasks:[], activity:a.data.data })
-      if (projects.length) { setActiveProj(projects[0]); loadTasks(projects[0].id) }
-    } catch { navigate('/dashboard') } finally { setLoading(false) }
-  }
-
-  useEffect(() => { load() }, [id])
-
-  const loadTasks = async pid => {
-    const r = await task.list(id, pid)
-    setData(p => ({...p, tasks:r.data.data}))
-  }
-
-  const openModal = (type, defaults={}) => { setForm(defaults); setModal(type) }
-  const closeModal = () => { setModal(null); setForm({}) }
-
-  const handleCreateTask = async ev => {
-    ev.preventDefault()
-    if (!form.title?.trim() || !activeProj) return
-    setSaving(true)
-    try {
-      const r = await task.create(id, activeProj.id, { ...form, status:'todo' })
-      setData(p => ({...p, tasks:[...p.tasks, r.data.data]}))
-      setForm({})
-      toast.success('Task created')
-    } catch { toast.error('Failed') } finally { setSaving(false) }
-  }
-
-  const handleAIBreakdown = async () => {
-    if (!aiPrompt.trim() || !activeProj) return
-    setAiLoading(true)
-    try {
-      const res = await ai.suggestTasks(aiPrompt)
-      const tasksToCreate = res.data.tasks || []
-      let newTasks = []
-      for (const t of tasksToCreate) {
-        const r = await task.create(id, activeProj.id, { title: t.title, description: t.description, priority: t.priority, status: 'todo' })
-        newTasks.push(r.data.data)
+      const [wsRes, membersRes] = await Promise.all([
+        api.get(`/workspaces/${id}/`),
+        api.get(`/workspaces/${id}/members/`) // Need to implement this endpoint or use action
+      ]);
+      setWorkspace(wsRes.data);
+      setMembers(membersRes.data);
+      if (activeWorkspace?.id !== wsRes.data.id) {
+        setActiveWorkspace(wsRes.data);
       }
-      setData(p => ({...p, tasks: [...p.tasks, ...newTasks]}))
-      setAiPrompt('')
-      toast.success(`AI generated ${newTasks.length} tasks! 🧠`)
-    } catch {
-      toast.error('AI request failed')
+    } catch (err) {
+      console.error('Failed to fetch workspace:', err);
+      toast.error('Could not load workspace details');
     } finally {
-      setAiLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-  const handleUpdateTask = async (tid, updates) => {
+  const handleInvite = async (e) => {
+    e.preventDefault();
     try {
-      const r = await task.update(id, activeProj.id, tid, updates)
-      setData(p => ({...p, tasks:p.tasks.map(t => t.id===tid ? r.data.data : t)}))
-    } catch { toast.error('Failed to update') }
-  }
-
-  const handleDeleteTask = async tid => {
-    if (!confirm('Delete this task?')) return
-    try {
-      await task.delete(id, activeProj.id, tid)
-      setData(p => ({...p, tasks:p.tasks.filter(t => t.id!==tid)}))
-      toast.success('Deleted')
-    } catch { toast.error('Failed') }
-  }
-
-  const handleStartTimer = async tid => {
-    try {
-      await timer.start(tid)
-      setActiveTimer(tid)
-      toast.success('Timer started ⏱️')
-    } catch (err) { toast.error(err.response?.data?.error || 'Failed to start timer') }
-  }
-
-  const handlePauseTimer = async tid => {
-    try {
-      await timer.pause(tid)
-      setActiveTimer(null)
-      toast.success('Timer paused ⏸️')
-    } catch { toast.error('Failed to pause timer') }
-  }
-
-  const handleCreateProject = async ev => {
-    ev.preventDefault()
-    if (!form.name?.trim()) { toast.error(t.required); return }
-    setSaving(true)
-    try {
-      const r = await proj.create(id, form)
-      const p2 = r.data.data
-      setData(p => ({...p, projects:[...p.projects, p2], tasks:[]}))
-      setActiveProj(p2); closeModal(); toast.success('Project created 📁')
-    } catch { toast.error('Failed') } finally { setSaving(false) }
-  }
-
-  const handleDeleteProject = async () => {
-    if (!confirm(`Delete project "${activeProj.name}"?`)) return
-    try {
-      await proj.delete(id, activeProj.id)
-      const remaining = data.projects.filter(p => p.id !== activeProj.id)
-      setData(p => ({...p, projects:remaining, tasks:[]}))
-      setActiveProj(remaining[0] || null)
-      if (remaining[0]) loadTasks(remaining[0].id)
-      toast.success('Project deleted')
-    } catch { toast.error('Failed') }
-  }
-
-  const handleInvite = async ev => {
-    ev.preventDefault()
-    if (!form.email) { toast.error(t.required); return }
-    setSaving(true)
-    try {
-      const r = await ws.invite(id, form)
-      setData(p => ({...p, members:[...p.members, r.data.data]}))
-      closeModal(); toast.success('Member invited! 🎉')
-    } catch (err) { toast.error(err.response?.data?.message || 'Failed') } finally { setSaving(false) }
-  }
-
-  const handleRemoveMember = async uid => {
-    if (!confirm('Remove this member?')) return
-    try {
-      await ws.removeMember(id, uid)
-      setData(p => ({...p, members:p.members.filter(m => m.user.id!==uid)}))
-      toast.success('Member removed')
-    } catch (err) { toast.error(err.response?.data?.message || 'Failed') }
-  }
-
-  const filteredTasks = data.tasks.filter(tk =>
-    (!filter.status || tk.status===filter.status) &&
-    (!filter.priority || tk.priority===filter.priority)
-  )
+      await api.post(`/workspaces/${id}/invite/`, { email: inviteEmail, role: 'member' });
+      toast.success(`Invite sent to ${inviteEmail}`);
+      setInviteEmail('');
+    } catch (err) {
+      toast.error('Failed to send invitation');
+    }
+  };
 
   if (loading) return (
-    <div className={theme} style={{ display:'flex', alignItems:'center', justifyContent:'center', minHeight:'calc(100vh - 64px)', background:'var(--bg)' }}>
-      <div className="spinner" style={{ width:36, height:36, border:'3px solid var(--border)', borderTop:'3px solid #3366ff' }} />
+    <div className="flex items-center justify-center h-screen bg-[#0a0f1d]">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
     </div>
-  )
+  );
 
   return (
-    <div className={theme} style={{ background:'var(--bg)', minHeight:'calc(100vh - 64px)' }}>
-      {/* Workspace header */}
-      <div style={{ background:'var(--bg2)', borderBottom:'1px solid var(--border)', padding:'16px 24px' }}>
-        <div style={{ maxWidth:1400, margin:'0 auto' }}>
-          <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:12, flexWrap:'wrap' }}>
-            <button className="btn-ghost" onClick={() => navigate('/dashboard')} style={{ padding:'6px 10px', fontSize:13 }}>← Back</button>
-            <div style={{ display:'flex', alignItems:'center', gap:10, flex:1 }}>
-              <div style={{ width:36, height:36, borderRadius:10, background:'linear-gradient(135deg,#3366ff,#6699ff)', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', fontFamily:'var(--font-display)', fontWeight:800, fontSize:16 }}>{data.workspace?.name[0]}</div>
-              <div>
-                <h1 style={{ fontFamily:'var(--font-display)', fontSize:18, fontWeight:800, color:'var(--text)' }}>{data.workspace?.name}</h1>
-                {data.workspace?.description && <p style={{ fontSize:12, color:'var(--text2)' }}>{data.workspace.description}</p>}
-              </div>
-            </div>
-            <div style={{ display:'flex', gap:8 }}>
-              <button className="btn btn-secondary" style={{ padding:'7px 14px', fontSize:13 }} onClick={() => openModal('invite')}>+ Invite</button>
-            </div>
+    <div className="p-8 max-w-7xl mx-auto">
+      {/* Breadcrumbs */}
+      <div className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase tracking-widest mb-6">
+        <span className="hover:text-white cursor-pointer" onClick={() => navigate('/dashboard')}>Dashboard</span>
+        <ChevronRight size={14} />
+        <span className="hover:text-white cursor-pointer" onClick={() => navigate('/workspaces')}>Workspaces</span>
+        <ChevronRight size={14} />
+        <span className="text-blue-500">{workspace?.name}</span>
+      </div>
+
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 pb-8 border-b border-gray-800">
+        <div className="flex items-center gap-6">
+          <div className="w-20 h-20 rounded-3xl bg-blue-600 flex items-center justify-center text-white text-3xl font-black shadow-2xl shadow-blue-600/20">
+            {workspace?.name?.charAt(0)}
           </div>
-          {/* Tabs */}
-          <div className="tab-nav" style={{ maxWidth:360 }}>
-            {['board', 'members', 'activity'].map(tb => (
-              <button key={tb} className={`tab-item ${tab===tb?'active':''}`} onClick={() => setTab(tb)}>
-                {tb==='board' ? '📋 Board' : tb==='members' ? `👥 Members (${data.members.length})` : '⚡ Activity'}
-              </button>
-            ))}
+          <div>
+            <h1 className="text-4xl font-black text-white tracking-tight mb-2">{workspace?.name}</h1>
+            <p className="text-gray-400 max-w-xl">{workspace?.description || 'Build something amazing with your team in this workspace.'}</p>
           </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <button className="flex items-center gap-2 bg-gray-800 hover:bg-gray-700 text-white px-5 py-2.5 rounded-2xl font-bold transition-all border border-gray-700">
+            <Settings size={20} />
+            Workspace Settings
+          </button>
         </div>
       </div>
 
-      <div style={{ maxWidth:1400, margin:'0 auto', padding:'20px 24px' }}>
-
-        {/* BOARD TAB */}
-        {tab==='board' && (
-          <>
-            {/* Project bar */}
-            <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:20, flexWrap:'wrap' }}>
-              <span style={{ fontSize:12, fontWeight:600, color:'var(--text2)' }}>Projects:</span>
-              {data.projects.map(p => (
-                <button key={p.id} onClick={() => { setActiveProj(p); loadTasks(p.id) }}
-                  style={{ padding:'5px 14px', borderRadius:20, fontSize:12, fontWeight:600, background:activeProj?.id===p.id?'#3366ff':'var(--bg3)', color:activeProj?.id===p.id?'#fff':'var(--text)', border:`1px solid ${activeProj?.id===p.id?'#3366ff':'var(--border)'}`, cursor:'pointer', transition:'var(--transition)' }}>
-                  📁 {p.name}
-                </button>
-              ))}
-              <button onClick={() => openModal('project')} style={{ padding:'5px 14px', borderRadius:20, fontSize:12, fontWeight:600, background:'transparent', color:'#3366ff', border:'1px dashed #3366ff', cursor:'pointer' }}>
-                + New Project
-              </button>
-              {activeProj && (
-                <div style={{ marginLeft:'auto', display:'flex', gap:8, flexWrap:'wrap', alignItems:'center' }}>
-                  {/* Filters */}
-                  <select value={filter.status} onChange={e => setFilter(p=>({...p,status:e.target.value}))} style={{ background:'var(--bg3)', border:'1px solid var(--border)', borderRadius:8, padding:'5px 10px', fontSize:12, color:'var(--text2)', outline:'none' }}>
-                    <option value="">All status</option>
-                    <option value="todo">To Do</option>
-                    <option value="in_progress">In Progress</option>
-                    <option value="done">Done</option>
-                  </select>
-                  <select value={filter.priority} onChange={e => setFilter(p=>({...p,priority:e.target.value}))} style={{ background:'var(--bg3)', border:'1px solid var(--border)', borderRadius:8, padding:'5px 10px', fontSize:12, color:'var(--text2)', outline:'none' }}>
-                    <option value="">All priority</option>
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High</option>
-                  </select>
-                  <button className="btn btn-danger" style={{ padding:'6px 12px', fontSize:12 }} onClick={handleDeleteProject}>🗑 Delete Project</button>
-                  <button className="btn btn-primary" style={{ padding:'7px 16px', fontSize:13 }} onClick={() => openModal('task', { status:'todo', priority:'medium' })}>+ New Task</button>
-                </div>
-              )}
-            </div>
-
-            {/* Kanban */}
-            {!activeProj ? (
-              <div className="card empty-state">
-                <div className="empty-icon">📁</div>
-                <div className="empty-title">No projects yet</div>
-                <div className="empty-desc">Create a project to start adding tasks</div>
-                <button className="btn btn-primary" onClick={() => openModal('project')}>+ New Project</button>
-              </div>
-            ) : (
-              <div style={{ display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:16, alignItems:'start' }}>
-                {COLS.map(col => {
-                  const colTasks = filteredTasks.filter(tk => tk.status===col.key)
-                  return (
-                    <div key={col.key} style={{ background:'var(--bg2)', border:'1px solid var(--border)', borderRadius:14, padding:16 }}>
-                      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:14 }}>
-                        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-                          <div style={{ width:8, height:8, borderRadius:'50%', background:col.color, animation:col.key==='in_progress'?'pulse-dot 2s infinite':undefined }} />
-                          <span style={{ fontSize:13, fontWeight:700, color:'var(--text)' }}>{col.label}</span>
-                        </div>
-                        <span style={{ fontSize:11, background:'var(--bg3)', border:'1px solid var(--border)', borderRadius:20, padding:'2px 8px', color:'var(--text2)' }}>{colTasks.length}</span>
-                      </div>
-                      <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-                        {colTasks.map(tk => (
-                          <div key={tk.id} className="card" style={{ padding:14, borderLeft:`3px solid ${col.color}` }}>
-                            <div style={{ fontWeight:700, fontSize:13, color:'var(--text)', marginBottom:6, lineHeight:1.4 }}>{tk.title}</div>
-                            {tk.description && <div style={{ fontSize:12, color:'var(--text2)', marginBottom:8, lineHeight:1.5 }}>{tk.description}</div>}
-                            <div style={{ display:'flex', gap:5, flexWrap:'wrap', marginBottom:8 }}>
-                              <span className={`badge ${PRI[tk.priority]}`}>{tk.priority}</span>
-                              {tk.assignee && <span className="badge badge-gray">👤 {tk.assignee.first_name}</span>}
-                              {tk.due_date && <span className="badge badge-gray">📅 {tk.due_date}</span>}
-                              {/* Smart Dependency — show if blocked */}
-                              {tk.dependencies?.length > 0 && (
-                                <span className="badge" style={{ background:'rgba(239,68,68,0.12)', color:'#dc2626', fontWeight:700 }}>
-                                  🔒 Blocked ({tk.dependencies.length})
-                                </span>
-                              )}
-                            </div>
-                            {tk.progress > 0 && (
-                              <div>
-                                <div className="progress-track"><div className="progress-fill" style={{ width:`${tk.progress}%` }} /></div>
-                                <div style={{ fontSize:10, color:'var(--text2)', marginTop:3 }}>{tk.progress}% done</div>
-                              </div>
-                            )}
-                            <div style={{ display:'flex', gap:6, marginTop:10, flexWrap:'wrap' }}>
-                              {activeTimer === tk.id ? (
-                                <button onClick={() => handlePauseTimer(tk.id)} style={{ background:'rgba(239,68,68,0.1)', color:'#dc2626', border:'none', borderRadius:6, padding:'3px 8px', fontSize:10, fontWeight:600, cursor:'pointer' }}>⏸ Pause</button>
-                              ) : (
-                                <button onClick={() => handleStartTimer(tk.id)} style={{ background:'rgba(51,102,255,0.1)', color:'#3366ff', border:'none', borderRadius:6, padding:'3px 8px', fontSize:10, fontWeight:600, cursor:'pointer' }}>▶ Start</button>
-                              )}
-                              {col.key!=='todo' && <button onClick={() => handleUpdateTask(tk.id,{status:'todo'})} style={{ background:'rgba(100,116,139,0.1)', color:'var(--text2)', border:'none', borderRadius:6, padding:'3px 8px', fontSize:10, fontWeight:600, cursor:'pointer' }}>← Todo</button>}
-                              {col.key!=='in_progress' && <button onClick={() => handleUpdateTask(tk.id,{status:'in_progress'})} style={{ background:'rgba(245,158,11,0.1)', color:'#d97706', border:'none', borderRadius:6, padding:'3px 8px', fontSize:10, fontWeight:600, cursor:'pointer' }}>⟳ Progress</button>}
-                              {col.key!=='done' && <button onClick={() => handleUpdateTask(tk.id,{status:'done'})} style={{ background:'rgba(34,197,94,0.1)', color:'#16a34a', border:'none', borderRadius:6, padding:'3px 8px', fontSize:10, fontWeight:600, cursor:'pointer' }}>✓ Done</button>}
-                              <button onClick={() => handleDeleteTask(tk.id)} style={{ background:'rgba(239,68,68,0.1)', color:'#dc2626', border:'none', borderRadius:6, padding:'3px 8px', fontSize:10, fontWeight:600, cursor:'pointer', marginLeft:'auto' }}>🗑</button>
-                            </div>
-                          </div>
-                        ))}
-                        {colTasks.length===0 && <div style={{ textAlign:'center', padding:'20px 0', fontSize:12, color:'var(--text3)' }}>No tasks here</div>}
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-          </>
-        )}
-
-        {/* MEMBERS TAB */}
-        {tab==='members' && (
-          <>
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
-              <h2 style={{ fontFamily:'var(--font-display)', fontSize:18, fontWeight:800, color:'var(--text)' }}>Team Members ({data.members.length})</h2>
-              <button className="btn btn-primary" style={{ padding:'8px 18px', fontSize:13 }} onClick={() => openModal('invite')}>+ Invite Member</button>
-            </div>
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(300px, 1fr))', gap:14 }}>
-              {data.members.map(m => (
-                <div key={m.id} className="card" style={{ padding:18, display:'flex', alignItems:'center', gap:14 }}>
-                  <div className="avatar" style={{ width:44, height:44, fontSize:14 }}>{m.user.first_name[0]}{m.user.last_name[0]}</div>
-                  <div style={{ flex:1, minWidth:0 }}>
-                    <div style={{ fontWeight:700, fontSize:14, color:'var(--text)' }}>{m.user.first_name} {m.user.last_name}</div>
-                    <div style={{ fontSize:12, color:'var(--text2)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{m.user.email}</div>
-                    <div style={{ fontSize:11, color:'var(--text3)', marginTop:2 }}>Joined {new Date(m.joined_at).toLocaleDateString()}</div>
-                  </div>
-                  <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:6 }}>
-                    <span className={`badge ${ROLE_BADGE[m.role]}`}>{m.role}</span>
-                    {m.role !== 'owner' && <button onClick={() => handleRemoveMember(m.user.id)} style={{ background:'rgba(239,68,68,0.08)', color:'#dc2626', border:'none', borderRadius:6, padding:'2px 8px', fontSize:10, cursor:'pointer' }}>Remove</button>}
-                  </div>
-                </div>
-              ))}
-              {data.members.length===0 && <div className="card empty-state"><div className="empty-icon">👥</div><div className="empty-title">No members yet</div></div>}
-            </div>
-          </>
-        )}
-
-        {/* ACTIVITY TAB */}
-        {tab==='activity' && (
-          <>
-            <h2 style={{ fontFamily:'var(--font-display)', fontSize:18, fontWeight:800, color:'var(--text)', marginBottom:20 }}>Activity Feed</h2>
-            {data.activity.length===0 ? (
-              <div className="card empty-state"><div className="empty-icon">⚡</div><div className="empty-title">No activity yet</div><div className="empty-desc">Start creating tasks to see activity</div></div>
-            ) : (
-              <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-                {data.activity.map(a => (
-                  <div key={a.id} className="card" style={{ padding:'14px 18px', display:'flex', alignItems:'center', gap:14 }}>
-                    <div className="avatar" style={{ width:36, height:36, fontSize:12 }}>{a.actor?.first_name?.[0]}{a.actor?.last_name?.[0]}</div>
-                    <div style={{ flex:1 }}>
-                      <span style={{ fontWeight:700, color:'var(--text)', fontSize:13 }}>{a.actor?.first_name} </span>
-                      <span className={`badge ${a.action==='created'?'badge-green':a.action==='deleted'?'badge-red':'badge-amber'}`}>{a.action}</span>
-                      <span style={{ fontSize:13, color:'var(--text2)', marginLeft:6 }}>{a.object_type}: <strong style={{ color:'var(--text)' }}>{a.object_name}</strong></span>
-                    </div>
-                    <span style={{ fontSize:11, color:'var(--text3)', whiteSpace:'nowrap' }}>{new Date(a.timestamp).toLocaleString()}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </>
-        )}
+      {/* Tabs */}
+      <div className="flex items-center gap-8 mb-8 border-b border-gray-800/50">
+        {['overview', 'members', 'projects', 'settings'].map(tab => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`pb-4 text-sm font-bold uppercase tracking-widest transition-all relative ${activeTab === tab ? 'text-blue-500' : 'text-gray-500 hover:text-gray-300'}`}
+          >
+            {tab}
+            {activeTab === tab && <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-500 rounded-full shadow-[0_0_10px_rgba(59,130,246,0.5)]" />}
+          </button>
+        ))}
       </div>
 
-      {/* TASK MODAL */}
-      {modal==='task' && (
-        <Modal title="📋 New Task" onClose={closeModal}>
-          <form onSubmit={handleCreateTask} style={{ display:'flex', flexDirection:'column', gap:14 }}>
-            <div>
-              <label className="label">Task title *</label>
-              <input className="input" placeholder="What needs to be done?" value={form.title||''} onChange={e => setForm({...form, title:e.target.value})} required />
+      {/* Tab Content */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+        <div className="lg:col-span-2 space-y-8">
+          {activeTab === 'overview' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+               <StatCard title="Total Projects" value={workspace?.project_count || 0} icon={<Briefcase size={24} />} color="blue" />
+               <StatCard title="Team Members" value={workspace?.member_count || 0} icon={<Users size={24} />} color="purple" />
             </div>
-            <div>
-              <label className="label">Description</label>
-              <textarea className="input" rows={3} style={{ resize:'none' }} value={form.description||''} onChange={e => setForm({...form, description:e.target.value})} />
-            </div>
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
-              <div>
-                <label className="label">Status</label>
-                <select className="input" value={form.status||'todo'} onChange={e => setForm({...form, status:e.target.value})}>
-                  <option value="todo">To Do</option>
-                  <option value="in_progress">In Progress</option>
-                  <option value="done">Done</option>
-                </select>
-              </div>
-              <div>
-                <label className="label">Priority</label>
-                <select className="input" value={form.priority||'medium'} onChange={e => setForm({...form, priority:e.target.value})}>
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                </select>
-              </div>
-            </div>
-            <div>
-              <label className="label">Due date</label>
-              <input className="input" type="date" value={form.due_date||''} onChange={e => setForm({...form, due_date:e.target.value})} />
-            </div>
-            <div style={{ display:'flex', gap:10 }}>
-              <button type="button" className="btn btn-secondary" style={{ flex:1 }} onClick={closeModal}>Cancel</button>
-              <button type="submit" className="btn btn-primary" style={{ flex:1 }} disabled={saving}>{saving ? 'Creating...' : 'Create Task'}</button>
-            </div>
-          </form>
-          
-          <div style={{ marginTop: 24, paddingTop: 24, borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <h4 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span>🧠</span> AI Auto Breakdown
-            </h4>
-            <p style={{ fontSize: 12, color: 'var(--text2)', margin: 0 }}>Describe a large feature and AI will generate the sub-tasks for you.</p>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <input className="input" style={{ flex: 1, background: 'var(--brand-bg)', color: 'var(--brand)', borderColor: 'var(--brand)' }} placeholder="e.g. Build a payment checkout page..." value={aiPrompt} onChange={e=>setAiPrompt(e.target.value)} />
-              <button type="button" className="btn btn-primary" onClick={() => { handleAIBreakdown(); closeModal(); }} disabled={aiLoading || !aiPrompt.trim()}>
-                {aiLoading ? 'Thinking...' : 'Generate'}
-              </button>
-            </div>
-          </div>
-        </Modal>
-      )}
+          )}
 
-      {/* PROJECT MODAL */}
-      {modal==='project' && (
-        <Modal title="📁 New Project" onClose={closeModal}>
-          <form onSubmit={handleCreateProject} style={{ display:'flex', flexDirection:'column', gap:14 }}>
-            <div>
-              <label className="label">Project name *</label>
-              <input className="input" placeholder="My Amazing Project" value={form.name||''} onChange={e => setForm({...form, name:e.target.value})} required />
+          {activeTab === 'members' && (
+            <div className="bg-gray-800/30 border border-gray-800 rounded-3xl overflow-hidden">
+               <div className="p-6 border-b border-gray-800 flex items-center justify-between">
+                  <h3 className="text-lg font-bold text-white">Workspace Members</h3>
+                  <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">{members.length} Total</span>
+               </div>
+               <div className="divide-y divide-gray-800">
+                 {members.map(member => (
+                   <div key={member.id} className="p-5 flex items-center justify-between hover:bg-white/5 transition-colors group">
+                     <div className="flex items-center gap-4">
+                       <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center text-sm font-bold text-white border-2 border-gray-800">
+                         {member.user?.username?.charAt(0)}
+                       </div>
+                       <div>
+                         <p className="text-sm font-bold text-white">{member.user?.username}</p>
+                         <p className="text-xs text-gray-500">{member.user?.email}</p>
+                       </div>
+                     </div>
+                     <div className="flex items-center gap-6">
+                       <div className="flex items-center gap-2 px-3 py-1 rounded-lg bg-gray-900 border border-gray-800">
+                         <Shield size={14} className="text-blue-500" />
+                         <span className="text-[10px] font-black uppercase text-gray-400">{member.role}</span>
+                       </div>
+                       <button className="text-gray-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all">
+                         <Trash2 size={18} />
+                       </button>
+                     </div>
+                   </div>
+                 ))}
+               </div>
             </div>
-            <div>
-              <label className="label">Description</label>
-              <textarea className="input" rows={3} style={{ resize:'none' }} value={form.description||''} onChange={e => setForm({...form, description:e.target.value})} />
-            </div>
-            <div style={{ display:'flex', gap:10 }}>
-              <button type="button" className="btn btn-secondary" style={{ flex:1 }} onClick={closeModal}>Cancel</button>
-              <button type="submit" className="btn btn-primary" style={{ flex:1 }} disabled={saving}>{saving ? 'Creating...' : 'Create'}</button>
-            </div>
-          </form>
-        </Modal>
-      )}
+          )}
+        </div>
 
-      {/* INVITE MODAL */}
-      {modal==='invite' && (
-        <Modal title="👥 Invite Member" onClose={closeModal}>
-          <form onSubmit={handleInvite} style={{ display:'flex', flexDirection:'column', gap:14 }}>
-            <div>
-              <label className="label">Email address *</label>
-              <input className="input" type="email" placeholder="teammate@example.com" value={form.email||''} onChange={e => setForm({...form, email:e.target.value})} required />
-              <div style={{ fontSize:12, color:'var(--text2)', marginTop:6 }}>⚠ The user must already have an account</div>
-            </div>
-            <div>
-              <label className="label">Role</label>
-              <select className="input" value={form.role||'developer'} onChange={e => setForm({...form, role:e.target.value})}>
-                <option value="manager">Manager</option>
-                <option value="developer">Developer</option>
-                <option value="viewer">Viewer</option>
-              </select>
-            </div>
-            <div style={{ display:'flex', gap:10 }}>
-              <button type="button" className="btn btn-secondary" style={{ flex:1 }} onClick={closeModal}>Cancel</button>
-              <button type="submit" className="btn btn-primary" style={{ flex:1 }} disabled={saving}>{saving ? 'Inviting...' : 'Invite'}</button>
-            </div>
-          </form>
-        </Modal>
-      )}
+        {/* Sidebar / Actions */}
+        <div className="space-y-6">
+           <div className="bg-gradient-to-br from-blue-600/20 to-purple-600/20 border border-blue-500/20 rounded-3xl p-6 shadow-2xl">
+              <h3 className="text-lg font-black text-white mb-2 flex items-center gap-2">
+                <UserPlus size={20} className="text-blue-500" />
+                Invite Team
+              </h3>
+              <p className="text-xs text-blue-200/60 mb-6 font-medium">Add members to collaborate on projects and tasks.</p>
+              
+              <form onSubmit={handleInvite} className="space-y-4">
+                <div className="relative">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+                  <input 
+                    type="email"
+                    value={inviteEmail}
+                    onChange={(e) => setInviteEmail(e.target.value)}
+                    placeholder="Enter email address"
+                    className="w-full bg-gray-900 border border-gray-800 rounded-2xl pl-12 pr-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+                  />
+                </div>
+                <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-2xl transition-all shadow-lg shadow-blue-600/20 active:scale-[0.98]">
+                  Send Invitation
+                </button>
+              </form>
+           </div>
+
+           <div className="bg-gray-800/30 border border-gray-800 rounded-3xl p-6">
+              <h4 className="text-xs font-black text-gray-500 uppercase tracking-[0.2em] mb-4">Workspace Info</h4>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-400">Created At</span>
+                  <span className="text-sm font-bold text-white">{workspace && new Date(workspace.created_at).toLocaleDateString()}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-400">Active Status</span>
+                  <span className="flex items-center gap-1.5 text-green-500 text-sm font-bold">
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                    Active
+                  </span>
+                </div>
+              </div>
+           </div>
+        </div>
+      </div>
     </div>
-  )
+  );
+}
+
+function StatCard({ title, value, icon, color }) {
+  const colors = {
+    blue: 'bg-blue-600/10 text-blue-500 border-blue-500/20',
+    purple: 'bg-purple-600/10 text-purple-500 border-purple-500/20',
+  };
+
+  return (
+    <div className={`p-6 rounded-3xl border ${colors[color]} flex items-center justify-between bg-gray-800/20`}>
+      <div>
+        <p className="text-xs font-black uppercase tracking-widest text-gray-500 mb-1">{title}</p>
+        <p className="text-3xl font-black text-white">{value}</p>
+      </div>
+      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${colors[color]}`}>
+        {icon}
+      </div>
+    </div>
+  );
 }

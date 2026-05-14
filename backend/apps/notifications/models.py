@@ -18,6 +18,7 @@ class Notification(models.Model):
 
 class Invite(models.Model):
     workspace = models.ForeignKey('workspaces.Workspace', on_delete=models.CASCADE, related_name='invites')
+    project = models.ForeignKey('projects.Project', on_delete=models.CASCADE, related_name='invites', null=True, blank=True)
     email = models.EmailField()
     invited_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     role = models.CharField(max_length=20, default='viewer')

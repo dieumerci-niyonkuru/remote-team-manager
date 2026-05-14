@@ -18,20 +18,25 @@ import {
   UserCircle,
   Menu,
   X,
-  ChevronLeft
+  ChevronLeft,
+  ChevronDown,
+  Users
 } from 'lucide-react';
 
 export default function Sidebar() {
-  const { theme, lang } = useStore();
+  const { theme, lang, workspaces, activeWorkspace, setActiveWorkspace } = useStore();
   const t = useT(lang);
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [showWorkspaceMenu, setShowWorkspaceMenu] = useState(false);
 
   const mainLinks = [
     { to: '/dashboard', label: t.dashboard, icon: <LayoutDashboard size={20} /> },
     { to: '/workspaces', label: t.workspaces, icon: <Briefcase size={20} /> },
     { to: '/projects', label: t.projects, icon: <FolderKanban size={20} /> },
     { to: '/tasks', label: t.tasks, icon: <CheckSquare size={20} /> },
+    { to: '/team', label: 'Team', icon: <Users size={20} /> },
+    { to: '/invitations', label: 'Invitations', icon: <Mail size={20} /> },
   ];
 
   const commLinks = [
@@ -55,25 +60,47 @@ export default function Sidebar() {
   const SidebarContent = () => (
     <div className="flex flex-col h-full bg-[#111e3b] dark:bg-[#060b18] text-gray-300 border-r border-gray-800 transition-all duration-300">
       
-      {/* Brand Header */}
-      <div className="flex items-center justify-between h-16 px-4 border-b border-gray-800">
-        <div className={`flex items-center gap-3 overflow-hidden ${collapsed ? 'w-0 opacity-0 hidden' : 'w-auto opacity-100'}`}>
-          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-purple-600 text-white shrink-0">
-             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="3" />
-                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-             </svg>
-          </div>
-          <span className="font-bold text-white tracking-tight whitespace-nowrap">RTM App</span>
-        </div>
-        
-        {/* Collapse Button (Desktop Only) */}
+      {/* Workspace Switcher */}
+      <div className="px-3 py-4 border-b border-gray-800 relative">
         <button 
-          onClick={() => setCollapsed(!collapsed)} 
-          className="hidden md:flex items-center justify-center w-8 h-8 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-white transition-colors"
+          onClick={() => setShowWorkspaceMenu(!showWorkspaceMenu)}
+          className={`flex items-center gap-3 w-full p-2 rounded-xl bg-gray-800/50 hover:bg-gray-800 transition-all ${collapsed ? 'justify-center' : ''}`}
         >
-          <ChevronLeft size={18} className={`transition-transform duration-300 ${collapsed ? 'rotate-180' : ''}`} />
+          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white shrink-0 font-bold">
+            {activeWorkspace?.name?.charAt(0) || 'W'}
+          </div>
+          {!collapsed && (
+            <>
+              <div className="flex-1 text-left">
+                <p className="text-xs text-gray-500 font-bold uppercase tracking-tighter">Workspace</p>
+                <p className="text-sm font-semibold text-white truncate">{activeWorkspace?.name || 'Select Workspace'}</p>
+              </div>
+              <ChevronDown size={16} className={`text-gray-500 transition-transform ${showWorkspaceMenu ? 'rotate-180' : ''}`} />
+            </>
+          )}
         </button>
+
+        {showWorkspaceMenu && !collapsed && (
+          <div className="absolute top-full left-3 right-3 mt-2 bg-gray-900 border border-gray-800 rounded-xl shadow-2xl z-50 overflow-hidden py-1 animate-in fade-in slide-in-from-top-2">
+            {workspaces.map(ws => (
+              <button
+                key={ws.id}
+                onClick={() => { setActiveWorkspace(ws); setShowWorkspaceMenu(false); }}
+                className={`flex items-center gap-3 w-full px-4 py-2.5 text-left hover:bg-white/5 transition-colors ${activeWorkspace?.id === ws.id ? 'bg-blue-600/10 text-blue-500' : 'text-gray-400'}`}
+              >
+                <div className="w-6 h-6 rounded bg-gray-700 flex items-center justify-center text-[10px] font-bold">
+                  {ws.name.charAt(0)}
+                </div>
+                <span className="text-sm font-medium truncate">{ws.name}</span>
+              </button>
+            ))}
+            <div className="border-t border-gray-800 mt-1 pt-1">
+              <button className="w-full px-4 py-2 text-xs font-bold text-blue-500 hover:bg-blue-600/10 text-left transition-colors">
+                + Create New Workspace
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Nav Content */}

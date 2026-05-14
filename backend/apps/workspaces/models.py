@@ -3,11 +3,19 @@ from django.conf import settings
 
 class Workspace(models.Model):
     name = models.CharField(max_length=100)
+    slug = models.SlugField(unique=True, blank=True)
     description = models.TextField(blank=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='owned_workspaces')
     members = models.ManyToManyField(settings.AUTH_USER_MODEL, through='WorkspaceMember', related_name='workspaces')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    is_active = models.BooleanField(default=True)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            from django.utils.text import slugify
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name
@@ -15,13 +23,13 @@ class Workspace(models.Model):
 class WorkspaceMember(models.Model):
     ROLE_CHOICES = (
         ('owner', 'Owner'),
-        ('manager', 'Manager'),
-        ('developer', 'Developer'),
-        ('viewer', 'Viewer'),
+        ('admin', 'Admin'),
+        ('member', 'Member'),
     )
     workspace = models.ForeignKey(Workspace, on_delete=models.CASCADE)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='viewer')
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='member')
+    is_active = models.BooleanField(default=True)
     joined_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

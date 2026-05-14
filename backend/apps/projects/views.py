@@ -1,27 +1,43 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from apps.workspaces.permissions import IsWorkspaceMember, IsWorkspaceAdmin
 from .models import Project, Task, Subtask, Comment, Suggestion, Reaction
 from .serializers import ProjectSerializer, TaskSerializer, SubtaskSerializer, CommentSerializer, SuggestionSerializer, ReactionSerializer
 
 class ProjectViewSet(viewsets.ModelViewSet):
     serializer_class = ProjectSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            return [permissions.IsAuthenticated(), IsWorkspaceAdmin()]
+        return [permissions.IsAuthenticated(), IsWorkspaceMember()]
+
     queryset = Project.objects.none()
 
     def get_queryset(self):
-        qs = Project.objects.filter(workspace__members=self.request.user)
+        user = self.request.user
+        # Filter projects by workspace membership
+        qs = Project.objects.filter(workspace__members=user)
+        
         workspace_id = self.request.query_params.get('workspace')
         if workspace_id:
             qs = qs.filter(workspace_id=workspace_id)
-        return qs
+        
+        return qs.distinct()
 
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
 
+    @action(detail=True, methods=['get'])
+    def progress(self, request, pk=None):
+        project = self.get_object()
+        serializer = self.get_serializer(project)
+        return Response({'progress': serializer.data['progress']})
+
 class TaskViewSet(viewsets.ModelViewSet):
     serializer_class = TaskSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsWorkspaceMember]
     queryset = Task.objects.none()
 
     def get_queryset(self):
@@ -40,6 +56,15 @@ class TaskViewSet(viewsets.ModelViewSet):
         serializer = SubtaskSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save(task=task)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['post'])
+    def add_comment(self, request, pk=None):
+        task = self.get_object()
+        serializer = CommentSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(task=task, user=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

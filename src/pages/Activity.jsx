@@ -1,82 +1,112 @@
-import { useState, useEffect } from 'react'
-import { useStore } from '../store'
-import api from '../services/api'
-import toast from 'react-hot-toast'
-
-const EVENT_TYPES = {
-  task_created: { icon: '📋', color: '#3366ff', label: 'Task Created' },
-  task_updated: { icon: '🔄', color: '#f59e0b', label: 'Task Updated' },
-  task_completed: { icon: '✅', color: '#10b981', label: 'Task Completed' },
-  message_sent: { icon: '💬', color: '#8b5cf6', label: 'Message Sent' },
-  file_uploaded: { icon: '📁', color: '#06b6d4', label: 'File Uploaded' },
-  member_joined: { icon: '👥', color: '#ec4899', label: 'Member Joined' },
-}
-
-// Mock activity data - in production, this comes from /api/activity/
-const MOCK_ACTIVITY = [
-  { id: 1, type: 'task_completed', user: 'Sarah Connor', detail: 'Marked "Build login system" as Done', time: '2 mins ago' },
-  { id: 2, type: 'message_sent', user: 'John Doe', detail: 'Sent a message in #engineering', time: '10 mins ago' },
-  { id: 3, type: 'task_created', user: 'Alex Murphy', detail: 'Created task "Setup database migrations"', time: '45 mins ago' },
-  { id: 4, type: 'file_uploaded', user: 'James Bond', detail: 'Uploaded "Q3_Report.pdf" (v2)', time: '1 hr ago' },
-  { id: 5, type: 'task_updated', user: 'Sarah Connor', detail: 'Changed priority of "API Documentation" to High', time: '3 hrs ago' },
-  { id: 6, type: 'member_joined', user: 'Ellen Ripley', detail: 'Joined the workspace', time: '5 hrs ago' },
-  { id: 7, type: 'task_completed', user: 'John Doe', detail: 'Marked "Setup CI/CD" as Done', time: '1 day ago' },
-]
+import React, { useState, useEffect } from 'react';
+import { useStore } from '../store';
+import { 
+  Activity as ActivityIcon, 
+  CheckCircle, 
+  MessageSquare, 
+  UserPlus, 
+  PlusCircle, 
+  RefreshCw, 
+  Clock,
+  ArrowUpRight
+} from 'lucide-react';
+import api from '../services/api';
+import toast from 'react-hot-toast';
 
 export default function Activity() {
-  const { theme } = useStore()
-  const [activities, setActivities] = useState(MOCK_ACTIVITY)
-  const [loading, setLoading] = useState(false)
+  const { activeWorkspace } = useStore();
+  const [activities, setActivities] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (activeWorkspace) {
+      fetchActivity();
+    }
+  }, [activeWorkspace]);
+
+  const fetchActivity = async () => {
+    try {
+      // In production, this would be a dedicated /activity/ endpoint
+      // For now, we simulate with a premium feed structure
+      const mockData = [
+        { id: 1, actor: 'Sarah Connor', verb: 'completed task', target: 'API Implementation', time: '2 mins ago', type: 'task' },
+        { id: 2, actor: 'John Doe', verb: 'posted a comment in', target: 'UX Research', time: '15 mins ago', type: 'comment' },
+        { id: 3, actor: 'Alex Murphy', verb: 'created a new project', target: 'Mobile Redesign', time: '1 hr ago', type: 'project' },
+        { id: 4, actor: 'James Bond', verb: 'joined the workspace', target: activeWorkspace?.name, time: '3 hrs ago', type: 'member' },
+        { id: 5, actor: 'Ellen Ripley', verb: 'updated priority for', target: 'Security Audit', time: '5 hrs ago', type: 'task' },
+      ];
+      setActivities(mockData);
+    } catch (err) {
+      console.error('Failed to fetch activity:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getIcon = (type) => {
+    switch (type) {
+      case 'task': return <CheckCircle className="text-green-500" size={18} />;
+      case 'comment': return <MessageSquare className="text-blue-500" size={18} />;
+      case 'project': return <PlusCircle className="text-purple-500" size={18} />;
+      case 'member': return <UserPlus className="text-orange-500" size={18} />;
+      default: return <ActivityIcon className="text-gray-500" size={18} />;
+    }
+  };
 
   return (
-    <div className={theme} style={{ background: 'var(--bg)', minHeight: 'calc(100vh - 64px)', padding: '32px 24px' }}>
-      <div style={{ maxWidth: 800, margin: '0 auto' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32 }}>
-          <div>
-            <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 28, fontWeight: 800, color: 'var(--text)' }}>Activity Timeline</h1>
-            <p style={{ color: 'var(--text2)', marginTop: 4 }}>Real-time feed of everything happening in your workspace.</p>
-          </div>
-          <button className="btn btn-secondary" onClick={() => toast.success('Feed refreshed')}>Refresh Feed</button>
+    <div className="p-8 max-w-4xl mx-auto">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+        <div>
+          <h1 className="text-4xl font-black text-white tracking-tight flex items-center gap-4">
+            <ActivityIcon className="text-blue-500" size={36} />
+            Activity Pulse
+          </h1>
+          <p className="text-gray-400 mt-2 font-medium">Tracking the real-time heartbeat of <span className="text-white font-bold">{activeWorkspace?.name}</span>.</p>
         </div>
+        <button 
+          onClick={() => { fetchActivity(); toast.success('Feed updated'); }}
+          className="flex items-center gap-2 bg-gray-800/40 hover:bg-gray-800/80 text-gray-300 px-6 py-3 rounded-2xl font-bold transition-all border border-gray-800"
+        >
+          <RefreshCw size={18} />
+          Refresh
+        </button>
+      </div>
 
-        <div style={{ position: 'relative' }}>
-          {/* Vertical Line */}
-          <div style={{ position: 'absolute', left: 20, top: 0, bottom: 0, width: 2, background: 'var(--border)', zIndex: 0 }} />
+      <div className="relative">
+        {/* Timeline Stem */}
+        <div className="absolute left-[27px] top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-500/50 via-gray-800 to-transparent" />
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 32, position: 'relative', zIndex: 1 }}>
-            {activities.map((act) => {
-              const meta = EVENT_TYPES[act.type] || EVENT_TYPES.task_updated
-              return (
-                <div key={act.id} style={{ display: 'flex', gap: 20 }}>
-                  <div style={{ 
-                    width: 42, height: 42, borderRadius: '50%', background: 'var(--bg-card)', border: `2px solid ${meta.color}`,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0,
-                    boxShadow: '0 0 15px ' + meta.color + '33'
-                  }}>
-                    {meta.icon}
-                  </div>
-                  <div className="card" style={{ flex: 1, padding: '16px 20px', background: 'var(--bg-card)', borderLeft: `4px solid ${meta.color}` }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                      <span style={{ fontWeight: 700, fontSize: 15, color: 'var(--text)' }}>{act.user}</span>
-                      <span style={{ fontSize: 12, color: 'var(--text3)' }}>{act.time}</span>
-                    </div>
-                    <div style={{ fontSize: 14, color: 'var(--text2)', lineHeight: 1.5 }}>
-                      {act.detail}
-                    </div>
-                    <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
-                      <span className="badge badge-gray" style={{ fontSize: 10 }}>{meta.label}</span>
-                    </div>
-                  </div>
+        <div className="space-y-12 relative z-10">
+          {loading ? (
+            <div className="flex items-center justify-center py-20">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+            </div>
+          ) : activities.map((act) => (
+            <div key={act.id} className="flex gap-8 group">
+              <div className="w-14 h-14 rounded-2xl bg-[#0d1425] border border-gray-800 flex items-center justify-center shrink-0 shadow-2xl group-hover:border-blue-500/50 transition-all duration-500">
+                {getIcon(act.type)}
+              </div>
+              <div className="flex-1 bg-gray-800/20 border border-gray-800 rounded-[28px] p-6 hover:bg-gray-800/40 transition-all">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-3">
+                   <p className="text-sm font-medium text-gray-400">
+                     <span className="text-white font-black">{act.actor}</span> {act.verb} <span className="text-blue-400 font-bold">{act.target}</span>
+                   </p>
+                   <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest flex items-center gap-1">
+                     <Clock size={12} />
+                     {act.time}
+                   </span>
                 </div>
-              )
-            })}
-          </div>
-        </div>
-
-        <div style={{ textAlign: 'center', marginTop: 48 }}>
-          <button className="btn btn-ghost" style={{ color: 'var(--text3)' }}>Load older activity...</button>
+                <div className="flex items-center justify-end">
+                   <button className="text-[10px] font-black text-gray-500 hover:text-white uppercase tracking-widest flex items-center gap-1 transition-colors">
+                     View Details
+                     <ArrowUpRight size={12} />
+                   </button>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </div>
-  )
+  );
 }
