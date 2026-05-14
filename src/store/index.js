@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
 export const useStore = create(persist(set => ({
-  user: null, isAuth: false, theme: 'dark', lang: 'en',
+  user: null, isAuth: false, theme: 'dark',
   workspaces: [], activeWorkspace: null,
   setUser: u => set({ user: u, isAuth: !!u }),
   setWorkspaces: w => set({ workspaces: w }),
@@ -13,5 +13,4 @@ export const useStore = create(persist(set => ({
     set({ user: null, isAuth: false, workspaces: [], activeWorkspace: null }) 
   },
   setTheme: t => set({ theme: t }),
-  setLang: l => set({ lang: l }),
 }), { name: 'rtm-store' }))

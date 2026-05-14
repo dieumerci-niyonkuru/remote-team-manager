@@ -24,12 +24,14 @@ import {
   ChevronDown,
   Users,
   Mail,
-  PieChart
+  PieChart,
+  Sun,
+  Moon
 } from 'lucide-react';
 
 export default function Sidebar() {
-  const { theme, lang, workspaces, activeWorkspace, setActiveWorkspace, user } = useStore();
-  const t = useT(lang);
+  const { theme, setTheme, workspaces, activeWorkspace, setActiveWorkspace, user } = useStore();
+  const t = useT('en');
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [showWorkspaceMenu, setShowWorkspaceMenu] = useState(false);
@@ -60,9 +62,9 @@ export default function Sidebar() {
   ];
 
   const toolsLinks = [
-    { to: '/analytics', label: t.analytics, icon: <BarChart2 size={20} /> },
     { to: '/wiki', label: t.wiki, icon: <BookOpen size={20} /> },
     { to: '/integrations', label: t.integrations, icon: <Blocks size={20} /> },
+    { to: '/audit', label: 'Audit Logs', icon: <Hash size={20} /> },
   ];
 
   const bottomLinks = [
@@ -149,16 +151,25 @@ export default function Sidebar() {
         <div className={`mt-4 pt-4 border-t border-gray-800 flex items-center gap-3 px-2 ${collapsed ? 'justify-center' : ''}`}>
           <Avatar user={user} size={collapsed ? 36 : 40} className="shadow-lg" />
           {!collapsed && (
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-white truncate">{user?.first_name ? `${user.first_name} ${user.last_name || ''}` : user?.username}</p>
-              <p className="text-[10px] text-gray-500 font-bold uppercase truncate">{user?.email}</p>
-              <CreateWorkspaceModal 
-        isOpen={showCreateWsModal} 
-        onClose={() => setShowCreateWsModal(false)}
-        onCreated={(newWs) => setActiveWorkspace(newWs)}
-      />
-    </div>
+            <>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold text-white truncate">{user?.first_name ? `${user.first_name} ${user.last_name || ''}` : user?.username}</p>
+                <p className="text-[10px] text-gray-500 font-bold uppercase truncate">{user?.email}</p>
+              </div>
+              <button 
+                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                className="p-2 rounded-xl bg-gray-800/50 text-gray-400 hover:text-white transition-all border border-transparent hover:border-gray-700"
+                title="Toggle Theme"
+              >
+                {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+              </button>
+            </>
           )}
+          <CreateWorkspaceModal 
+            isOpen={showCreateWsModal} 
+            onClose={() => setShowCreateWsModal(false)}
+            onCreated={(newWs) => setActiveWorkspace(newWs)}
+          />
         </div>
       </div>
 

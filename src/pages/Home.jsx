@@ -87,9 +87,9 @@ export default function Home() {
       </section>
 
       {/* Dashboard Preview Section (Mockup) */}
-      <section style={{ padding:'0 24px', position:'relative', marginTop:'-100px', zIndex:10 }}>
-        <div className="container">
-          <div className="mockup-glow fade-in" style={{ padding:'12px', background:'rgba(255,255,255,0.02)', backdropFilter:'blur(40px)', border:'1px solid rgba(255,255,255,0.1)' }}>
+      <section style={{ padding:'0 16px', position:'relative', marginTop:'-60px', zIndex:10 }}>
+        <div className="container" style={{ padding: 0 }}>
+          <div className="mockup-glow fade-in" style={{ padding:'10px', background:'rgba(255,255,255,0.02)', backdropFilter:'blur(40px)', border:'1px solid rgba(255,255,255,0.1)' }}>
              <img 
                src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2000" 
                alt="Dashboard Preview" 
@@ -113,8 +113,8 @@ export default function Home() {
 
       {/* Infinite Moving Cards Section */}
       <section style={{ padding:'140px 0', overflow:'hidden', background:'var(--bg)' }}>
-        <div style={{ textAlign:'center', marginBottom:80 }}>
-          <h2 style={{ fontSize:48, fontWeight:900, letterSpacing:'-0.04em' }}>Trusted by the <span className="text-gradient">Best.</span></h2>
+        <div style={{ textAlign:'center', marginBottom:80, padding: '0 24px' }}>
+          <h2 style={{ fontSize:'clamp(32px, 8vw, 64px)', fontWeight:900, letterSpacing:'-0.04em' }}>Trusted by the <span className="text-gradient">Best.</span></h2>
         </div>
         
         <div className="marquee-container">
@@ -151,9 +151,9 @@ export default function Home() {
       {/* Feedback & Community */}
       <section style={{ padding:'140px 24px', background:'linear-gradient(to bottom, var(--bg), var(--bg2))' }}>
         <div className="container" style={{ textAlign:'center' }}>
-          <div style={{ maxWidth:800, margin:'0 auto' }}>
-             <h2 style={{ fontSize:56, fontWeight:900, marginBottom:32 }}>Your voice <span className="text-gradient">Matters.</span></h2>
-             <p style={{ fontSize:22, color:'var(--text2)', marginBottom:48 }}>We build for you. Provide feedback directly within the platform to help us shape the future of workspace engineering.</p>
+          <div style={{ maxWidth:800, margin:'0 auto', padding: '0 24px' }}>
+             <h2 style={{ fontSize:'clamp(40px, 10vw, 72px)', fontWeight:900, marginBottom:32, lineHeight: 1.1 }}>Your voice <span className="text-gradient">Matters.</span></h2>
+             <p style={{ fontSize:'clamp(16px, 3vw, 22px)', color:'var(--text2)', marginBottom:48 }}>We build for you. Provide feedback directly within the platform to help us shape the future of workspace engineering.</p>
              <Link to="/register" className="btn btn-primary" style={{ padding:'24px 80px', fontSize:22, borderRadius:24 }}>Join the Community</Link>
           </div>
         </div>

@@ -7,8 +7,8 @@ import toast from 'react-hot-toast'
 import NotificationBadge from './NotificationBadge'
 
 export default function Header() {
-  const { isAuth, user, logout, theme, setTheme, lang, setLang } = useStore()
-  const t = useT(lang)
+  const { isAuth, user, logout, theme, setTheme } = useStore()
+  const t = useT('en')
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const [showMenu, setShowMenu] = useState(false)
@@ -130,9 +130,6 @@ export default function Header() {
 
         {/* Actions */}
         <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-          <button className="btn-icon desktop-only" onClick={() => setLang(lang === 'en' ? 'rw' : lang === 'rw' ? 'fr' : 'en')} style={{ background:'var(--bg3)', borderRadius:14, fontSize:13, fontWeight:800, textTransform: 'uppercase' }}>
-             {lang}
-          </button>
           
           <NotificationBadge />
           
@@ -185,7 +182,6 @@ export default function Header() {
              {!isAuth && <Link to="/login" onClick={() => setShowMenu(false)} className="btn btn-secondary" style={{ padding:20, textAlign:'center', borderRadius:20 }}>{t.login}</Link>}
              
              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-               <button onClick={() => { setLang(lang === 'en' ? 'rw' : 'en'); setShowMenu(false); }} className="btn btn-secondary" style={{ padding:16, borderRadius:20, textTransform: 'uppercase', fontWeight: 800 }}>Lang: {lang}</button>
                <button onClick={() => { setTheme(theme==='dark'?'light':'dark'); setShowMenu(false); }} className="btn btn-secondary" style={{ padding:16, borderRadius:20 }}>{t.toggleTheme}</button>
              </div>
            </div>
