@@ -26,12 +26,14 @@ def create_user(db):
     from apps.accounts.models import User
 
     def make_user(
+        username='testuser',
         email='test@example.com',
         password='testpass123',
         first_name='Test',
         last_name='User',
     ):
         return User.objects.create_user(
+            username=username,
             email=email,
             password=password,
             first_name=first_name,
