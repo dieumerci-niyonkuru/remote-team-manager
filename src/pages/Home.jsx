@@ -67,16 +67,16 @@ export default function Home() {
         <div className="container" style={{ position:'relative', zIndex:2, textAlign:'center' }}>
           <div className="fade-in" style={{ display:'inline-flex', alignItems:'center', gap:10, background:'rgba(51,102,255,0.1)', border:'1px solid var(--brand)', borderRadius:40, padding:'10px 24px', fontSize:13, fontWeight:800, color:'var(--brand)', marginBottom:40, textTransform:'uppercase', letterSpacing:2 }}>
             <span className="activity-dot" />
-            The Future of Remote Management
+            V.2.0 NOW LIVE — NEXT-GEN WORKSPACE OS
           </div>
           
           <h1 className="fade-in" style={{ fontSize:'clamp(48px, 12vw, 120px)', fontWeight:900, color:'var(--text)', marginBottom:32, lineHeight:0.8, letterSpacing:'-0.06em' }}>
-            Work <span className="text-gradient">Unlimited.</span> <br/> 
-            Scale Global.
+            Build faster. <br/> 
+            Scale <span className="text-gradient">Global.</span>
           </h1>
           
-          <p className="fade-in" style={{ fontSize:'clamp(18px, 3vw, 26px)', color:'var(--text2)', maxWidth:800, margin:'0 auto 64px', lineHeight:1.4, animationDelay:'0.2s', fontWeight:500 }}>
-            The all-in-one mission control for modern teams. Real-time chat, AI workflows, and bank-grade security.
+          <p className="fade-in" style={{ fontSize:'clamp(18px, 3vw, 26px)', color:'var(--text2)', maxWidth:850, margin:'0 auto 64px', lineHeight:1.5, animationDelay:'0.2s', fontWeight:500 }}>
+            The all-in-one mission control for modern teams. Real-time chat, AI workflows, and bank-grade security — built to scale with your ambition.
           </p>
           
           <div className="fade-in" style={{ display:'flex', gap:20, justifyContent:'center', flexWrap:'wrap', animationDelay:'0.3s' }}>
