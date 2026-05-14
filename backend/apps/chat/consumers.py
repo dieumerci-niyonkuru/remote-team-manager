@@ -28,8 +28,11 @@ class ChatConsumer(AsyncWebsocketConsumer):
         if event_type == 'chat_message':
             content = data['message']
             reply_to_id = data.get('reply_to')
-            thread_root_id = data.get('thread_root')
+            thread_root_id = data.get('thread_root') or data.get('thread_id')
             saved_message = await self.save_message(self.channel_id, user, content, reply_to_id, thread_root_id)
+            
+            if not saved_message:
+                return
             
             await self.channel_layer.group_send(
                 self.room_group_name,
@@ -80,11 +83,27 @@ class ChatConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps(event))
 
     @database_sync_to_async
-    def save_message(self, channel_id, user, content, reply_to_id=None, thread_root_id=None):
-        channel = Channel.objects.get(id=channel_id)
+    def save_message(self, room_id, user, content, reply_to_id=None, thread_root_id=None):
+        # Try to find channel first
+        try:
+            channel = Channel.objects.get(id=room_id)
+            dm = None
+        except (Channel.DoesNotExist, ValueError):
+            # If not a channel, try to find direct message
+            try:
+                dm = DirectMessage.objects.get(id=room_id)
+                channel = None
+            except (DirectMessage.DoesNotExist, ValueError):
+                return None
+
         reply_to = Message.objects.get(id=reply_to_id) if reply_to_id else None
         thread_root = Message.objects.get(id=thread_root_id) if thread_root_id else None
+        
         return Message.objects.create(
-            channel=channel, user=user, content=content, 
-            reply_to=reply_to, thread_root=thread_root
+            channel=channel, 
+            direct_message=dm,
+            user=user, 
+            content=content, 
+            reply_to=reply_to, 
+            thread_root=thread_root
         )

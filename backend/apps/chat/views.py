@@ -4,6 +4,11 @@ from rest_framework.response import Response
 from django.db.models import Q
 from .models import Channel, Message, DirectMessage, ChannelMembership, MessageReaction, MessageRead
 from .serializers import ChannelSerializer, MessageSerializer, DirectMessageSerializer
+from apps.notifications.models import Notification
+from django.contrib.auth import get_user_model
+import re
+
+User = get_user_model()
 
 class ChannelViewSet(viewsets.ModelViewSet):
     serializer_class = ChannelSerializer
@@ -19,7 +24,9 @@ class ChannelViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         workspace = self.request.data.get('workspace')
-        serializer.save(created_by=self.request.user, workspace_id=workspace)
+        channel = serializer.save(created_by=self.request.user, workspace_id=workspace)
+        # Create membership for creator as owner
+        ChannelMembership.objects.get_or_create(channel=channel, user=self.request.user, role='owner', is_pending=False)
 
     @action(detail=True, methods=['post'])
     def join(self, request, pk=None):
@@ -75,7 +82,21 @@ class MessageViewSet(viewsets.ModelViewSet):
         ).distinct().order_by('created_at')
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        message = serializer.save(user=self.request.user)
+        # Handle Mentions
+        mentions = re.findall(r'@(\w+)', message.content)
+        for username in mentions:
+            try:
+                recipient = User.objects.get(username=username)
+                if recipient != self.request.user:
+                    Notification.objects.create(
+                        recipient=recipient,
+                        actor=self.request.user,
+                        verb=f"mentioned you in #{message.channel.name if message.channel else 'a DM'}",
+                        target=message
+                    )
+            except User.DoesNotExist:
+                continue
 
     @action(detail=True, methods=['post'])
     def react(self, request, pk=None):

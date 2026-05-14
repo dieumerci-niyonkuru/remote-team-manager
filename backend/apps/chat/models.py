@@ -15,6 +15,12 @@ class ChannelMembership(models.Model):
     channel = models.ForeignKey(Channel, on_delete=models.CASCADE, related_name='memberships')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     joined_at = models.DateTimeField(auto_now_add=True)
+    ROLE_CHOICES = [
+        ('owner', 'Owner'),
+        ('admin', 'Admin'),
+        ('member', 'Member'),
+    ]
+    role = models.CharField(max_length=10, choices=ROLE_CHOICES, default='member')
     is_pending = models.BooleanField(default=False)  # for join requests
 
     class Meta:
