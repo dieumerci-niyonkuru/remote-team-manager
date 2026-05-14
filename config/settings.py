@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     'apps.ai',
     'apps.automation',
     'apps.wiki',
+    'apps.integrations',
     'apps.timetracking',
 ]
 
@@ -143,3 +144,11 @@ if config('REDIS_URL', default=None):
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {"hosts": [config('REDIS_URL')]},
     }
+
+# Celery Configuration
+CELERY_BROKER_URL = config('REDIS_URL', default='redis://localhost:6379/0')
+CELERY_RESULT_BACKEND = config('REDIS_URL', default='redis://localhost:6379/0')
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = TIME_ZONE

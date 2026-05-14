@@ -3,12 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
 import { Briefcase, Plus, Search, MapPin, Calendar, Users, ChevronRight, Globe } from 'lucide-react';
 import api from '../services/api';
+import Modal from '../components/common/Modal';
+import toast from 'react-hot-toast';
 
 export default function Workspaces() {
   const navigate = useNavigate();
   const { setWorkspaces: setGlobalWorkspaces } = useStore();
   const [workspaces, setWorkspaces] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formData, setFormData] = useState({ name: '', description: '' });
+  const [creating, setCreating] = useState(false);
 
   useEffect(() => {
     fetchWorkspaces();
@@ -26,6 +31,23 @@ export default function Workspaces() {
     }
   };
 
+  const handleCreate = async (e) => {
+    e.preventDefault();
+    if (!formData.name.trim()) return;
+    setCreating(true);
+    try {
+      const res = await api.post('/workspaces/', formData);
+      setWorkspaces([res.data, ...workspaces]);
+      setIsModalOpen(false);
+      setFormData({ name: '', description: '' });
+      toast.success('Workspace created successfully! 🚀');
+    } catch (err) {
+      toast.error('Failed to create workspace.');
+    } finally {
+      setCreating(false);
+    }
+  };
+
   return (
     <div className="p-8 max-w-7xl mx-auto">
       {/* Header */}
@@ -37,7 +59,10 @@ export default function Workspaces() {
           </h1>
           <p className="text-gray-400 mt-2 font-medium">Switch between your company and project environments.</p>
         </div>
-        <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-2xl font-bold transition-all shadow-lg shadow-blue-600/20 active:scale-95">
+        <button 
+          onClick={() => setIsModalOpen(true)}
+          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-2xl font-bold transition-all shadow-lg shadow-blue-600/20 active:scale-95"
+        >
           <Plus size={20} />
           Create Workspace
         </button>
@@ -54,7 +79,10 @@ export default function Workspaces() {
            </div>
            <h3 className="text-2xl font-black text-white mb-2">No workspaces found</h3>
            <p className="text-gray-400 max-w-sm mx-auto mb-8 font-medium">Create your first workspace to start collaborating with your team.</p>
-           <button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-2xl font-bold transition-all">
+           <button 
+             onClick={() => setIsModalOpen(true)}
+             className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-2xl font-bold transition-all"
+           >
              Initialize Workspace
            </button>
         </div>
@@ -65,6 +93,39 @@ export default function Workspaces() {
           ))}
         </div>
       )}
+
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Create Workspace">
+        <form onSubmit={handleCreate} className="space-y-6">
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Workspace Name</label>
+            <input 
+              required
+              type="text" 
+              value={formData.name}
+              onChange={e => setFormData({...formData, name: e.target.value})}
+              placeholder="e.g. Acme Corp, Engineering, Marketing"
+              className="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500/50" 
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Description</label>
+            <textarea 
+              value={formData.description}
+              onChange={e => setFormData({...formData, description: e.target.value})}
+              placeholder="What is this workspace for?"
+              rows={3}
+              className="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500/50 resize-none" 
+            />
+          </div>
+          <button 
+            disabled={creating}
+            type="submit" 
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-2xl font-bold shadow-lg shadow-blue-600/20 transition-all active:scale-[0.98] disabled:opacity-50"
+          >
+            {creating ? 'Creating...' : 'Create Workspace'}
+          </button>
+        </form>
+      </Modal>
     </div>
   );
 }

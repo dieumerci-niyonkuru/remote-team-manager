@@ -73,6 +73,9 @@ export default function Calendar() {
             <button onClick={prevMonth} className="p-2 hover:bg-gray-700 rounded-xl text-gray-400 hover:text-white transition-all">
               <ChevronLeft size={20} />
             </button>
+            <button onClick={() => setCurrentDate(new Date())} className="text-[10px] font-black uppercase text-blue-500 hover:text-blue-400 px-2 transition-colors">
+              Today
+            </button>
             <span className="text-sm font-black text-white px-4 min-w-[140px] text-center">
               {format(currentDate, 'MMMM yyyy')}
             </span>
@@ -87,54 +90,56 @@ export default function Calendar() {
         </div>
       </div>
 
-      <div className="bg-gray-800/20 border border-gray-800 rounded-[40px] p-8 md:p-10 shadow-2xl overflow-hidden">
-        {/* Week Days Header */}
-        <div className="grid grid-cols-7 gap-4 mb-8">
-          {weekDays.map(d => (
-            <div key={d} className="text-center text-[10px] font-black text-gray-500 uppercase tracking-widest">
-              {d}
-            </div>
-          ))}
-        </div>
-
-        {/* Calendar Grid */}
-        <div className="grid grid-cols-7 gap-4">
-          {days.map((day, i) => {
-            const isCurrentMonth = isSameMonth(day, monthStart);
-            const isToday = isSameDay(day, new Date());
-            const dayTasks = tasks.filter(t => t.due_date && isSameDay(new Date(t.due_date), day));
-
-            return (
-              <div 
-                key={i} 
-                className={`min-h-[160px] rounded-3xl p-4 border transition-all duration-500 flex flex-col ${
-                  !isCurrentMonth ? 'opacity-20 pointer-events-none' : 'opacity-100'
-                } ${
-                  isToday ? 'bg-blue-600/10 border-blue-500/50 shadow-2xl shadow-blue-600/10' : 'bg-gray-900/50 border-gray-800 hover:border-gray-700'
-                }`}
-              >
-                <div className={`text-sm font-black mb-4 w-8 h-8 flex items-center justify-center rounded-xl ${
-                  isToday ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-400'
-                }`}>
-                  {format(day, 'd')}
-                </div>
-                
-                <div className="flex-1 space-y-2 overflow-y-auto custom-scrollbar pr-1">
-                  {dayTasks.map(t => (
-                    <div 
-                      key={t.id} 
-                      className={`text-[9px] font-black uppercase p-2 rounded-lg border truncate ${
-                        t.status === 'done' ? 'bg-green-500/10 border-green-500/20 text-green-500' : 'bg-blue-500/10 border-blue-500/20 text-blue-500'
-                      }`}
-                      title={t.title}
-                    >
-                      {t.title}
-                    </div>
-                  ))}
-                </div>
+      <div className="bg-gray-800/20 border border-gray-800 rounded-[40px] p-8 md:p-10 shadow-2xl overflow-x-auto custom-scrollbar">
+        <div className="min-w-[800px]">
+          {/* Week Days Header */}
+          <div className="grid grid-cols-7 gap-4 mb-8">
+            {weekDays.map(d => (
+              <div key={d} className="text-center text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                {d}
               </div>
-            );
-          })}
+            ))}
+          </div>
+
+          {/* Calendar Grid */}
+          <div className="grid grid-cols-7 gap-4">
+            {days.map((day, i) => {
+              const isCurrentMonth = isSameMonth(day, monthStart);
+              const isToday = isSameDay(day, new Date());
+              const dayTasks = tasks.filter(t => t.due_date && isSameDay(new Date(t.due_date), day));
+
+              return (
+                <div 
+                  key={i} 
+                  className={`min-h-[160px] rounded-3xl p-4 border transition-all duration-500 flex flex-col ${
+                    !isCurrentMonth ? 'opacity-20 pointer-events-none' : 'opacity-100'
+                  } ${
+                    isToday ? 'bg-blue-600/10 border-blue-500/50 shadow-2xl shadow-blue-600/10' : 'bg-gray-900/50 border-gray-800 hover:border-gray-700'
+                  }`}
+                >
+                  <div className={`text-sm font-black mb-4 w-8 h-8 flex items-center justify-center rounded-xl ${
+                    isToday ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-400'
+                  }`}>
+                    {format(day, 'd')}
+                  </div>
+                  
+                  <div className="flex-1 space-y-2 overflow-y-auto custom-scrollbar pr-1">
+                    {dayTasks.map(t => (
+                      <div 
+                        key={t.id} 
+                        className={`text-[9px] font-black uppercase p-2 rounded-lg border truncate ${
+                          t.status === 'done' ? 'bg-green-500/10 border-green-500/20 text-green-500' : 'bg-blue-500/10 border-blue-500/20 text-blue-500'
+                        }`}
+                        title={t.title}
+                      >
+                        {t.title}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>

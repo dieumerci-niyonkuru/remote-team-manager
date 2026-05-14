@@ -6,6 +6,7 @@ import {
   Paperclip, Send, Smile, Plus, MessageCircle, X,
   ChevronDown, UserPlus, Info
 } from 'lucide-react';
+import Avatar from '../components/common/Avatar';
 
 const MOCK_CHANNELS = [
   { id: 'general', name: 'general', type: 'public', unread: 0 },
@@ -128,7 +129,8 @@ export default function Chat() {
     if (wsRef.current) wsRef.current.close();
     const token = localStorage.getItem('rtm_access');
     const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-    const wsUrl = `${protocol}://remote-team-manager-production.up.railway.app/ws/chat/${activeTab}/?token=${token}`;
+    const host = import.meta.env.VITE_WS_URL || (import.meta.env.PROD ? 'remote-team-manager-production.up.railway.app' : 'localhost:8000');
+    const wsUrl = `${protocol}://${host}/ws/chat/${activeTab}/?token=${token}`;
     
     wsRef.current = new WebSocket(wsUrl);
     
@@ -306,9 +308,7 @@ export default function Chat() {
         )}
       </div>
 
-      <div className="w-10 h-10 rounded-md overflow-hidden bg-gradient-to-br from-blue-500 to-purple-500 shrink-0 border border-gray-200 dark:border-gray-700 flex items-center justify-center text-white font-bold">
-        {m.user?.avatar ? <img src={m.user.avatar} className="w-full h-full object-cover" /> : (m.user?.first_name?.[0] || 'U')}
-      </div>
+      <Avatar user={m.user} size={40} className="rounded-lg" />
       
       <div className="flex-1 min-w-0">
         <div className="flex items-baseline gap-2 mb-1">

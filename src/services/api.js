@@ -35,6 +35,7 @@ export const auth = {
   },
   login: d => api.post('/auth/login/', d),
   me: () => api.get('/auth/me/'),
+  updateProfile: d => api.patch('/auth/me/', d),
   logout: r => api.post('/auth/logout/', { refresh: r }),
 }
 
@@ -83,9 +84,9 @@ export const chat = {
 }
 
 export const timer = {
-  start: task_id => api.post('/timelogs/', { task_id }),
-  pause: task_id => api.patch(`/timelogs/${task_id}/`, { is_running: false }),
-  logs: () => api.get('/timelogs/'),
+  start: task_id => api.post('/timelogs/start/', { task_id }),
+  pause: task_id => api.post('/timelogs/pause/', { task_id }),
+  logs: () => api.get('/timelogs/logs/'),
 }
 
 export const hr = {
@@ -109,6 +110,13 @@ export const automation = {
   list: () => api.get('/automation-rules/'),
   create: d => api.post('/automation-rules/', d),
   delete: id => api.delete(`/automation-rules/${id}/`),
+}
+
+export const integrations = {
+  list: wid => api.get('/integrations/', { params: { workspace: wid } }),
+  connect: d => api.post('/integrations/', d),
+  update: (id, d) => api.patch(`/integrations/${id}/`, d),
+  delete: id => api.delete(`/integrations/${id}/`),
 }
 
 export const wiki = {

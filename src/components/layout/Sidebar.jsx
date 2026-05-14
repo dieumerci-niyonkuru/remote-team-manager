@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useStore } from '../../store';
 import { useT } from '../../i18n';
+import Avatar from '../common/Avatar';
 import {
   LayoutDashboard,
   Briefcase,
@@ -26,7 +27,7 @@ import {
 } from 'lucide-react';
 
 export default function Sidebar() {
-  const { theme, lang, workspaces, activeWorkspace, setActiveWorkspace } = useStore();
+  const { theme, lang, workspaces, activeWorkspace, setActiveWorkspace, user } = useStore();
   const t = useT(lang);
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -138,6 +139,17 @@ export default function Sidebar() {
       {/* Bottom Actions */}
       <div className="p-3 border-t border-gray-800">
         <NavGroup links={bottomLinks} collapsed={collapsed} />
+        
+        {/* User Profile Section */}
+        <div className={`mt-4 pt-4 border-t border-gray-800 flex items-center gap-3 px-2 ${collapsed ? 'justify-center' : ''}`}>
+          <Avatar user={user} size={collapsed ? 36 : 40} className="shadow-lg" />
+          {!collapsed && (
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-white truncate">{user?.first_name ? `${user.first_name} ${user.last_name || ''}` : user?.username}</p>
+              <p className="text-[10px] text-gray-500 font-bold uppercase truncate">{user?.email}</p>
+            </div>
+          )}
+        </div>
       </div>
 
     </div>
@@ -151,6 +163,14 @@ export default function Sidebar() {
         className="md:hidden fixed top-3 left-3 z-50 p-2 rounded-lg bg-[#111e3b] text-white shadow-lg border border-gray-700"
       >
         <Menu size={24} />
+      </button>
+
+      {/* Desktop Collapse Toggle */}
+      <button 
+        onClick={() => setCollapsed(!collapsed)}
+        className="hidden md:flex absolute right-[-14px] top-10 z-[110] w-7 h-7 bg-[#111e3b] border border-gray-800 rounded-full items-center justify-center text-gray-500 hover:text-white hover:border-blue-500/50 transition-all shadow-xl"
+      >
+        <ChevronLeft size={16} className={`transition-transform duration-300 ${collapsed ? 'rotate-180' : ''}`} />
       </button>
 
       {/* Mobile Drawer Overlay */}

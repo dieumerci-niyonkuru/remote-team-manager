@@ -2,12 +2,12 @@ export const T = {
   en: {
     home:'Home', aboutUs:'About Us', product:'Product', solutions:'Solutions', enterprise:'Enterprise', platform:'Platform', pricing:'Pricing',
     features:'Features', dashboard:'Dashboard', workspaces:'Workspaces', team:'Team', activity:'Activity',
-    login:'Sign In', register:'Create Account', logout:'Sign Out', exit:'Exit', initialize:'Initialize', toggleTheme:'Toggle Theme',
-    email:'Email address', password:'Password', firstName:'First name', lastName:'Last name',
-    confirmPass:'Confirm password', forgotPass:'Forgot password?', recoverKey:'Recover Key?',
+    login:'Sign In', register:'Join Us', logout:'Sign Out', exit:'Sign Out', initialize:'Join Us', toggleTheme:'Toggle Theme',
+    email:'Email Address', password:'Password', firstName:'First Name', lastName:'Last Name',
+    confirmPass:'Confirm Password', forgotPass:'Forgot password?', recoverKey:'Reset Password?',
     noAccount:"Don't have an account?", hasAccount:'Already have an account?',
-    signupFree:'Sign up free', welcomeBack:'Welcome Back',
-    tagline:'Collaborate without borders', subtitle:'Manage your remote team, track tasks, and ship faster.',
+    signupFree:'Join for free', welcomeBack:'Welcome back',
+    tagline:'Collaborate without borders', subtitle:'Manage your remote team and ship faster.',
     // Sidebar
     projects:'Projects', tasks:'Tasks', channels:'Channels', directMessages:'Direct Messages', 
     calendar:'Calendar', analytics:'Analytics', wiki:'Wiki / Knowledge Base', 
@@ -40,10 +40,10 @@ export const T = {
     navIntegrations:'Integrations', navIntegrationsDesc:'Third-party node connections',
     
     // Auth
-    enterCreds:'Enter your credentials to access Remote Team Manager',
-    neuralId:'Neural ID (Email)', accessKey:'Access Key',
-    authorizing:'Authorizing...', establishConn:'Establish Secure Connection ➜',
-    newToWs:'New to the Workspace?', joinMission:'Join Mission',
+    enterCreds:'Enter your details to access RemoteTeam',
+    neuralId:'Email Address', accessKey:'Password',
+    authorizing:'Authorizing...', establishConn:'Sign In ➜',
+    newToWs:'New to RemoteTeam?', joinMission:'Join Us',
     createAccountTitle:'Create an Account', createAccountDesc:'Join your remote workspace and start collaborating today.',
     addPhoto:'ADD PHOTO', chooseRole:'Choose your role',
     creatingAccount:'Creating Account...', signUp:'Sign Up', signinHere:'Sign in here',

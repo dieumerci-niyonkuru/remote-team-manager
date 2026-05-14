@@ -12,6 +12,7 @@ import {
   MessageSquare
 } from 'lucide-react';
 import WorkspaceAnalytics from '../components/dashboard/WorkspaceAnalytics';
+import Avatar from '../components/common/Avatar';
 import api from '../services/api';
 import toast from 'react-hot-toast';
 
@@ -74,7 +75,7 @@ export default function Dashboard() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <h1 className="text-4xl font-black text-white tracking-tight">
-            Welcome back, <span className="text-blue-500">{user?.username || user?.first_name || 'User'}</span> 👋
+            Welcome back 👋
           </h1>
           <p className="text-gray-400 mt-2 font-medium">Here's what's happening in <span className="text-white font-bold">{activeWorkspace?.name || 'your workspace'}</span> today.</p>
         </div>
@@ -159,16 +160,26 @@ export default function Dashboard() {
               </div>
            </div>
 
-           <div className="bg-gradient-to-br from-indigo-600/20 to-blue-600/20 p-6 rounded-3xl border border-blue-500/20">
-              <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
-                <MessageSquare size={18} className="text-blue-400" />
-                Team Chat
-              </h3>
-              <p className="text-xs text-blue-200/60 mb-4 font-medium">Quickly jump back into the conversation.</p>
-              <button className="w-full bg-white/10 hover:bg-white/20 text-white font-bold py-2.5 rounded-xl text-sm transition-all">
-                Open Chat
-              </button>
-           </div>
+            <div className="bg-gradient-to-br from-indigo-600/20 to-blue-600/20 p-6 rounded-3xl border border-blue-500/20">
+               <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                 <Users size={18} className="text-blue-400" />
+                 Team Online
+               </h3>
+               <p className="text-xs text-blue-200/60 mb-6 font-medium">Collaborating with you right now.</p>
+               <div className="flex -space-x-3 mb-6">
+                 {membersList.slice(0, 5).map(member => (
+                   <Avatar key={member.id} user={member.user} size={36} className="border-2 border-[#0b1429]" />
+                 ))}
+                 {membersList.length > 5 && (
+                   <div className="w-9 h-9 rounded-full bg-gray-800 border-2 border-[#0b1429] flex items-center justify-center text-[10px] font-black text-gray-400">
+                     +{membersList.length - 5}
+                   </div>
+                 )}
+               </div>
+               <button className="w-full bg-white/10 hover:bg-white/20 text-white font-bold py-2.5 rounded-xl text-sm transition-all">
+                 View Directory
+               </button>
+            </div>
         </div>
       </div>
     </div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { Shield, Clock, User, Info } from 'lucide-react';
+import Avatar from '../components/common/Avatar';
 
 export default function AuditLogs() {
   const [logs, setLogs] = useState([]);
@@ -55,9 +56,7 @@ export default function AuditLogs() {
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                    <User size={12} />
-                  </div>
+                  <Avatar user={log.user} size={24} />
                   <span className="text-sm text-gray-700 dark:text-gray-300">
                     {log.user?.username || 'System'}
                   </span>

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useStore } from '../store'
+import { ai as api } from '../services/api'
 
 export default function AIAssistant() {
   const { theme, user } = useStore()
@@ -9,26 +10,30 @@ export default function AIAssistant() {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const handleSend = (e) => {
+  const handleSend = async (e) => {
     e.preventDefault()
     if (!input.trim()) return
 
-    const newMsg = { role: 'user', content: input }
-    setMessages(prev => [...prev, newMsg])
+    const userMsg = { role: 'user', content: input }
+    setMessages(prev => [...prev, userMsg])
     setInput('')
     setLoading(true)
 
-    // Mock AI delay and response
-    setTimeout(() => {
-      let response = "I've analyzed your team's velocity. It looks like the 'Frontend Rewrite' project is at risk of being delayed by 3 days. I recommend reassigning 2 tasks to John to prevent burnout."
-      
-      if (newMsg.content.toLowerCase().includes('summary')) {
-        response = "Here is your weekly summary:\n- 14 tasks completed.\n- 3 overdue tasks in Project X.\n- Top performer: Sarah (6 tasks).\n\nTeam burnout risk is currently LOW."
+    try {
+      const res = await api.suggestTasks(input)
+      let aiContent = ""
+      if (res.data.command_type === 'breakdown') {
+        aiContent = "I've generated a task breakdown based on your request:\n\n" + 
+                   res.data.tasks.map(t => `• **${t.title}** [${t.priority.toUpperCase()}]\n  ${t.description}`).join('\n\n')
+      } else {
+        aiContent = res.data.message || "I've processed your request but don't have a specific response format for it yet."
       }
-
-      setMessages(prev => [...prev, { role: 'ai', content: response }])
+      setMessages(prev => [...prev, { role: 'ai', content: aiContent }])
+    } catch (err) {
+      setMessages(prev => [...prev, { role: 'ai', content: "I'm sorry, I'm having trouble reaching the intelligence core. Please try again later." }])
+    } finally {
       setLoading(false)
-    }, 1500)
+    }
   }
 
   return (

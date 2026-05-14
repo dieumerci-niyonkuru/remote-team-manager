@@ -2,12 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { useStore } from '../store';
 import { FolderKanban, Plus, MoreVertical, LayoutGrid, List as ListIcon, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
 import api from '../services/api';
+import Modal from '../components/common/Modal';
+import toast from 'react-hot-toast';
 
 export default function Projects() {
   const { activeWorkspace } = useStore();
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState('grid');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formData, setFormData] = useState({ name: '', description: '', project_type: 'Software Development' });
+  const [creating, setCreating] = useState(false);
 
   useEffect(() => {
     if (activeWorkspace) {
@@ -23,6 +28,23 @@ export default function Projects() {
       console.error('Failed to fetch projects:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCreate = async (e) => {
+    e.preventDefault();
+    if (!formData.name.trim()) return;
+    setCreating(true);
+    try {
+      const res = await api.post('/projects/', { ...formData, workspace: activeWorkspace.id });
+      setProjects([res.data, ...projects]);
+      setIsModalOpen(false);
+      setFormData({ name: '', description: '', project_type: 'Software Development' });
+      toast.success('Project created! 🚀');
+    } catch (err) {
+      toast.error('Failed to create project.');
+    } finally {
+      setCreating(false);
     }
   };
 
@@ -61,7 +83,10 @@ export default function Projects() {
               <ListIcon size={18} />
             </button>
           </div>
-          <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl font-semibold transition-all shadow-lg shadow-blue-600/20 active:scale-95">
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl font-semibold transition-all shadow-lg shadow-blue-600/20 active:scale-95"
+          >
             <Plus size={20} />
             New Project
           </button>
@@ -79,7 +104,7 @@ export default function Projects() {
           </div>
           <h3 className="text-xl font-bold text-white mb-2">No projects yet</h3>
           <p className="text-gray-400 max-w-xs mx-auto mb-6">Start by creating your first project to organize your team's work.</p>
-          <button className="text-blue-500 font-bold hover:underline">+ Create your first project</button>
+          <button onClick={() => setIsModalOpen(true)} className="text-blue-500 font-bold hover:underline">+ Create your first project</button>
         </div>
       ) : (
         <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}>
@@ -88,6 +113,53 @@ export default function Projects() {
           ))}
         </div>
       )}
+
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="New Project">
+        <form onSubmit={handleCreate} className="space-y-6">
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Project Name</label>
+            <input 
+              required
+              type="text" 
+              value={formData.name}
+              onChange={e => setFormData({...formData, name: e.target.value})}
+              placeholder="e.g. Website Redesign, Q4 Marketing"
+              className="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500/50" 
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Project Type</label>
+            <select 
+              value={formData.project_type}
+              onChange={e => setFormData({...formData, project_type: e.target.value})}
+              className="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500/50"
+            >
+              <option value="Software Development">Software Development</option>
+              <option value="Marketing">Marketing</option>
+              <option value="Design">Design</option>
+              <option value="Business Strategy">Business Strategy</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Description</label>
+            <textarea 
+              value={formData.description}
+              onChange={e => setFormData({...formData, description: e.target.value})}
+              placeholder="Brief overview of the project goals..."
+              rows={3}
+              className="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500/50 resize-none" 
+            />
+          </div>
+          <button 
+            disabled={creating}
+            type="submit" 
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-2xl font-bold shadow-lg shadow-blue-600/20 transition-all active:scale-[0.98] disabled:opacity-50"
+          >
+            {creating ? 'Creating...' : 'Create Project'}
+          </button>
+        </form>
+      </Modal>
     </div>
   );
 }

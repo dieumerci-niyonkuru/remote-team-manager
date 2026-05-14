@@ -17,5 +17,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/health/', health_check, name='health'),
     path('api/auth/', include('apps.accounts.urls')),
+    path('api/timelogs/', include('apps.timetracking.urls')),
     path('api/', include('config.api_router')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

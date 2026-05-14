@@ -3,12 +3,13 @@ from apps.workspaces.views import WorkspaceViewSet
 from apps.projects.views import ProjectViewSet, TaskViewSet, CommentViewSet, SuggestionViewSet, ReactionViewSet
 from apps.chat.views import ChannelViewSet, MessageViewSet, DirectMessageViewSet
 from apps.hr.views import EmployeeProfileViewSet, JobPostingViewSet, PayrollRecordViewSet
-from apps.notifications.views import NotificationViewSet
+from apps.notifications.views import NotificationViewSet, InviteViewSet
 from apps.presence.views import PresenceViewSet
 from apps.communications.views import FriendRequestViewSet, FileAttachmentViewSet
 from apps.okr.views import ObjectiveViewSet, KeyResultViewSet
 from apps.automation.views import AutomationRuleViewSet
 from apps.wiki.views import WikiArticleViewSet
+from apps.integrations.views import IntegrationViewSet
 
 router = DefaultRouter()
 
@@ -32,8 +33,9 @@ router.register(r'employee-profiles', EmployeeProfileViewSet, basename='employee
 router.register(r'job-postings', JobPostingViewSet, basename='jobposting')
 router.register(r'payroll', PayrollRecordViewSet, basename='payroll')
 
-# Notifications
+# Notifications & Invites
 router.register(r'notifications', NotificationViewSet, basename='notification')
+router.register(r'invites', InviteViewSet, basename='invite')
 
 # Presence
 router.register(r'presence', PresenceViewSet, basename='userpresence')
@@ -51,5 +53,8 @@ router.register(r'automation-rules', AutomationRuleViewSet, basename='automation
 
 # Wiki
 router.register(r'wiki-articles', WikiArticleViewSet, basename='wikiarticle')
+
+# Integrations
+router.register(r'integrations', IntegrationViewSet, basename='integration')
 
 urlpatterns = router.urls

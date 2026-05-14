@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useStore } from '../store'
 import toast from 'react-hot-toast'
+import { integrations as api } from '../services/api'
 
 const INTEGRATIONS = [
   {
@@ -60,32 +61,86 @@ const INTEGRATIONS = [
 ]
 
 export default function Integrations() {
-  const { theme } = useStore()
+  const { theme, activeWorkspace } = useStore()
   const [connected, setConnected] = useState({})
   const [configs, setConfigs] = useState({})
+  const [dbIntegrations, setDbIntegrations] = useState([])
   const [expanded, setExpanded] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (activeWorkspace) {
+      loadIntegrations()
+    }
+  }, [activeWorkspace])
+
+  const loadIntegrations = async () => {
+    try {
+      const res = await api.list(activeWorkspace.id)
+      setDbIntegrations(res.data)
+      const conn = {}
+      const cfgs = {}
+      res.data.forEach(item => {
+        conn[item.type] = item.is_active
+        cfgs[item.type] = item.config
+      })
+      setConnected(conn)
+      setConfigs(cfgs)
+    } catch (e) {
+      console.error('Failed to load integrations:', e)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleToggle = (id) => {
     setExpanded(expanded === id ? null : id)
   }
 
-  const handleConnect = (id) => {
-    const intg = INTEGRATIONS.find(i => i.id === id)
-    const cfg = configs[id] || {}
+  const handleConnect = async (type) => {
+    const intg = INTEGRATIONS.find(i => i.id === type)
+    const cfg = configs[type] || {}
     if (!intg || !intg.fields.every(f => cfg[f.key])) {
       toast.error('Please fill in all required fields.')
       return
     }
-    setConnected(prev => ({ ...prev, [id]: true }))
-    setExpanded(null)
-    toast.success(`${intg.name} connected! 🎉`)
+
+    try {
+      const existing = dbIntegrations.find(i => i.type === type)
+      if (existing) {
+        await api.update(existing.id, { config: cfg, is_active: true })
+      } else {
+        await api.connect({
+          workspace: activeWorkspace.id,
+          type: type,
+          config: cfg,
+          is_active: true
+        })
+      }
+      toast.success(`${intg.name} connected! 🎉`)
+      loadIntegrations()
+      setExpanded(null)
+    } catch (e) {
+      toast.error(`Failed to connect ${intg.name}`)
+    }
   }
 
-  const handleDisconnect = (id) => {
-    const intg = INTEGRATIONS.find(i => i.id === id)
-    setConnected(prev => ({ ...prev, [id]: false }))
-    toast.success(`${intg.name} disconnected.`)
+  const handleDisconnect = async (type) => {
+    const intg = INTEGRATIONS.find(i => i.id === type)
+    const existing = dbIntegrations.find(i => i.type === type)
+    if (!existing) return
+
+    try {
+      await api.delete(existing.id)
+      toast.success(`${intg.name} disconnected.`)
+      loadIntegrations()
+    } catch (e) {
+      toast.error(`Failed to disconnect ${intg.name}`)
+    }
   }
+
+  if (loading) return <div className="p-20 text-center text-gray-500 font-bold">Initializing integrations...</div>
+  if (!activeWorkspace) return <div className="p-20 text-center text-gray-500 font-bold">Please select a workspace first.</div>
 
   return (
     <div className={theme} style={{ background: 'var(--bg)', minHeight: 'calc(100vh - 64px)', padding: '32px 24px' }}>
@@ -163,33 +218,6 @@ export default function Integrations() {
             )
           })}
         </div>
-
-        {/* GitHub Commit Linker Demo */}
-        {connected['github'] && (
-          <div style={{ marginTop: 32 }}>
-            <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 700, color: 'var(--text)', marginBottom: 16 }}>🐙 Recent GitHub Commits</h2>
-            <div className="card" style={{ padding: 24 }}>
-              {[
-                { hash: 'a3f91b2', msg: 'feat: add payment checkout API', author: 'Sarah', time: '2h ago', linked: 'Build payment checkout page' },
-                { hash: 'c8d02e1', msg: 'fix: resolve login redirect bug', author: 'Alex', time: '5h ago', linked: 'Fix Auth Bug' },
-                { hash: '91f4a3c', msg: 'docs: update onboarding guide', author: 'You', time: '1d ago', linked: null },
-              ].map((c, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '14px 0', borderBottom: i < 2 ? '1px solid var(--border)' : 'none' }}>
-                  <code style={{ fontSize: 12, background: 'var(--bg2)', padding: '3px 8px', borderRadius: 6, color: 'var(--brand)', fontFamily: 'monospace', flexShrink: 0 }}>{c.hash}</code>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 600, fontSize: 13, color: 'var(--text)' }}>{c.msg}</div>
-                    <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 2 }}>by {c.author} · {c.time}</div>
-                  </div>
-                  {c.linked ? (
-                    <span className="badge badge-green" style={{ fontSize: 11 }}>🔗 {c.linked}</span>
-                  ) : (
-                    <button className="btn btn-secondary" style={{ fontSize: 11, padding: '4px 10px' }}>Link to task</button>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   )

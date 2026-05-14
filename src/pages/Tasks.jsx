@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useStore } from '../store';
 import { CheckSquare, Plus, Filter, Search, MoreHorizontal, Clock, AlertTriangle, User, MessageSquare, Paperclip, Send, X } from 'lucide-react';
 import api from '../services/api';
 import toast from 'react-hot-toast';
+import Modal from '../components/common/Modal';
+import Avatar from '../components/common/Avatar';
 
 export default function Tasks() {
   const { activeWorkspace } = useStore();
@@ -10,6 +12,16 @@ export default function Tasks() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterProject, setFilterProject] = useState('all');
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [taskForm, setTaskForm] = useState({ 
+    title: '', 
+    description: '', 
+    project: '', 
+    priority: 'medium', 
+    status: 'todo' 
+  });
+
   const wsRef = useRef(null);
   const columns = [
     { id: 'todo', title: 'To Do', color: 'gray' },
@@ -33,7 +45,6 @@ export default function Tasks() {
     const token = localStorage.getItem('rtm_access');
     const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
     const host = window.location.host;
-    // Handle localhost dev port mismatch
     const wsHost = host.includes('localhost:5173') ? 'localhost:8000' : host;
     const wsUrl = `${protocol}://${wsHost}/ws/tasks/${activeWorkspace.id}/?token=${token}`;
     
@@ -51,7 +62,6 @@ export default function Tasks() {
     };
 
     wsRef.current.onclose = () => {
-      console.log('Task WebSocket disconnected. Reconnecting...');
       setTimeout(connectWS, 3000);
     };
   };
@@ -64,10 +74,35 @@ export default function Tasks() {
       ]);
       setProjects(projectsRes.data);
       setTasks(tasksRes.data);
+      if (projectsRes.data.length > 0) {
+        setTaskForm(prev => ({ ...prev, project: projectsRes.data[0].id }));
+      }
     } catch (err) {
       console.error('Failed to fetch task data:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCreateTask = async (e) => {
+    e.preventDefault();
+    if (!taskForm.title.trim() || !taskForm.project) {
+      toast.error('Please fill in title and project');
+      return;
+    }
+    setCreating(true);
+    try {
+      const res = await api.post('/tasks/', taskForm);
+      // tasks will be updated via WebSocket if backend broadcasts, 
+      // but let's add locally just in case WS is slow
+      setTasks(prev => [...prev, res.data]);
+      setIsCreateModalOpen(false);
+      setTaskForm({ ...taskForm, title: '', description: '' });
+      toast.success('Task created! 📝');
+    } catch (err) {
+      toast.error('Failed to create task');
+    } finally {
+      setCreating(false);
     }
   };
 
@@ -128,7 +163,10 @@ export default function Tasks() {
                 ))}
               </select>
             </div>
-            <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl font-semibold transition-all shadow-lg shadow-blue-600/20 active:scale-95">
+            <button 
+              onClick={() => setIsCreateModalOpen(true)}
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl font-semibold transition-all shadow-lg shadow-blue-600/20 active:scale-95"
+            >
               <Plus size={18} />
               New Task
             </button>
@@ -185,6 +223,66 @@ export default function Tasks() {
       {selectedTask && (
         <TaskModal task={selectedTask} onClose={() => setSelectedTask(null)} />
       )}
+
+      <Modal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} title="New Task">
+        <form onSubmit={handleCreateTask} className="space-y-6">
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Task Title</label>
+            <input 
+              required
+              type="text" 
+              value={taskForm.title}
+              onChange={e => setTaskForm({...taskForm, title: e.target.value})}
+              placeholder="What needs to be done?"
+              className="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500/50" 
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Project</label>
+              <select 
+                value={taskForm.project}
+                onChange={e => setTaskForm({...taskForm, project: e.target.value})}
+                className="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500/50"
+              >
+                {projects.map(p => (
+                  <option key={p.id} value={p.id}>{p.name}</option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Priority</label>
+              <select 
+                value={taskForm.priority}
+                onChange={e => setTaskForm({...taskForm, priority: e.target.value})}
+                className="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500/50"
+              >
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+                <option value="urgent">Urgent</option>
+              </select>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Description</label>
+            <textarea 
+              value={taskForm.description}
+              onChange={e => setTaskForm({...taskForm, description: e.target.value})}
+              placeholder="Add details about this task..."
+              rows={3}
+              className="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500/50 resize-none" 
+            />
+          </div>
+          <button 
+            disabled={creating}
+            type="submit" 
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-2xl font-bold shadow-lg shadow-blue-600/20 transition-all active:scale-[0.98] disabled:opacity-50"
+          >
+            {creating ? 'Creating...' : 'Create Task'}
+          </button>
+        </form>
+      </Modal>
     </div>
   );
 }
@@ -211,15 +309,7 @@ function TaskCard({ task, onDragStart, onClick }) {
           {task.priority}
         </span>
         <div className="flex -space-x-1.5 opacity-60 group-hover:opacity-100 transition-opacity">
-          {task.assignee ? (
-             <div className="w-6 h-6 rounded-full border border-gray-900 bg-blue-600 flex items-center justify-center text-[8px] font-bold text-white uppercase">
-               {task.assignee_name?.charAt(0)}
-             </div>
-          ) : (
-            <div className="w-6 h-6 rounded-full border border-gray-900 bg-gray-700 flex items-center justify-center text-gray-500">
-              <User size={10} />
-            </div>
-          )}
+          <Avatar user={task.assignee} size={24} className="ring-2 ring-gray-900" />
         </div>
       </div>
       
@@ -283,9 +373,7 @@ function TaskModal({ task, onClose }) {
                     <div className="space-y-4 mb-6">
                        {task.comments?.map(comment => (
                           <div key={comment.id} className="flex gap-3">
-                             <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-[10px] font-bold text-white shrink-0">
-                                {comment.user?.charAt(0)}
-                             </div>
+                             <Avatar user={comment.user_obj || { username: comment.user }} size={32} />
                              <div className="bg-gray-800/50 p-3 rounded-2xl rounded-tl-none border border-gray-800 flex-1">
                                 <p className="text-sm text-gray-300">{comment.content}</p>
                                 <p className="text-[10px] text-gray-500 mt-1 font-bold">{new Date(comment.created_at).toLocaleString()}</p>
@@ -379,12 +467,10 @@ function TaskModal({ task, onClose }) {
                        </div>
                        <div>
                           <label className="text-[10px] font-bold text-gray-400 block mb-1">Assignee</label>
-                          <div className="flex items-center gap-2 p-2 rounded-xl bg-gray-900 border border-gray-800">
-                             <div className="w-6 h-6 rounded-lg bg-indigo-600 flex items-center justify-center text-[10px] font-bold text-white uppercase">
-                                {task.assignee_name?.charAt(0) || 'U'}
-                             </div>
-                             <span className="text-xs font-bold text-white">{task.assignee_name || 'Unassigned'}</span>
-                          </div>
+                           <div className="flex items-center gap-2 p-2 rounded-xl bg-gray-900 border border-gray-800">
+                              <Avatar user={task.assignee} size={24} className="rounded-lg" />
+                              <span className="text-xs font-bold text-white">{task.assignee_name || 'Unassigned'}</span>
+                           </div>
                        </div>
                     </div>
                  </div>

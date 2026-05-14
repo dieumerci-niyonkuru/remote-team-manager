@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import api from '../services/api';
 import toast from 'react-hot-toast';
+import Avatar from '../components/common/Avatar';
 
 export default function Notifications() {
   const [notifications, setNotifications] = useState([]);
@@ -21,7 +22,31 @@ export default function Notifications() {
 
   useEffect(() => {
     fetchNotifications();
+    const ws = connectWS();
+    return () => {
+      if (ws) ws.close();
+    };
   }, []);
+
+  const connectWS = () => {
+    const token = localStorage.getItem('rtm_access');
+    const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+    const host = window.location.host;
+    const wsHost = host.includes('localhost:5173') ? 'localhost:8000' : host;
+    const wsUrl = `${protocol}://${wsHost}/ws/notifications/?token=${token}`;
+    
+    const socket = new WebSocket(wsUrl);
+    
+    socket.onmessage = (e) => {
+      const data = JSON.parse(e.data);
+      if (data.type === 'send_notification') {
+        setNotifications(prev => [data.notification, ...prev]);
+        toast.success(`New: ${data.notification.verb}`);
+      }
+    };
+    
+    return socket;
+  };
 
   const fetchNotifications = async () => {
     try {
@@ -128,8 +153,11 @@ export default function Notifications() {
               onClick={() => markAsRead(n.id)}
               className={`group flex items-start gap-4 p-5 rounded-2xl border transition-all cursor-pointer ${n.unread ? 'bg-blue-600/5 border-blue-500/20' : 'bg-gray-800/20 border-gray-800 hover:border-gray-700'}`}
             >
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${n.unread ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-500'}`}>
-                {getIcon(n.verb)}
+              <div className="flex items-center gap-3 shrink-0">
+                <Avatar user={{ username: n.actor_name, avatar_url: n.actor_avatar_url }} size={36} />
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 -ml-6 mt-6 border-2 border-[#0b1429] ${n.unread ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-500'}`}>
+                  {getIcon(n.verb)}
+                </div>
               </div>
               <div className="flex-1 min-w-0">
                 <p className={`text-sm leading-relaxed ${n.unread ? 'text-white font-bold' : 'text-gray-400'}`}>

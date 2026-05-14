@@ -6,13 +6,16 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import User
 
 class UserSerializer(serializers.ModelSerializer):
-    avatar = serializers.SerializerMethodField()
+    avatar_url = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'role', 'avatar', 'bio', 'phone')
+        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'role', 'avatar', 'avatar_url', 'bio', 'phone')
+        extra_kwargs = {
+            'avatar': {'write_only': True},
+        }
 
-    def get_avatar(self, obj: User) -> Optional[str]:
+    def get_avatar_url(self, obj: User) -> Optional[str]:
         request = self.context.get('request')
         if obj.avatar and request:
             return request.build_absolute_uri(obj.avatar.url)

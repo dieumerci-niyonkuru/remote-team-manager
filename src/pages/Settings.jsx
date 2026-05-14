@@ -14,10 +14,28 @@ import {
   Laptop
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { auth as api } from '../services/api';
+import Avatar from '../components/common/Avatar';
 
 export default function Settings() {
   const { user, logout } = useStore();
   const [activeTab, setActiveTab] = useState('profile');
+  const [formData, setFormData] = useState({
+    username: user?.username || '',
+    email: user?.email || '',
+    first_name: user?.first_name || '',
+    last_name: user?.last_name || '',
+    bio: user?.bio || '',
+  });
+
+  const handleSave = async () => {
+    try {
+      await api.updateProfile(formData);
+      toast.success('Profile saved! Please refresh to see changes.');
+    } catch (e) {
+      toast.error('Failed to save profile');
+    }
+  };
 
   const tabs = [
     { id: 'profile', label: 'Profile', icon: <User size={18} /> },
@@ -64,29 +82,88 @@ export default function Settings() {
             {activeTab === 'profile' && (
               <div className="space-y-8 animate-in fade-in duration-500">
                 <div className="flex items-center gap-6">
-                  <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-3xl font-black text-white shadow-2xl">
-                    {user?.username?.charAt(0).toUpperCase()}
+                  <div className="relative group">
+                    <Avatar user={user} size={80} className="shadow-2xl" />
+                    <label className="absolute inset-0 flex items-center justify-center bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity rounded-xl cursor-pointer">
+                      <span className="text-[10px] font-black uppercase">Change</span>
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        className="hidden" 
+                        onChange={async (e) => {
+                          const file = e.target.files[0];
+                          if (file) {
+                            const formData = new FormData();
+                            formData.append('avatar', file);
+                            try {
+                              await api.updateProfile(formData);
+                              toast.success('Avatar updated! Refresh to see.');
+                            } catch {
+                              toast.error('Failed to update avatar');
+                            }
+                          }
+                        }}
+                      />
+                    </label>
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-white">{user?.username}</h3>
-                    <p className="text-gray-500 text-sm">{user?.email}</p>
-                    <button className="text-xs font-bold text-blue-500 mt-2 hover:underline">Change Avatar</button>
+                    <h3 className="text-xl font-bold text-white">{user?.first_name ? `${user.first_name} ${user.last_name || ''}` : user?.username}</h3>
+                    <p className="text-gray-500 text-sm font-medium">{user?.email}</p>
+                    <p className="text-[10px] text-blue-500 font-black uppercase tracking-widest mt-1">{user?.role || 'Member'}</p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Username</label>
-                    <input type="text" defaultValue={user?.username} className="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500/50" />
+                    <input 
+                      type="text" 
+                      value={formData.username} 
+                      onChange={e => setFormData({ ...formData, username: e.target.value })}
+                      className="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500/50" 
+                    />
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Email Address</label>
-                    <input type="email" defaultValue={user?.email} className="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500/50" />
+                    <input 
+                      type="email" 
+                      value={formData.email} 
+                      onChange={e => setFormData({ ...formData, email: e.target.value })}
+                      className="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500/50" 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">First Name</label>
+                    <input 
+                      type="text" 
+                      value={formData.first_name} 
+                      onChange={e => setFormData({ ...formData, first_name: e.target.value })}
+                      className="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500/50" 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Last Name</label>
+                    <input 
+                      type="text" 
+                      value={formData.last_name} 
+                      onChange={e => setFormData({ ...formData, last_name: e.target.value })}
+                      className="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500/50" 
+                    />
                   </div>
                 </div>
 
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Bio</label>
+                  <textarea 
+                    value={formData.bio} 
+                    onChange={e => setFormData({ ...formData, bio: e.target.value })}
+                    rows={3}
+                    className="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500/50 resize-none" 
+                  />
+                </div>
+
                 <div className="pt-6 flex justify-end">
-                  <button onClick={() => toast.success('Profile saved!')} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-2xl font-bold transition-all shadow-lg shadow-blue-600/20">
+                  <button onClick={handleSave} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-2xl font-bold transition-all shadow-lg shadow-blue-600/20">
                     <Save size={18} />
                     Save Changes
                   </button>

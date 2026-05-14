@@ -4,6 +4,7 @@ import { useStore } from '../store';
 import { Briefcase, Users, Settings, Plus, Mail, Shield, UserPlus, Trash2, ChevronRight, Link } from 'lucide-react';
 import api from '../services/api';
 import toast from 'react-hot-toast';
+import Avatar from '../components/common/Avatar';
 
 export default function WorkspaceDetail() {
   const { id } = useParams();
@@ -144,16 +145,16 @@ export default function WorkspaceDetail() {
                </div>
                <div className="divide-y divide-gray-800">
                  {members.map(member => (
-                   <div key={member.id} className="p-5 flex items-center justify-between hover:bg-white/5 transition-colors group">
-                     <div className="flex items-center gap-4">
-                       <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center text-sm font-bold text-white border-2 border-gray-800">
-                         {member.user?.username?.charAt(0)}
-                       </div>
-                       <div>
-                         <p className="text-sm font-bold text-white">{member.user?.username}</p>
-                         <p className="text-xs text-gray-500">{member.user?.email}</p>
-                       </div>
-                     </div>
+                    <div key={member.id} className="p-5 flex items-center justify-between hover:bg-white/5 transition-colors group">
+                      <div className="flex items-center gap-4">
+                        <Avatar user={member.user} size={40} className="border-2 border-gray-800" />
+                        <div>
+                          <p className="text-sm font-bold text-white">
+                            {member.user?.first_name ? `${member.user.first_name} ${member.user.last_name || ''}` : member.user?.username}
+                          </p>
+                          <p className="text-xs text-gray-500">{member.user?.email}</p>
+                        </div>
+                      </div>
                      <div className="flex items-center gap-6">
                        <div className="flex items-center gap-2 px-3 py-1 rounded-lg bg-gray-900 border border-gray-800">
                          <Shield size={14} className="text-blue-500" />

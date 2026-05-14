@@ -72,11 +72,11 @@ export default function Home() {
             The Future of Remote Management
           </div>
           
-          <h1 className="fade-in" style={{ fontSize:'clamp(48px, 10vw, 104px)', fontWeight:900, color:'var(--text)', marginBottom:32, lineHeight:0.85, letterSpacing:'-0.06em' }}>
+          <h1 className="fade-in" style={{ fontSize:'clamp(32px, 10vw, 104px)', fontWeight:900, color:'var(--text)', marginBottom:32, lineHeight:0.85, letterSpacing:'-0.06em' }}>
             Build faster. <br/> Scale <span style={{ background:'linear-gradient(135deg, var(--brand), var(--accent))', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>global.</span>
           </h1>
           
-          <p className="fade-in" style={{ fontSize:'clamp(18px, 2.5vw, 26px)', color:'var(--text2)', maxWidth:800, margin:'0 auto 64px', lineHeight:1.5, animationDelay:'0.2s', fontWeight:500 }}>
+          <p className="fade-in" style={{ fontSize:'clamp(16px, 2.5vw, 26px)', color:'var(--text2)', maxWidth:800, margin:'0 auto 64px', lineHeight:1.5, animationDelay:'0.2s', fontWeight:500 }}>
             The all-in-one mission control for modern teams. Real-time chat, AI workflows, and bank-grade security — built to scale with your ambition.
           </p>
           
