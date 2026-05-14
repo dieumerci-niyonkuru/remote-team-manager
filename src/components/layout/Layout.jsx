@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Outlet } from 'react-router-dom'
 import { useStore } from '../../store'
 import Header from './Header'
@@ -6,10 +7,23 @@ import Sidebar from './Sidebar'
 import CommandPalette from '../CommandPalette'
 import FloatingAI from '../FloatingAI'
 import ErrorBoundary from '../ErrorBoundary'
+import { ws } from '../../services/api'
 
 export default function Layout({ showFooter = true }) {
-  const { theme, isAuth } = useStore()
-  
+  const { theme, isAuth, setWorkspaces, workspaces, activeWorkspace, setActiveWorkspace } = useStore()
+
+  useEffect(() => {
+    if (isAuth) {
+      ws.list().then(res => {
+        const data = res.data || []
+        setWorkspaces(data)
+        if (data.length > 0 && !activeWorkspace) {
+          setActiveWorkspace(data[0])
+        }
+      }).catch(err => console.error('Failed to load workspaces', err))
+    }
+  }, [isAuth])
+
   return (
     <div className={`${theme} min-h-screen bg-[var(--bg)] text-[var(--text)] transition-colors duration-500`}>
       {isAuth ? (

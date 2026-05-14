@@ -23,6 +23,9 @@ export default function Dashboard() {
     members: 0,
     activity: 0
   });
+  const [tasksList, setTasksList] = useState([]);
+  const [projectsList, setProjectsList] = useState([]);
+  const [membersList, setMembersList] = useState([]);
   const [recentTasks, setRecentTasks] = useState([]);
   const [activeProjects, setActiveProjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -41,15 +44,23 @@ export default function Dashboard() {
         api.get(`/workspaces/${activeWorkspace.id}/members/`)
       ]);
 
+      const projectsData = projectsRes.data || [];
+      const tasksData = tasksRes.data || [];
+      const membersData = membersRes.data || [];
+
+      setProjectsList(projectsData);
+      setTasksList(tasksData);
+      setMembersList(membersData);
+
       setStats({
-        projects: projectsRes.data.length,
-        tasks: tasksRes.data.length,
-        members: membersRes.data.length,
+        projects: projectsData.length,
+        tasks: tasksData.length,
+        members: membersData.length,
         activity: 12 // Mock activity count
       });
 
-      setRecentTasks(tasksRes.data.slice(0, 5));
-      setActiveProjects(projectsRes.data.slice(0, 3));
+      setRecentTasks(tasksData.slice(0, 5));
+      setActiveProjects(projectsData.slice(0, 3));
     } catch (err) {
       console.error('Dashboard fetch error:', err);
     } finally {
@@ -63,9 +74,9 @@ export default function Dashboard() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <h1 className="text-4xl font-black text-white tracking-tight">
-            Welcome back, <span className="text-blue-500">{user?.username}</span> 👋
+            Welcome back, <span className="text-blue-500">{user?.username || user?.first_name || 'User'}</span> 👋
           </h1>
-          <p className="text-gray-400 mt-2 font-medium">Here's what's happening in <span className="text-white font-bold">{activeWorkspace?.name}</span> today.</p>
+          <p className="text-gray-400 mt-2 font-medium">Here's what's happening in <span className="text-white font-bold">{activeWorkspace?.name || 'your workspace'}</span> today.</p>
         </div>
         <div className="flex items-center gap-4 bg-gray-800/40 p-2 rounded-2xl border border-gray-800">
            <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center text-green-500">
@@ -88,9 +99,9 @@ export default function Dashboard() {
 
       {/* Analytics Pulse Section */}
       <WorkspaceAnalytics 
-        tasks={tasks} 
-        projects={projects} 
-        members={members} 
+        tasks={tasksList} 
+        projects={projectsList} 
+        members={membersList} 
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
