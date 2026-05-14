@@ -1,34 +1,49 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from apps.workspaces.permissions import IsWorkspaceMember, IsWorkspaceAdmin
 from .models import Project, Task, Subtask, Comment, Suggestion, Reaction
 from .serializers import ProjectSerializer, TaskSerializer, SubtaskSerializer, CommentSerializer, SuggestionSerializer, ReactionSerializer
 
 class ProjectViewSet(viewsets.ModelViewSet):
     serializer_class = ProjectSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            return [permissions.IsAuthenticated(), IsWorkspaceAdmin()]
+        return [permissions.IsAuthenticated(), IsWorkspaceMember()]
+
     queryset = Project.objects.none()
 
     def get_queryset(self):
-        qs = Project.objects.filter(workspace__members=self.request.user)
+        user = self.request.user
+        qs = Project.objects.filter(workspace__members=user).prefetch_related('tasks', 'members')
         workspace_id = self.request.query_params.get('workspace')
         if workspace_id:
             qs = qs.filter(workspace_id=workspace_id)
-        return qs
+        return qs.distinct()
 
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
 
 class TaskViewSet(viewsets.ModelViewSet):
     serializer_class = TaskSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsWorkspaceMember]
     queryset = Task.objects.none()
 
     def get_queryset(self):
-        qs = Task.objects.filter(project__workspace__members=self.request.user)
+        qs = Task.objects.filter(project__workspace__members=self.request.user)\
+            .select_related('project', 'assignee', 'created_by')\
+            .prefetch_related('subtasks', 'comments', 'reactions', 'activities', 'files')
+        
         project_id = self.request.query_params.get('project')
         if project_id:
             qs = qs.filter(project_id=project_id)
+        
+        workspace_id = self.request.query_params.get('workspace')
+        if workspace_id:
+            qs = qs.filter(project__workspace_id=workspace_id)
+
         return qs
 
     def perform_create(self, serializer):

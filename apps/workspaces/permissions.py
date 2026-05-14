@@ -14,3 +14,12 @@ class HasWorkspaceRole(permissions.BasePermission):
             return member.role in self.allowed_roles
         except:
             return False
+
+class IsWorkspaceAdmin(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        try:
+            workspace = obj.workspace if hasattr(obj, 'workspace') else obj.project.workspace
+            member = workspace.workspacemember_set.get(user=request.user)
+            return member.role in ['admin', 'owner']
+        except:
+            return False
