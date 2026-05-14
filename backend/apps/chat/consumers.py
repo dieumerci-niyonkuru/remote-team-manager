@@ -58,6 +58,20 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     'is_typing': is_typing
                 }
             )
+        elif event_type == 'edit_message':
+            message_id = data.get('message_id')
+            new_content = data.get('message')
+            saved_message = await self.edit_message(message_id, user, new_content)
+            if saved_message:
+                await self.channel_layer.group_send(
+                    self.room_group_name,
+                    {
+                        'type': 'message_update_broadcast',
+                        'message_id': message_id,
+                        'message': new_content,
+                        'edited_at': saved_message.edited_at.isoformat()
+                    }
+                )
         elif event_type == 'reaction':
             message_id = data.get('message_id')
             emoji = data.get('emoji')
@@ -81,6 +95,28 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def reaction_broadcast(self, event):
         await self.send(text_data=json.dumps(event))
+
+    async def message_update_broadcast(self, event):
+        await self.send(text_data=json.dumps(event))
+
+    @database_sync_to_async
+    def edit_message(self, message_id, user, new_content):
+        try:
+            message = Message.objects.get(id=message_id, user=user)
+            from .models import MessageEditHistory
+            MessageEditHistory.objects.create(
+                message=message,
+                editor=user,
+                old_content=message.content,
+                new_content=new_content
+            )
+            message.content = new_content
+            from django.utils.timezone import now
+            message.edited_at = now()
+            message.save()
+            return message
+        except Message.DoesNotExist:
+            return None
 
     @database_sync_to_async
     def save_message(self, room_id, user, content, reply_to_id=None, thread_root_id=None):

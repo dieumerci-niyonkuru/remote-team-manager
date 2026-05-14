@@ -29,6 +29,7 @@ export default function Chat() {
   
   const [input, setInput] = useState('');
   const [activeThread, setActiveThread] = useState(null);
+  const [editingMessage, setEditingMessage] = useState(null);
   const [typingUsers, setTypingUsers] = useState([]);
   
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
@@ -147,6 +148,10 @@ export default function Chat() {
             }
             break;
             
+          case 'message_update_broadcast':
+            setMessages(prev => prev.map(m => m.id === data.message_id ? { ...m, content: data.message, edited_at: data.edited_at } : m));
+            break;
+            
           case 'reaction':
             setMessages(prev => prev.map(m => {
               if (m.id === data.message_id) {
@@ -201,7 +206,16 @@ export default function Chat() {
     };
 
     if (wsRef.current?.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify(msg));
+      if (editingMessage) {
+        wsRef.current.send(JSON.stringify({
+          type: 'edit_message',
+          message_id: editingMessage.id,
+          message: text
+        }));
+        setEditingMessage(null);
+      } else {
+        wsRef.current.send(JSON.stringify(msg));
+      }
     } else {
       // Fallback local UI update if WS is down
       const localMsg = {
@@ -280,6 +294,9 @@ export default function Chat() {
       {/* Hover Actions */}
       <div className="absolute right-4 top-2 opacity-0 group-hover:opacity-100 transition-opacity bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-md rounded-md flex items-center p-1 z-10">
         <button onClick={() => addReaction(m.id, '👍')} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-500 hover:text-gray-900 dark:hover:text-white"><Smile size={16} /></button>
+        {m.user?.id === user?.id && (
+          <button onClick={() => { setEditingMessage(m); setInput(m.content); }} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-500 hover:text-gray-900 dark:hover:text-white"><Plus size={16} className="rotate-45" /></button>
+        )}
         {!isThreadItem && (
           <button onClick={() => setActiveThread(m)} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-500 hover:text-gray-900 dark:hover:text-white"><MessageCircle size={16} /></button>
         )}
