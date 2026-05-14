@@ -116,7 +116,7 @@ export default function Header() {
               </svg>
            </div>
            <span className="logo-font" style={{ fontSize:22, letterSpacing:'-0.03em', lineHeight: 1.1 }}>
-             Remote<br/>Team Manager
+             RemoteTeam
            </span>
         </Link>
 
