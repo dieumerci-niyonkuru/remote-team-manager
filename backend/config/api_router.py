@@ -1,7 +1,7 @@
 from rest_framework.routers import DefaultRouter
 from apps.workspaces.views import WorkspaceViewSet
 from apps.projects.views import ProjectViewSet, TaskViewSet, CommentViewSet, SuggestionViewSet, ReactionViewSet
-from apps.chat.views import ChannelViewSet, MessageViewSet, DirectMessageViewSet
+from apps.chat.views import ChannelViewSet, MessageViewSet, DirectMessageViewSet, AuditLogViewSet
 from apps.hr.views import EmployeeProfileViewSet, JobPostingViewSet, PayrollRecordViewSet
 from apps.notifications.views import NotificationViewSet
 from apps.presence.views import UserPresenceViewSet
@@ -61,5 +61,6 @@ router.register(r'automation-rules', AutomationRuleViewSet, basename='automation
 
 # Wiki
 router.register(r'wiki-articles', WikiArticleViewSet, basename='wikiarticle')
+router.register(r'audit-logs', AuditLogViewSet, basename='auditlog')
 
 urlpatterns = router.urls

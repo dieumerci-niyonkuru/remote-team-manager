@@ -25,6 +25,7 @@ const Integrations  = lazy(() => import('./pages/Integrations'))
 const About         = lazy(() => import('./pages/About'))
 const Settings      = lazy(() => import('./pages/Settings'))
 const Notifications = lazy(() => import('./pages/Notifications'))
+const AuditLogs     = lazy(() => import('./pages/AuditLogs'))
 
 const PageLoader = () => (
   <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'60vh', flexDirection:'column', gap:16 }}>
@@ -69,6 +70,7 @@ export default function App() {
               <Route path="/search" element={<Protected><Search /></Protected>} />
               <Route path="/integrations" element={<Protected><Integrations /></Protected>} />
               <Route path="/notifications" element={<Protected><Notifications /></Protected>} />
+              <Route path="/audit" element={<Protected><AuditLogs /></Protected>} />
               <Route path="/settings" element={<Protected><Settings /></Protected>} />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />

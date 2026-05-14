@@ -2,8 +2,14 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db.models import Q
-from .models import Channel, Message, DirectMessage, ChannelMembership, MessageReaction, MessageRead
-from .serializers import ChannelSerializer, MessageSerializer, DirectMessageSerializer
+from .models import (
+    Channel, Message, DirectMessage, ChannelMembership, 
+    MessageReaction, MessageRead, AnalyticsEvent
+)
+from .serializers import (
+    ChannelSerializer, MessageSerializer, DirectMessageSerializer, 
+    AnalyticsEventSerializer
+)
 from apps.notifications.models import Notification
 from django.contrib.auth import get_user_model
 import re
@@ -125,3 +131,14 @@ class MessageViewSet(viewsets.ModelViewSet):
         message = self.get_object()
         MessageRead.objects.get_or_create(user=request.user, message=message)
         return Response({'status': 'read'})
+
+class AuditLogViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = AnalyticsEventSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = AnalyticsEvent.objects.all()
+
+    def get_queryset(self):
+        # Only show user's own events or all for admins
+        if self.request.user.is_staff:
+            return AnalyticsEvent.objects.all().order_by('-timestamp')
+        return AnalyticsEvent.objects.filter(user=self.request.user).order_by('-timestamp')

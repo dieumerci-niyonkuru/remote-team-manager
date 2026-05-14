@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import (
     Channel, Message, DirectMessage, ChannelMembership,
-    MessageReaction, MessageEditHistory, MessageRead, FileAttachment
+    MessageReaction, MessageEditHistory, MessageRead, FileAttachment, AnalyticsEvent
 )
 from apps.accounts.serializers import UserSerializer
 
@@ -53,4 +53,10 @@ class DirectMessageSerializer(serializers.ModelSerializer):
     messages = MessageSerializer(many=True, read_only=True)
     class Meta:
         model = DirectMessage
+        fields = '__all__'
+
+class AnalyticsEventSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    class Meta:
+        model = AnalyticsEvent
         fields = '__all__'

@@ -1,6 +1,13 @@
 from django.db import models
 from django.conf import settings
 from apps.workspaces.models import Workspace
+from django.core.exceptions import ValidationError
+
+def validate_file_size(value):
+    filesize = value.size
+    if filesize > 10 * 1024 * 1024: # 10MB limit
+        raise ValidationError("The maximum file size that can be uploaded is 10MB")
+    return value
 
 class DirectMessage(models.Model):
     sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='sent_dms')
@@ -19,7 +26,7 @@ class FriendRequest(models.Model):
 class FileAttachment(models.Model):
     content_type = models.CharField(max_length=50)  # 'task', 'project', 'workspace', 'dm'
     object_id = models.PositiveIntegerField()
-    file = models.FileField(upload_to='attachments/')
+    file = models.FileField(upload_to='attachments/', validators=[validate_file_size])
     uploaded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     uploaded_at = models.DateTimeField(auto_now_add=True)
     version = models.IntegerField(default=1)

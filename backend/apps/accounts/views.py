@@ -11,6 +11,7 @@ class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
     permission_classes = (permissions.AllowAny,)
     serializer_class = RegisterSerializer
+    throttle_scope = 'auth'
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -49,5 +50,26 @@ class LogoutView(generics.GenericAPIView):
     def post(self, request, *args, **kwargs):
         return Response({'message': 'Logged out'}, status=status.HTTP_200_OK)
 
+from apps.chat.models import AnalyticsEvent
+
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
+    throttle_scope = 'auth'
+
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+        if response.status_code == 200:
+            # Get user from username in request data
+            username = request.data.get('username')
+            user = User.objects.get(username=username)
+            AnalyticsEvent.objects.create(
+                event_type='user_login',
+                user=user,
+                payload={'ip': request.META.get('REMOTE_ADDR'), 'user_agent': request.META.get('HTTP_USER_AGENT'), 'status': 'success'}
+            )
+        else:
+            AnalyticsEvent.objects.create(
+                event_type='user_login',
+                payload={'username': request.data.get('username'), 'ip': request.META.get('REMOTE_ADDR'), 'status': 'failed'}
+            )
+        return response
