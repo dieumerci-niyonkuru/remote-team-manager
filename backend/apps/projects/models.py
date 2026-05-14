@@ -107,3 +107,8 @@ class TaskDependency(models.Model):
 
     def __str__(self):
         return f"{self.task.title} ← blocked by → {self.depends_on.title}"
+class TaskActivity(models.Model):
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='activities')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    verb = models.CharField(max_length=255)  # e.g., "moved this task from To Do to In Progress"
+    created_at = models.DateTimeField(auto_now_add=True)

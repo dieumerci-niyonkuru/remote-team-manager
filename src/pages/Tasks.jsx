@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../store';
-import { CheckSquare, Plus, Filter, Search, MoreHorizontal, Clock, AlertTriangle, User, MessageSquare, Paperclip, Send } from 'lucide-react';
+import { CheckSquare, Plus, Filter, Search, MoreHorizontal, Clock, AlertTriangle, User, MessageSquare, Paperclip, Send, X } from 'lucide-react';
 import api from '../services/api';
+import toast from 'react-hot-toast';
 
 export default function Tasks() {
   const { activeWorkspace } = useStore();
@@ -9,7 +10,7 @@ export default function Tasks() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterProject, setFilterProject] = useState('all');
-
+  const wsRef = useRef(null);
   const columns = [
     { id: 'todo', title: 'To Do', color: 'gray' },
     { id: 'in_progress', title: 'In Progress', color: 'blue' },
@@ -20,8 +21,40 @@ export default function Tasks() {
   useEffect(() => {
     if (activeWorkspace) {
       fetchInitialData();
+      connectWS();
     }
+    return () => {
+      if (wsRef.current) wsRef.current.close();
+    };
   }, [activeWorkspace]);
+
+  const connectWS = () => {
+    if (wsRef.current) wsRef.current.close();
+    const token = localStorage.getItem('rtm_access');
+    const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+    const host = window.location.host;
+    // Handle localhost dev port mismatch
+    const wsHost = host.includes('localhost:5173') ? 'localhost:8000' : host;
+    const wsUrl = `${protocol}://${wsHost}/ws/tasks/${activeWorkspace.id}/?token=${token}`;
+    
+    wsRef.current = new WebSocket(wsUrl);
+    
+    wsRef.current.onmessage = (e) => {
+      const data = JSON.parse(e.data);
+      if (data.action === 'created') {
+        setTasks(prev => [...prev, data.task]);
+      } else if (data.action === 'updated') {
+        setTasks(prev => prev.map(t => t.id === data.task.id ? data.task : t));
+      } else if (data.action === 'deleted') {
+        setTasks(prev => prev.filter(t => t.id !== data.task_id));
+      }
+    };
+
+    wsRef.current.onclose = () => {
+      console.log('Task WebSocket disconnected. Reconnecting...');
+      setTimeout(connectWS, 3000);
+    };
+  };
 
   const fetchInitialData = async () => {
     try {
@@ -268,6 +301,45 @@ function TaskModal({ task, onClose }) {
                        />
                        <button className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-xl">
                           <Send size={18} />
+                       </button>
+                    </div>
+                 </div>
+
+                 <div className="pt-6 border-t border-gray-800">
+                    <h4 className="text-xs font-black text-gray-500 uppercase tracking-widest mb-4">Task Activity History</h4>
+                    <div className="space-y-3">
+                       {task.activities?.map(act => (
+                          <div key={act.id} className="flex items-center gap-3 text-[11px]">
+                             <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_5px_rgba(59,130,246,0.5)]" />
+                             <p className="text-gray-400">
+                                <span className="text-white font-bold">{act.user_name}</span> {act.verb}
+                             </p>
+                             <span className="text-gray-600 ml-auto font-medium">{new Date(act.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                          </div>
+                       ))}
+                       {(!task.activities || task.activities.length === 0) && (
+                          <p className="text-[10px] text-gray-600 italic">No activity recorded yet.</p>
+                       )}
+                    </div>
+                 </div>
+
+                 <div className="pt-6 border-t border-gray-800">
+                    <h4 className="text-xs font-black text-gray-500 uppercase tracking-widest mb-4">Attachments</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                       {task.files?.map(file => (
+                          <div key={file.id} className="flex items-center gap-3 p-3 bg-gray-900/50 border border-gray-800 rounded-2xl hover:border-gray-700 transition-all cursor-pointer group">
+                             <div className="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center text-gray-500 group-hover:text-blue-500 transition-colors">
+                                <Paperclip size={14} />
+                             </div>
+                             <div className="min-w-0">
+                                <p className="text-xs font-bold text-gray-300 truncate">{file.filename}</p>
+                                <p className="text-[9px] text-gray-600 font-bold uppercase">{file.uploaded_by_name}</p>
+                             </div>
+                          </div>
+                       ))}
+                       <button className="flex items-center justify-center gap-2 p-3 border border-dashed border-gray-800 rounded-2xl text-gray-600 hover:text-blue-500 hover:border-blue-500/50 hover:bg-blue-500/5 transition-all text-xs font-bold">
+                          <Plus size={14} />
+                          Upload File
                        </button>
                     </div>
                  </div>

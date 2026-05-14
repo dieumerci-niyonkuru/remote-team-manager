@@ -5,5 +5,4 @@ class ProjectsConfig(AppConfig):
     name = 'apps.projects'
 
     def ready(self):
-        # No signals imported here – they were causing ImportError
-        pass
+        import apps.projects.signals

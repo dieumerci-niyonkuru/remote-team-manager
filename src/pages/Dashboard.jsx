@@ -11,7 +11,9 @@ import {
   ArrowUpRight,
   MessageSquare
 } from 'lucide-react';
+import WorkspaceAnalytics from '../components/dashboard/WorkspaceAnalytics';
 import api from '../services/api';
+import toast from 'react-hot-toast';
 
 export default function Dashboard() {
   const { user, activeWorkspace } = useStore();
@@ -83,6 +85,13 @@ export default function Dashboard() {
         <StatCard title="Team Members" value={stats.members} icon={<Users />} color="green" />
         <StatCard title="Recent Activity" value={stats.activity} icon={<Clock />} color="orange" />
       </div>
+
+      {/* Analytics Pulse Section */}
+      <WorkspaceAnalytics 
+        tasks={tasks} 
+        projects={projects} 
+        members={members} 
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
         {/* Left Column: Recent Tasks */}

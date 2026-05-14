@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Project, Task, Subtask, Comment, Suggestion, Reaction
+from .models import Project, Task, Subtask, Comment, Suggestion, Reaction, TaskActivity, TaskFile
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -53,10 +53,24 @@ class ReactionSerializer(serializers.ModelSerializer):
         model = Reaction
         fields = '__all__'
 
+class TaskActivitySerializer(serializers.ModelSerializer):
+    user_name = serializers.ReadOnlyField(source='user.username')
+    class Meta:
+        model = TaskActivity
+        fields = ('id', 'user_name', 'verb', 'created_at')
+
+class TaskFileSerializer(serializers.ModelSerializer):
+    uploaded_by_name = serializers.ReadOnlyField(source='uploaded_by.username')
+    class Meta:
+        model = TaskFile
+        fields = ('id', 'file', 'filename', 'uploaded_by_name', 'uploaded_at')
+
 class TaskSerializer(serializers.ModelSerializer):
     subtasks = SubtaskSerializer(many=True, read_only=True)
     comments = CommentSerializer(many=True, read_only=True)
     reactions = ReactionSerializer(many=True, read_only=True)
+    activities = TaskActivitySerializer(many=True, read_only=True)
+    files = TaskFileSerializer(many=True, read_only=True)
     assignee_name = serializers.ReadOnlyField(source='assignee.username')
 
     class Meta:
@@ -64,5 +78,6 @@ class TaskSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'title', 'description', 'project', 'assignee', 'assignee_name',
             'status', 'priority', 'due_date', 'estimated_minutes', 
-            'subtasks', 'comments', 'reactions', 'created_at', 'updated_at'
+            'subtasks', 'comments', 'reactions', 'activities', 'files',
+            'created_at', 'updated_at'
         )
