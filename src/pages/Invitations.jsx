@@ -1,111 +1,148 @@
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../store';
-import { Mail, Check, X, Briefcase, Clock, Shield } from 'lucide-react';
+import { Mail, Check, X, Clock, Shield, UserPlus, Globe, Copy } from 'lucide-react';
 import api from '../services/api';
 import toast from 'react-hot-toast';
 
 export default function Invitations() {
-  const [invitations, setInvitations] = useState([]);
+  const { user, activeWorkspace } = useStore();
+  const [receivedInvites, setReceivedInvites] = useState([]);
+  const [sentInvites, setSentInvites] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchInvitations();
+    fetchInvites();
   }, []);
 
-  const fetchInvitations = async () => {
+  const fetchInvites = async () => {
     try {
-      const res = await api.get('/invitations/');
-      setInvitations(res.data);
+      const [received, sent] = await Promise.all([
+        api.get('/invites/received/'),
+        activeWorkspace ? api.get(`/invites/sent/?workspace=${activeWorkspace.id}`) : Promise.resolve({ data: [] })
+      ]);
+      setReceivedInvites(received.data);
+      setSentInvites(sent.data);
     } catch (err) {
-      console.error('Failed to fetch invitations:', err);
+      console.error('Failed to fetch invites:', err);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleAccept = async (id) => {
+  const handleAction = async (id, action) => {
     try {
-      await api.post(`/invitations/${id}/accept/`);
-      toast.success('Joined workspace successfully!');
-      fetchInvitations();
-      // Optionally refresh workspaces in store
+      await api.post(`/invites/${id}/${action}/`);
+      toast.success(`Invitation ${action}ed`);
+      fetchInvites();
     } catch (err) {
-      toast.error('Failed to accept invitation');
-    }
-  };
-
-  const handleReject = async (id) => {
-    try {
-      await api.delete(`/invitations/${id}/`);
-      toast.success('Invitation declined');
-      fetchInvitations();
-    } catch (err) {
-      toast.error('Failed to reject invitation');
+      toast.error(`Failed to ${action} invitation`);
     }
   };
 
   return (
     <div className="p-8 max-w-5xl mx-auto">
-      <div className="mb-10">
-        <h1 className="text-3xl font-black text-white tracking-tight flex items-center gap-3">
-          <Mail className="text-blue-500" size={32} />
-          Invitations
-        </h1>
-        <p className="text-gray-400 mt-1 font-medium">Manage requests to join workspaces and teams.</p>
+      <div className="flex items-center gap-4 mb-10">
+        <div className="w-12 h-12 rounded-2xl bg-blue-600/10 flex items-center justify-center text-blue-500">
+          <Mail size={24} />
+        </div>
+        <div>
+          <h1 className="text-3xl font-black text-white tracking-tight">Invitations Hub</h1>
+          <p className="text-gray-400">Manage your workspace access and team requests</p>
+        </div>
       </div>
 
-      {loading ? (
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-        </div>
-      ) : invitations.length === 0 ? (
-        <div className="bg-gray-800/30 border border-dashed border-gray-700 rounded-3xl p-16 text-center">
-           <Mail className="text-gray-600 mx-auto mb-4" size={48} />
-           <h3 className="text-xl font-bold text-white mb-2">No pending invitations</h3>
-           <p className="text-gray-500 text-sm">When someone invites you to a workspace, it will appear here.</p>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {invitations.map(invite => (
-            <div key={invite.id} className="bg-gray-800/40 border border-gray-800 rounded-2xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:border-gray-700 transition-all">
-               <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-blue-600/10 flex items-center justify-center text-blue-500 border border-blue-500/20">
-                     <Briefcase size={24} />
+      <div className="grid grid-cols-1 gap-10">
+        {/* Pending Requests for YOU */}
+        {receivedInvites.length > 0 && (
+          <section>
+            <h2 className="text-xs font-black text-gray-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+              <UserPlus size={14} />
+              Received Invitations
+            </h2>
+            <div className="space-y-3">
+              {receivedInvites.map(invite => (
+                <div key={invite.id} className="bg-gray-800/40 border border-gray-800 rounded-3xl p-6 flex items-center justify-between hover:border-blue-500/30 transition-all group">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center text-white text-xl font-black">
+                      {invite.workspace_name?.charAt(0)}
+                    </div>
+                    <div>
+                      <p className="text-white font-bold text-lg">{invite.workspace_name}</p>
+                      <p className="text-xs text-gray-400 font-medium">Invited by <span className="text-blue-500 font-bold">{invite.invited_by_name}</span></p>
+                    </div>
                   </div>
-                  <div>
-                     <h3 className="text-lg font-bold text-white">Join <span className="text-blue-400">{invite.workspace_name}</span></h3>
-                     <p className="text-xs text-gray-500 flex items-center gap-2 mt-1">
-                        Invited by <span className="text-gray-300 font-bold">{invite.invited_by_name}</span> • 
-                        <Shield size={12} className="text-purple-500" />
-                        Role: {invite.role}
-                     </p>
+                  <div className="flex items-center gap-3">
+                    <button 
+                      onClick={() => handleAction(invite.id, 'accept')}
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-blue-600/20 active:scale-95"
+                    >
+                      <Check size={18} />
+                      Accept
+                    </button>
+                    <button 
+                      onClick={() => handleAction(invite.id, 'reject')}
+                      className="bg-gray-800 hover:bg-red-600/20 hover:text-red-500 text-gray-400 px-4 py-2.5 rounded-xl font-bold transition-all border border-gray-700"
+                    >
+                      Decline
+                    </button>
                   </div>
-               </div>
-               
-               <div className="flex items-center gap-3">
-                  <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-900 border border-gray-800 text-[10px] font-bold text-gray-500 mr-4">
-                     <Clock size={12} />
-                     Expires: {new Date(invite.expires_at).toLocaleDateString()}
-                  </div>
-                  <button 
-                    onClick={() => handleAccept(invite.id)}
-                    className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold transition-all shadow-lg shadow-blue-600/20 active:scale-95"
-                  >
-                     <Check size={18} />
-                     Accept
-                  </button>
-                  <button 
-                    onClick={() => handleReject(invite.id)}
-                    className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-gray-800 hover:bg-red-600/20 hover:text-red-500 text-gray-400 px-5 py-2.5 rounded-xl font-bold transition-all border border-gray-700 hover:border-red-500/50"
-                  >
-                     <X size={18} />
-                     Decline
-                  </button>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Sent Invitations (If Admin) */}
+        {activeWorkspace && (
+          <section>
+            <h2 className="text-xs font-black text-gray-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+              <Globe size={14} />
+              Active Workspace Invites ({activeWorkspace.name})
+            </h2>
+            <div className="bg-gray-800/20 border border-gray-800 rounded-[32px] overflow-hidden">
+               <div className="divide-y divide-gray-800/50">
+                 {sentInvites.map(invite => (
+                   <div key={invite.id} className="p-6 flex items-center justify-between hover:bg-white/5 transition-colors">
+                     <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-full bg-gray-900 border border-gray-800 flex items-center justify-center text-gray-500">
+                          <Mail size={18} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-white">{invite.email}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                             <span className="text-[10px] font-black uppercase text-gray-500 px-2 py-0.5 rounded bg-gray-800 border border-gray-700">{invite.role}</span>
+                             <span className="text-[10px] text-gray-600 font-bold">• {new Date(invite.created_at).toLocaleDateString()}</span>
+                          </div>
+                        </div>
+                     </div>
+                     <div className="flex items-center gap-4">
+                        {invite.accepted ? (
+                           <div className="px-3 py-1.5 rounded-full bg-green-500/10 text-green-500 text-[10px] font-black uppercase flex items-center gap-2">
+                              <Check size={12} />
+                              Joined
+                           </div>
+                        ) : (
+                           <div className="px-3 py-1.5 rounded-full bg-amber-500/10 text-amber-500 text-[10px] font-black uppercase flex items-center gap-2">
+                              <Clock size={12} />
+                              Pending
+                           </div>
+                        )}
+                        <button className="p-2 hover:bg-red-600/10 text-gray-600 hover:text-red-500 rounded-xl transition-all">
+                           <X size={18} />
+                        </button>
+                     </div>
+                   </div>
+                 ))}
+                 {sentInvites.length === 0 && (
+                   <div className="p-12 text-center">
+                     <p className="text-sm text-gray-500 font-bold">No active invitations for this workspace.</p>
+                   </div>
+                 )}
                </div>
             </div>
-          ))}
-        </div>
-      )}
+          </section>
+        )}
+      </div>
     </div>
   );
 }

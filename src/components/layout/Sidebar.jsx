@@ -32,6 +32,9 @@ export default function Sidebar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [showWorkspaceMenu, setShowWorkspaceMenu] = useState(false);
 
+  const userRole = activeWorkspace?.role || 'member';
+  const isAdmin = userRole === 'admin' || userRole === 'owner';
+
   const mainLinks = [
     { to: '/dashboard', label: t.dashboard, icon: <LayoutDashboard size={20} /> },
     { to: '/workspaces', label: t.workspaces, icon: <Briefcase size={20} /> },
@@ -39,8 +42,13 @@ export default function Sidebar() {
     { to: '/projects', label: t.projects, icon: <FolderKanban size={20} /> },
     { to: '/tasks', label: t.tasks, icon: <CheckSquare size={20} /> },
     { to: '/team', label: 'Members', icon: <Users size={20} /> },
-    { to: '/invitations', label: 'Invitations', icon: <Mail size={20} /> },
+    { to: '/invitations', label: 'Invitations', icon: <Mail size={20} />, badge: true },
   ];
+
+  const adminLinks = isAdmin ? [
+    { to: '/settings', label: 'Workspace Settings', icon: <Settings size={20} /> },
+    { to: '/analytics', label: 'Intelligence', icon: <PieChart size={20} /> },
+  ] : [];
 
   const commLinks = [
     { to: '/channels', label: t.channels, icon: <Hash size={20} /> },
@@ -110,6 +118,14 @@ export default function Sidebar() {
       <div className="flex-1 overflow-y-auto py-4 custom-scrollbar">
         <NavGroup links={mainLinks} collapsed={collapsed} />
         
+        {isAdmin && (
+          <>
+            {!collapsed && <div className="px-4 mt-6 mb-2 text-xs font-bold uppercase tracking-wider text-gray-500">Administration</div>}
+            {collapsed && <div className="h-px bg-gray-800 mx-4 my-4"></div>}
+            <NavGroup links={adminLinks} collapsed={collapsed} />
+          </>
+        )}
+        
         {!collapsed && <div className="px-4 mt-6 mb-2 text-xs font-bold uppercase tracking-wider text-gray-500">Communication</div>}
         {collapsed && <div className="h-px bg-gray-800 mx-4 my-4"></div>}
         <NavGroup links={commLinks} collapsed={collapsed} />
@@ -175,17 +191,29 @@ function NavGroup({ links, collapsed }) {
           key={link.to}
           to={link.to}
           className={({ isActive }) => `
-            flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group
-            ${isActive ? 'bg-blue-600/10 text-blue-500 font-semibold' : 'text-gray-400 hover:bg-gray-800 hover:text-gray-100'}
+            flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group relative
+            ${isActive ? 'bg-blue-600/10 text-white font-bold' : 'text-gray-400 hover:bg-gray-800/50 hover:text-gray-100'}
             ${collapsed ? 'justify-center' : ''}
           `}
           title={collapsed ? link.label : ''}
         >
-          <span className="shrink-0">{link.icon}</span>
-          {!collapsed && (
-            <span className="truncate text-[14px] leading-tight">
-              {link.label}
-            </span>
+          {({ isActive }) => (
+            <>
+              {isActive && (
+                <div className="absolute left-[-12px] top-1/2 -translate-y-1/2 w-1.5 h-6 bg-blue-500 rounded-r-full shadow-[0_0_10px_rgba(59,130,246,0.8)]" />
+              )}
+              <span className={`shrink-0 transition-transform ${isActive ? 'scale-110' : 'group-hover:scale-110'}`}>
+                {link.icon}
+              </span>
+              {!collapsed && (
+                <span className="flex-1 truncate text-[13px] tracking-tight">
+                  {link.label}
+                </span>
+              )}
+              {link.badge && !collapsed && (
+                <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)] animate-pulse" />
+              )}
+            </>
           )}
         </NavLink>
       ))}
