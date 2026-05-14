@@ -52,7 +52,7 @@ export default function Footer() {
             <div style={{ borderRadius: 24, overflow: 'hidden', border: '1px solid var(--border)', height: 200, background: 'var(--bg2)', position:'relative' }}>
               <iframe 
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d127606.31952219808!2d29.988081691357422!3d-1.9440733!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x19dca429ed308f25%3A0x10c9e03307d90!2sKigali%2C%20Rwanda!5e0!3m2!1sen!2sus!4v1714777860601!5m2!1sen!2sus" 
-                width="100%" height="100%" style={{ border: 0, filter: 'grayscale(1) invert(1) opacity(0.6)' }} allowFullScreen="" loading="lazy">
+                width="100%" height="100%" style={{ border: 0 }} allowFullScreen="" loading="lazy">
               </iframe>
               <div style={{ position:'absolute', bottom:16, left:16, right:16, background:'rgba(var(--bg-rgb), 0.8)', backdropFilter:'blur(10px)', padding:'8px 12px', borderRadius:12, fontSize:11, fontWeight:800, color:'var(--text)', border:'1px solid var(--border)', textAlign:'center' }}>
                  📍 KIGALI INNOVATION CITY, RWANDA
@@ -63,12 +63,9 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div style={{ paddingTop: 40, borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 24 }}>
+        <div style={{ paddingTop: 40, borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', gap: 24 }}>
           <div style={{ color: 'var(--text3)', fontSize: 14, fontWeight: 600 }}>
-            © 2026 Remote Team Manager. Engineered for the future of Rwanda.
-          </div>
-          <div style={{ display: 'flex', gap: 32, fontSize:14, fontWeight:800, color:'var(--text)' }}>
-             Built by Dieu-Merci Niyonkuru
+            Dieu Merci @ copylight
           </div>
         </div>
       </div>
