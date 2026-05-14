@@ -76,13 +76,13 @@ export default function Home() {
             Build faster. <br/> Scale <span style={{ background:'linear-gradient(135deg, var(--brand), var(--accent))', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>global.</span>
           </h1>
           
-          <p className="fade-in" style={{ fontSize:'clamp(16px, 2.5vw, 26px)', color:'var(--text2)', maxWidth:800, margin:'0 auto 64px', lineHeight:1.5, animationDelay:'0.2s', fontWeight:500 }}>
+          <p className="fade-in" style={{ fontSize:'clamp(16px, 2.5vw, 24px)', color:'var(--text2)', maxWidth:800, margin:'0 auto 64px', lineHeight:1.5, animationDelay:'0.2s', fontWeight:500 }}>
             The all-in-one mission control for modern teams. Real-time chat, AI workflows, and bank-grade security — built to scale with your ambition.
           </p>
           
           <div className="fade-in" style={{ display:'flex', gap:20, justifyContent:'center', flexWrap:'wrap', animationDelay:'0.3s' }}>
-            <Link to="/register" className="btn btn-primary" style={{ padding:'24px 60px', fontSize:20, borderRadius:20 }}>Start Your Journey</Link>
-            <Link to="/login" className="btn btn-secondary" style={{ padding:'24px 60px', fontSize:20, borderRadius:20 }}>Explore Platform ➜</Link>
+            <Link to="/register" className="btn btn-primary" style={{ padding:'24px 60px', fontSize:20, borderRadius:20, boxShadow:'0 20px 40px -10px rgba(51,102,255,0.4)' }}>Join Now</Link>
+            <Link to="/login" className="btn btn-secondary" style={{ padding:'24px 60px', fontSize:20, borderRadius:20, background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)' }}>Explore Platform ➜</Link>
           </div>
         </div>
       </section>
