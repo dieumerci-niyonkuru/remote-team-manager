@@ -165,13 +165,24 @@ class SearchView(viewsets.ViewSet):
         if not query:
             return Response({'results': []})
 
-        # Search Messages
-        messages = Message.objects.filter(
-            Q(content__icontains=query) &
-            (Q(channel__memberships__user=request.user) | Q(direct_message__participants=request.user))
-        ).distinct()[:20]
+        from django.db import connection
+        is_postgres = connection.vendor == 'postgresql'
 
-        # Search Channels
+        if is_postgres:
+            from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
+            vector = SearchVector('content', weight='A')
+            search_query = SearchQuery(query)
+            messages = Message.objects.annotate(rank=SearchRank(vector, search_query)).filter(
+                Q(rank__gte=0.1) &
+                (Q(channel__memberships__user=request.user) | Q(direct_message__participants=request.user))
+            ).order_by('-rank')[:20]
+        else:
+            messages = Message.objects.filter(
+                Q(content__icontains=query) &
+                (Q(channel__memberships__user=request.user) | Q(direct_message__participants=request.user))
+            ).distinct()[:20]
+
+        # Search Channels (simple icontains for names is usually enough)
         channels = Channel.objects.filter(
             Q(name__icontains=query) &
             (Q(is_private=False) | Q(memberships__user=request.user))

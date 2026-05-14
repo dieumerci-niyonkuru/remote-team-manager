@@ -17,6 +17,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.postgres',
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
@@ -138,3 +139,17 @@ if config('REDIS_URL', default=None):
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {"hosts": [config('REDIS_URL')]},
     }
+
+# Celery Settings
+CELERY_BROKER_URL = config('REDIS_URL', default='redis://localhost:6379/0')
+CELERY_RESULT_BACKEND = 'django-db'
+CELERY_CACHE_BACKEND = 'django-cache'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = TIME_ZONE
+
+INSTALLED_APPS += [
+    'django_celery_results',
+    'django_celery_beat',
+]
