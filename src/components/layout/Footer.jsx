@@ -76,7 +76,6 @@ export default function Footer() {
           <div>
             <h4 style={{ color: '#000', fontWeight: 700, marginBottom: 24, fontSize: 14 }}>Sales</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <div style={{ color: '#0b5cff', fontWeight: 700, fontSize: 14, marginBottom: 8 }}>1.888.799.9666</div>
               {FOOTER_LINKS.sales.map(item => (
                 <Link key={item.label} to={item.to} style={{ color: '#666', textDecoration: 'none', fontSize: 13 }} className="zoom-link">{item.label}</Link>
               ))}
