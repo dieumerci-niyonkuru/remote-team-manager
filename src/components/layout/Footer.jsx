@@ -18,10 +18,10 @@ export default function Footer() {
               <div style={{ width:48, height:48, borderRadius:14, background:'linear-gradient(135deg,#3366ff,#8b5cf6)', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', boxShadow:'0 10px 20px -5px rgba(51,102,255,0.4)' }}>
                 <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
               </div>
-              <span className="logo-font" style={{ fontSize:26 }}>NexusTeams</span>
+              <span className="logo-font" style={{ fontSize:26 }}>Remote Team</span>
             </Link>
             <p style={{ color: 'var(--text2)', lineHeight: 1.8, fontSize: 16, maxWidth: 420 }}>
-              NexusTeams is an enterprise-grade mission control platform designed to unify remote workforces, streamline complex workflows, and protect mission-critical assets globally.
+              Remote Team Manager is an enterprise-grade mission control platform designed to unify remote workforces, streamline complex workflows, and protect mission-critical assets globally.
             </p>
             <div style={{ marginTop: 32, display: 'flex', gap: 20 }}>
               {SOCIAL.map(s => (
@@ -65,7 +65,7 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div style={{ paddingTop: 40, borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 24 }}>
           <div style={{ color: 'var(--text3)', fontSize: 14, fontWeight: 600 }}>
-            © 2026 NexusTeams Technologies. Engineered for the future of Rwanda.
+            © 2026 Remote Team Manager. Engineered for the future of Rwanda.
           </div>
           <div style={{ display: 'flex', gap: 32, fontSize:14, fontWeight:800, color:'var(--text)' }}>
              Built by Dieu-Merci Niyonkuru

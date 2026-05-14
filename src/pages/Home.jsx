@@ -118,7 +118,7 @@ export default function Home() {
           <div>
              <div style={{ width:48, height:8, background:'var(--brand)', borderRadius:4, marginBottom:32 }} />
              <h2 style={{ fontSize:'clamp(32px, 5vw, 56px)', fontWeight:900, marginBottom:32, lineHeight:1.1 }}>We are on a mission to unite <span style={{ color:'var(--brand)' }}>humanity</span> through code.</h2>
-             <p style={{ fontSize:20, color:'var(--text2)', lineHeight:1.8, marginBottom:40 }}>NexusTeams was born from the belief that talent is universal, but opportunity is not. We build the bridges that connect the world's best minds, regardless of where they sleep.</p>
+             <p style={{ fontSize:20, color:'var(--text2)', lineHeight:1.8, marginBottom:40 }}>Remote Team Manager was born from the belief that talent is universal, but opportunity is not. We build the bridges that connect the world's best minds, regardless of where they sleep.</p>
              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:32 }}>
                 {[
                   { label:'Founded', val:'2024' },
@@ -149,7 +149,7 @@ export default function Home() {
       <section style={{ padding:'120px 24px', background:'var(--bg)' }}>
         <div className="container" style={{ textAlign:'center' }}>
           <h2 style={{ fontSize:48, fontWeight:900, marginBottom:24 }}>Join the revolution.</h2>
-          <p style={{ color:'var(--text2)', fontSize:20, marginBottom:56, maxWidth:600, margin:'0 auto 56px' }}>Get the latest updates on AI, remote work, and NexusTeams engineering.</p>
+          <p style={{ color:'var(--text2)', fontSize:20, marginBottom:56, maxWidth:600, margin:'0 auto 56px' }}>Get the latest updates on AI, remote work, and Remote Team engineering.</p>
           <form style={{ maxWidth:600, margin:'0 auto', display:'flex', gap:16 }}>
             <input className="input" type="email" placeholder="Enter your email" style={{ padding:'20px 32px', fontSize:18, borderRadius:16 }} />
             <button className="btn btn-primary" type="button" style={{ padding:'0 48px', borderRadius:16, fontSize:18 }}>Subscribe</button>

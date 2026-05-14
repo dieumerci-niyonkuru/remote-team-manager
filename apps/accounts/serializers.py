@@ -1,3 +1,4 @@
+from typing import Any, Dict, Optional
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
 from rest_framework.validators import UniqueValidator
@@ -6,29 +7,47 @@ from .models import User
 
 class UserSerializer(serializers.ModelSerializer):
     avatar = serializers.SerializerMethodField()
-    def get_avatar(self, obj):
+
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'role', 'avatar', 'bio', 'phone')
+
+    def get_avatar(self, obj: User) -> Optional[str]:
         request = self.context.get('request')
         if obj.avatar and request:
             return request.build_absolute_uri(obj.avatar.url)
         return None
 
 class RegisterSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
-    password2 = serializers.CharField(write_only=True, required=True)
-    email = serializers.EmailField(required=True, validators=[UniqueValidator(queryset=User.objects.all(), message="A user with this email already exists.")])
+    password = serializers.CharField(
+        write_only=True, 
+        required=True, 
+        validators=[validate_password],
+        error_messages={'required': 'Please provide a password.'}
+    )
+    password2 = serializers.CharField(
+        write_only=True, 
+        required=True,
+        error_messages={'required': 'Please confirm your password.'}
+    )
+    email = serializers.EmailField(
+        required=True, 
+        validators=[UniqueValidator(queryset=User.objects.all(), message="This email is already in use.")],
+        error_messages={'required': 'Please enter your email address.', 'invalid': 'Please enter a valid email.'}
+    )
 
     class Meta:
         model = User
         fields = ('password', 'password2', 'email', 'first_name', 'last_name', 'role', 'avatar')
 
-    def validate(self, attrs):
+    def validate(self, attrs: Dict[str, Any]) -> Dict[str, Any]:
         if attrs['password'] != attrs['password2']:
-            raise serializers.ValidationError({"password": "Password fields didn't match."})
+            raise serializers.ValidationError({"password2": "Passwords do not match. Please try again."})
         return attrs
 
-    def create(self, validated_data):
+    def create(self, validated_data: Dict[str, Any]) -> User:
         validated_data.pop('password2')
-        # Use email as username
+        # Use email as username automatically
         email = validated_data.get('email')
         validated_data['username'] = email
         user = User.objects.create_user(**validated_data)
@@ -37,28 +56,27 @@ class RegisterSerializer(serializers.ModelSerializer):
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     email = serializers.EmailField(required=False)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         if self.username_field in self.fields:
             self.fields[self.username_field].required = False
 
-    def validate(self, attrs):
+    def validate(self, attrs: Dict[str, Any]) -> Dict[str, Any]:
         # The frontend sends 'email' instead of 'username'
         email = attrs.get('email')
-        
         if email:
             attrs[self.username_field] = email
         
         data = super().validate(attrs)
         
-        # Include user data
+        # Include detailed user data in response
         user_data = UserSerializer(self.user).data
         
-        # Wrap in 'data' key to match frontend expectation
         return {
             "data": {
                 "access": data['access'],
                 "refresh": data['refresh'],
                 "user": user_data
-            }
+            },
+            "message": "Welcome back! Login successful."
         }

@@ -131,6 +131,8 @@ if 'https://remote-teams-co.netlify.app' not in CORS_ALLOWED_ORIGINS:
     CORS_ALLOWED_ORIGINS.append('https://remote-teams-co.netlify.app')
 CORS_ALLOW_CREDENTIALS = True
 
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels.layers.InMemoryChannelLayer',

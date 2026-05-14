@@ -44,13 +44,13 @@ export default function Register() {
 
   const validate = () => {
     const e = {}
-    if (!form.first_name) e.first_name = 'Required'
-    if (!form.last_name) e.last_name = 'Required'
-    if (!form.email) e.email = 'Required'
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = 'Invalid'
-    if (!form.password) e.password = 'Required'
-    else if (form.password.length < 8) e.password = 'Min 8 chars'
-    if (form.password !== form.password2) e.password2 = 'Mismatch'
+    if (!form.first_name) e.first_name = 'This field is required'
+    if (!form.last_name) e.last_name = 'This field is required'
+    if (!form.email) e.email = 'This field is required'
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = 'Invalid email address'
+    if (!form.password) e.password = 'This field is required'
+    else if (form.password.length < 8) e.password = 'At least 8 characters'
+    if (form.password !== form.password2) e.password2 = 'Passwords do not match'
     setErrors(e)
     return !Object.keys(e).length
   }
@@ -66,15 +66,14 @@ export default function Register() {
 
     try {
       await auth.register(formData)
-      toast.success('Registration successful! Please log in.')
+      toast.success('Account created. Please log in.')
       navigate('/login')
     } catch (err) {
       const data = err.response?.data
-      let msg = 'Access Denied'
+      let msg = 'Unable to register'
       if (data) {
         if (data.message) msg = data.message
         else if (typeof data === 'object') {
-          // Extract first error from DRF validation errors
           const errors = Object.values(data).flat()
           if (errors.length > 0) msg = errors[0]
         }

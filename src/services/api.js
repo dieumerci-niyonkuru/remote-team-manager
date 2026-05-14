@@ -75,12 +75,17 @@ export const chat = {
   messages: params => api.get('/messages/', { params }),
   dms: () => api.get('/direct-messages/'),
   createDm: d => api.post('/direct-messages/', d),
+  addReaction: (id, emoji) => api.post(`/messages/${id}/react/`, { emoji }),
+  editMessage: (id, content) => api.patch(`/messages/${id}/`, { content }),
+  deleteMessage: id => api.delete(`/messages/${id}/`),
+  pinMessage: id => api.post(`/messages/${id}/pin/`),
+  markRead: channelId => api.post(`/channels/${channelId}/read/`),
 }
 
 export const timer = {
-  start: task_id => api.post('/start/', { task_id }),
-  pause: task_id => api.post('/pause/', { task_id }),
-  logs: () => api.get('/logs/'),
+  start: task_id => api.post('/timelogs/', { task_id }),
+  pause: task_id => api.patch(`/timelogs/${task_id}/`, { is_running: false }),
+  logs: () => api.get('/timelogs/'),
 }
 
 export const hr = {
@@ -97,21 +102,21 @@ export const files = {
 }
 
 export const ai = {
-  suggestTasks: prompt => api.post('/ai/suggest-tasks/', { prompt }),
+  suggestTasks: prompt => api.post('/ai-suggestions/', { prompt }),
 }
 
 export const automation = {
-  list: () => api.get('/automation/rules/'),
-  create: d => api.post('/automation/rules/', d),
-  delete: id => api.delete(`/automation/rules/${id}/`),
+  list: () => api.get('/automation-rules/'),
+  create: d => api.post('/automation-rules/', d),
+  delete: id => api.delete(`/automation-rules/${id}/`),
 }
 
 export const wiki = {
-  list: (q) => api.get('/wiki/articles/', { params: q ? { q } : {} }),
-  get: (id) => api.get(`/wiki/articles/${id}/`),
-  create: d => api.post('/wiki/articles/', d),
-  update: (id, d) => api.patch(`/wiki/articles/${id}/`, d),
-  delete: id => api.delete(`/wiki/articles/${id}/`),
+  list: (q) => api.get('/wiki-articles/', { params: q ? { q } : {} }),
+  get: (id) => api.get(`/wiki-articles/${id}/`),
+  create: d => api.post('/wiki-articles/', d),
+  update: (id, d) => api.patch(`/wiki-articles/${id}/`, d),
+  delete: id => api.delete(`/wiki-articles/${id}/`),
 }
 
 export const search = {

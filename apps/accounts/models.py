@@ -1,8 +1,9 @@
+from typing import Tuple
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 class User(AbstractUser):
-    ROLE_CHOICES = (
+    ROLE_CHOICES: Tuple[Tuple[str, str], ...] = (
         ('viewer', 'Viewer'),
         ('developer', 'Developer'),
         ('manager', 'Manager'),
@@ -19,16 +20,21 @@ class User(AbstractUser):
     bio = models.TextField(blank=True)
     avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
     phone = models.CharField(max_length=20, blank=True)
-    # New field: profile visibility (who can see your avatar & bio)
+    
+    # Profile visibility choices
+    VISIBILITY_CHOICES: Tuple[Tuple[str, str], ...] = [
+        ('public', 'Public'), 
+        ('workspace', 'Workspace only'), 
+        ('private', 'Private')
+    ]
     profile_visibility = models.CharField(
         max_length=20,
-        choices=[('public', 'Public'), ('workspace', 'Workspace only'), ('private', 'Private')],
+        choices=VISIBILITY_CHOICES,
         default='workspace'
     )
 
-    def __str__(self):
-        return self.email
-
-    # Two-factor authentication fields
     otp_secret = models.CharField(max_length=16, blank=True, null=True)
     otp_enabled = models.BooleanField(default=False)
+
+    def __str__(self) -> str:
+        return str(self.email) if self.email else str(self.username)

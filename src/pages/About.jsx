@@ -19,7 +19,7 @@ export default function About() {
             Unifying <span className="text-gradient">Human Intelligence</span>
           </h1>
           <p style={{ fontSize: 20, color: 'var(--text2)', lineHeight: 1.6, maxWidth: 700, margin: '0 auto' }}>
-            NexusTeams is more than a tool—it's a high-fidelity mission control for the modern era, designed to empower teams in Rwanda and across the globe.
+            Remote Team Manager is more than a tool—it's a high-fidelity mission control for the modern era, designed to empower teams in Rwanda and across the globe.
           </p>
         </div>
 
@@ -27,7 +27,7 @@ export default function About() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 48, marginBottom: 100 }}>
           <div className="card glass" style={{ padding: 48 }}>
             <div style={{ fontSize: 40, marginBottom: 24 }}>🧠</div>
-            <h2 style={{ fontSize: 24, fontWeight: 900, color: 'var(--text)', marginBottom: 16 }}>What is NexusTeams?</h2>
+            <h2 style={{ fontSize: 24, fontWeight: 900, color: 'var(--text)', marginBottom: 16 }}>What is Remote Team Manager?</h2>
             <p style={{ color: 'var(--text2)', lineHeight: 1.8, fontSize: 16 }}>
               It is a multi-tenant, secure collaboration hub where communication, task management, and resource allocation converge. Built with enterprise-grade encryption, it ensures that your team's intelligence remains protected and synchronized.
             </p>
