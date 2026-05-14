@@ -7,6 +7,8 @@ import {
   ChevronDown, UserPlus, Info
 } from 'lucide-react';
 import Avatar from '../components/common/Avatar';
+import CreateChannelModal from '../components/chat/CreateChannelModal';
+import api from '../services/api';
 
 const MOCK_CHANNELS = [
   { id: 'general', name: 'general', type: 'public', unread: 0 },
@@ -35,6 +37,7 @@ export default function Chat() {
   
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [showSidebar, setShowSidebar] = useState(true);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   
   const scrollRef = useRef(null);
   const threadScrollRef = useRef(null);
@@ -374,7 +377,12 @@ export default function Chat() {
         <div className="flex-1 overflow-y-auto custom-scrollbar py-4">
           <div className="flex items-center justify-between px-4 mb-2 group">
             <span className="text-[12px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Channels</span>
-            <button className="text-gray-400 hover:text-gray-900 dark:hover:text-white opacity-0 group-hover:opacity-100"><Plus size={16} /></button>
+            <button 
+              onClick={() => setShowCreateModal(true)}
+              className="text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+            >
+              <Plus size={16} />
+            </button>
           </div>
           <div className="mb-6">
             {channels.map(c => (
@@ -546,6 +554,14 @@ export default function Chat() {
         </div>
       )}
 
+      <CreateChannelModal 
+        isOpen={showCreateModal} 
+        onClose={() => setShowCreateModal(false)}
+        onCreated={(newCh) => {
+          setChannels(prev => [...prev, newCh]);
+          setActiveTab(newCh.id);
+        }}
+      />
     </div>
   );
 }

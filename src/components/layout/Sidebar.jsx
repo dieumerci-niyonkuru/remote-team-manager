@@ -3,6 +3,7 @@ import { NavLink } from 'react-router-dom';
 import { useStore } from '../../store';
 import { useT } from '../../i18n';
 import Avatar from '../common/Avatar';
+import CreateWorkspaceModal from '../workspaces/CreateWorkspaceModal';
 import {
   LayoutDashboard,
   Briefcase,
@@ -32,6 +33,7 @@ export default function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [showWorkspaceMenu, setShowWorkspaceMenu] = useState(false);
+  const [showCreateWsModal, setShowCreateWsModal] = useState(false);
 
   const userRole = activeWorkspace?.role || 'member';
   const isAdmin = userRole === 'admin' || userRole === 'owner';
@@ -107,7 +109,10 @@ export default function Sidebar() {
               </button>
             ))}
             <div className="border-t border-gray-800 mt-1 pt-1">
-              <button className="w-full px-4 py-2 text-xs font-bold text-blue-500 hover:bg-blue-600/10 text-left transition-colors">
+              <button 
+                onClick={() => { setShowCreateWsModal(true); setShowWorkspaceMenu(false); }}
+                className="w-full px-4 py-2 text-xs font-bold text-blue-500 hover:bg-blue-600/10 text-left transition-colors"
+              >
                 + Create New Workspace
               </button>
             </div>
@@ -147,7 +152,12 @@ export default function Sidebar() {
             <div className="flex-1 min-w-0">
               <p className="text-sm font-bold text-white truncate">{user?.first_name ? `${user.first_name} ${user.last_name || ''}` : user?.username}</p>
               <p className="text-[10px] text-gray-500 font-bold uppercase truncate">{user?.email}</p>
-            </div>
+              <CreateWorkspaceModal 
+        isOpen={showCreateWsModal} 
+        onClose={() => setShowCreateWsModal(false)}
+        onCreated={(newWs) => setActiveWorkspace(newWs)}
+      />
+    </div>
           )}
         </div>
       </div>
