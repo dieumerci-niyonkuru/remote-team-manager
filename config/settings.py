@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'apps.wiki',
     'apps.integrations',
     'apps.timetracking',
+    'apps.feedback',
 ]
 
 MIDDLEWARE = [

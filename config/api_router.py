@@ -10,6 +10,7 @@ from apps.okr.views import ObjectiveViewSet, KeyResultViewSet
 from apps.automation.views import AutomationRuleViewSet
 from apps.wiki.views import WikiArticleViewSet
 from apps.integrations.views import IntegrationViewSet
+from apps.feedback.views import FeedbackViewSet
 
 router = DefaultRouter()
 
@@ -54,7 +55,7 @@ router.register(r'automation-rules', AutomationRuleViewSet, basename='automation
 # Wiki
 router.register(r'wiki-articles', WikiArticleViewSet, basename='wikiarticle')
 
-# Integrations
-router.register(r'integrations', IntegrationViewSet, basename='integration')
+# Feedback
+router.register(r'feedback', FeedbackViewSet, basename='feedback')
 
 urlpatterns = router.urls

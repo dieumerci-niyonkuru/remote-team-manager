@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useStore } from '../store'
 import Dashboard from './Dashboard'
 
@@ -25,22 +25,15 @@ const FEATURES = [
     title:'Project Insights', 
     desc:'Visual dashboards and time tracking give you deep visibility into productivity.',
     img: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=800'
-  },
-  { 
-    title:'Enterprise Security', 
-    desc:'Bank-grade encryption and role-based access control protect your sensitive data.',
-    img: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?q=80&w=800'
-  },
-  { 
-    title:'Multi-Tenant', 
-    desc:'Isolate different organizations with dedicated workspaces and team permissions.',
-    img: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=800'
-  },
-  { 
-    title:'Global Delivery', 
-    desc:'Edge-optimized performance ensures low latency for remote teams worldwide.',
-    img: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=800'
   }
+]
+
+const MARQUEE_ITEMS = [
+  { name: 'Sarah L.', role: 'Engineering Lead', text: 'RemoteTeam transformed how we deploy globally.', avatar: 'https://i.pravatar.cc/150?u=sarah' },
+  { name: 'Marcus J.', role: 'Product Manager', text: 'The AI workflows are a literal game changer.', avatar: 'https://i.pravatar.cc/150?u=marcus' },
+  { name: 'Elena R.', role: 'Head of Design', text: 'Beautiful UI, even better performance.', avatar: 'https://i.pravatar.cc/150?u=elena' },
+  { name: 'David K.', role: 'CEO @ TechFlow', text: 'Scaling to 500 members was seamless with the workspace OS.', avatar: 'https://i.pravatar.cc/150?u=david' },
+  { name: 'Sofia M.', role: 'Operations', text: 'The Kanban engine is the most stable we have ever used.', avatar: 'https://i.pravatar.cc/150?u=sofia' },
 ]
 
 export default function Home() {
@@ -61,99 +54,108 @@ export default function Home() {
     <div className={theme} style={{ background:'var(--bg)' }}>
       {/* Hero Section */}
       <section style={{ position:'relative', minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', padding:'120px 24px', overflow:'hidden' }}>
-        {BACKGROUNDS.map((bg, i) => (
-          <div key={bg} style={{ position:'absolute', inset:0, backgroundImage:`url(${bg})`, backgroundSize:'cover', backgroundPosition:'center', opacity: i === bgIndex ? 0.25 : 0, transition:'opacity 2s ease-in-out', zIndex:0 }} />
-        ))}
+        {/* Animated Background Overlay */}
+        <div style={{ position:'absolute', inset:0, zIndex:0 }}>
+           {BACKGROUNDS.map((bg, i) => (
+             <div key={bg} style={{ position:'absolute', inset:0, backgroundImage:`url(${bg})`, backgroundSize:'cover', backgroundPosition:'center', opacity: i === bgIndex ? 0.3 : 0, transition:'opacity 2s ease-in-out' }} />
+           ))}
+           <div className="moving-code-bg" style={{ opacity: 0.15 }} />
+        </div>
+        
         <div style={{ position:'absolute', inset:0, background:'linear-gradient(to bottom, transparent, var(--bg))', zIndex:1 }} />
         
         <div className="container" style={{ position:'relative', zIndex:2, textAlign:'center' }}>
-          <div className="fade-in" style={{ display:'inline-flex', alignItems:'center', gap:10, background:'var(--brand-bg)', border:'1px solid var(--brand)', borderRadius:40, padding:'10px 24px', fontSize:13, fontWeight:800, color:'var(--brand)', marginBottom:40, textTransform:'uppercase', letterSpacing:2 }}>
-            <span style={{ width:10, height:10, borderRadius:'50%', background:'var(--brand)', boxShadow:'0 0 15px var(--brand)', animation:'pulse-dot 2s infinite' }} />
+          <div className="fade-in" style={{ display:'inline-flex', alignItems:'center', gap:10, background:'rgba(51,102,255,0.1)', border:'1px solid var(--brand)', borderRadius:40, padding:'10px 24px', fontSize:13, fontWeight:800, color:'var(--brand)', marginBottom:40, textTransform:'uppercase', letterSpacing:2 }}>
+            <span className="activity-dot" />
             The Future of Remote Management
           </div>
           
-          <h1 className="fade-in" style={{ fontSize:'clamp(32px, 10vw, 104px)', fontWeight:900, color:'var(--text)', marginBottom:32, lineHeight:0.85, letterSpacing:'-0.06em' }}>
-            Build faster. <br/> Scale <span style={{ background:'linear-gradient(135deg, var(--brand), var(--accent))', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>global.</span>
+          <h1 className="fade-in" style={{ fontSize:'clamp(48px, 12vw, 120px)', fontWeight:900, color:'var(--text)', marginBottom:32, lineHeight:0.8, letterSpacing:'-0.06em' }}>
+            Work <span className="text-gradient">Unlimited.</span> <br/> 
+            Scale Global.
           </h1>
           
-          <p className="fade-in" style={{ fontSize:'clamp(16px, 2.5vw, 24px)', color:'var(--text2)', maxWidth:800, margin:'0 auto 64px', lineHeight:1.5, animationDelay:'0.2s', fontWeight:500 }}>
-            The all-in-one mission control for modern teams. Real-time chat, AI workflows, and bank-grade security — built to scale with your ambition.
+          <p className="fade-in" style={{ fontSize:'clamp(18px, 3vw, 26px)', color:'var(--text2)', maxWidth:800, margin:'0 auto 64px', lineHeight:1.4, animationDelay:'0.2s', fontWeight:500 }}>
+            The all-in-one mission control for modern teams. Real-time chat, AI workflows, and bank-grade security.
           </p>
           
           <div className="fade-in" style={{ display:'flex', gap:20, justifyContent:'center', flexWrap:'wrap', animationDelay:'0.3s' }}>
-            <Link to="/register" className="btn btn-primary" style={{ padding:'24px 60px', fontSize:20, borderRadius:20, boxShadow:'0 20px 40px -10px rgba(51,102,255,0.4)' }}>Join Now</Link>
-            <Link to="/login" className="btn btn-secondary" style={{ padding:'24px 60px', fontSize:20, borderRadius:20, background:'rgba(255,255,255,0.05)', border:'1px solid rgba(255,255,255,0.1)' }}>Explore Platform ➜</Link>
+            <Link to="/register" className="btn btn-primary" style={{ padding:'24px 64px', fontSize:20, borderRadius:24 }}>Get Started Free</Link>
+            <Link to="/login" className="btn btn-secondary" style={{ padding:'24px 64px', fontSize:20, borderRadius:24, background:'rgba(255,255,255,0.05)' }}>Request Demo ➜</Link>
           </div>
         </div>
       </section>
 
-      {/* Features Grid */}
-      <section id="features" style={{ padding:'140px 24px', background:'var(--bg)' }}>
+      {/* Dashboard Preview Section (Mockup) */}
+      <section style={{ padding:'0 24px', position:'relative', marginTop:'-100px', zIndex:10 }}>
         <div className="container">
-          <div style={{ textAlign:'center', marginBottom:100 }}>
-            <h2 style={{ fontSize:'clamp(36px, 6vw, 64px)', fontWeight:900, marginBottom:24, letterSpacing:'-0.04em' }}>Everything you need to <span style={{ color:'var(--brand)' }}>win.</span></h2>
-            <p style={{ color:'var(--text2)', fontSize:20, maxWidth:700, margin:'0 auto' }}>Battle-tested features designed for the most demanding remote organizations.</p>
-          </div>
-          
-          <div className="grid-responsive">
-            {FEATURES.map((f, i) => (
-              <div key={i} className="card card-hover" style={{ overflow:'hidden', borderRadius:24, background:'var(--bg-card)' }}>
-                <div style={{ height:240, overflow:'hidden', position:'relative' }}>
-                  <img src={f.img} alt={f.title} style={{ width:'100%', height:'100%', objectFit:'cover', transition:'transform 0.5s ease' }} />
-                  <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top, var(--bg-card), transparent)' }} />
+          <div className="mockup-glow fade-in" style={{ padding:'12px', background:'rgba(255,255,255,0.02)', backdropFilter:'blur(40px)', border:'1px solid rgba(255,255,255,0.1)' }}>
+             <img 
+               src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2000" 
+               alt="Dashboard Preview" 
+               style={{ width:'100%', borderRadius:16, border:'1px solid rgba(255,255,255,0.05)' }} 
+             />
+             <div style={{ position:'absolute', top:'20%', right:'-40px', width:240, padding:20, borderRadius:20, background:'rgba(11,20,41,0.9)', border:'1px solid var(--brand)', boxShadow:'var(--shadow-lg)' }} className="float desktop-only">
+                <div className="flex items-center gap-3 mb-4">
+                   <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center font-bold">JD</div>
+                   <div>
+                      <p className="text-xs font-bold text-white">Project Launch</p>
+                      <p className="text-[10px] text-gray-400">Due in 2 hours</p>
+                   </div>
                 </div>
-                <div style={{ padding:32 }}>
-                  <h3 style={{ fontSize:22, fontWeight:800, marginBottom:16, color:'var(--text)' }}>{f.title}</h3>
-                  <p style={{ color:'var(--text2)', lineHeight:1.7, fontSize:15 }}>{f.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* About Us Section */}
-      <section id="about" style={{ padding:'140px 24px', background:'var(--bg2)' }}>
-        <div className="container" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(400px, 1fr))', gap:100, alignItems:'center' }}>
-          <div>
-             <div style={{ width:48, height:8, background:'var(--brand)', borderRadius:4, marginBottom:32 }} />
-             <h2 style={{ fontSize:'clamp(32px, 5vw, 56px)', fontWeight:900, marginBottom:32, lineHeight:1.1 }}>We are on a mission to unite <span style={{ color:'var(--brand)' }}>humanity</span> through code.</h2>
-             <p style={{ fontSize:20, color:'var(--text2)', lineHeight:1.8, marginBottom:40 }}>Remote Team Manager was born from the belief that talent is universal, but opportunity is not. We build the bridges that connect the world's best minds, regardless of where they sleep.</p>
-             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:32 }}>
-                {[
-                  { label:'Founded', val:'2024' },
-                  { label:'Global Users', val:'500k+' },
-                  { label:'Reliability', val:'99.99%' },
-                  { label:'Awards', val:'12+' },
-                ].map(s => (
-                  <div key={s.label}>
-                    <div style={{ fontSize:28, fontWeight:900, color:'var(--text)' }}>{s.val}</div>
-                    <div style={{ fontSize:14, color:'var(--brand)', fontWeight:700, textTransform:'uppercase' }}>{s.label}</div>
-                  </div>
-                ))}
-             </div>
-          </div>
-          <div className="fade-in" style={{ position:'relative' }}>
-             <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=1000" alt="About Us" style={{ width:'100%', borderRadius:32, boxShadow: '0 40px 100px -20px rgba(0,0,0,0.5)' }} />
-             <div style={{ position:'absolute', bottom:-40, right:-40, width:200, height:200, background:'var(--brand)', borderRadius:24, display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', padding:32, boxShadow:'var(--shadow-lg)' }} className="float">
-                <div style={{ textAlign:'center' }}>
-                   <div style={{ fontSize:48, fontWeight:900 }}>100%</div>
-                   <div style={{ fontSize:14, fontWeight:700 }}>REMOTE FIRST</div>
+                <div className="h-2 w-full bg-gray-800 rounded-full overflow-hidden">
+                   <div className="h-full bg-blue-500" style={{ width:'75%' }} />
                 </div>
              </div>
           </div>
         </div>
       </section>
 
-      {/* Subscription Section */}
-      <section style={{ padding:'120px 24px', background:'var(--bg)' }}>
+      {/* Infinite Moving Cards Section */}
+      <section style={{ padding:'140px 0', overflow:'hidden', background:'var(--bg)' }}>
+        <div style={{ textAlign:'center', marginBottom:80 }}>
+          <h2 style={{ fontSize:48, fontWeight:900, letterSpacing:'-0.04em' }}>Trusted by the <span className="text-gradient">Best.</span></h2>
+        </div>
+        
+        <div className="marquee-container">
+           {[...MARQUEE_ITEMS, ...MARQUEE_ITEMS].map((item, i) => (
+             <div key={i} className="card" style={{ width:350, margin:'0 15px', padding:32, background:'var(--bg2)', borderRadius:28, border:'1px solid var(--border2)' }}>
+                <div className="flex items-center gap-4 mb-6">
+                   <img src={item.avatar} alt={item.name} style={{ width:56, height:56, borderRadius:20, border:'2px solid var(--brand)' }} />
+                   <div>
+                      <h4 style={{ fontSize:18, fontWeight:800, color:'#fff' }}>{item.name}</h4>
+                      <p style={{ fontSize:12, color:'var(--brand)', fontWeight:700, textTransform:'uppercase' }}>{item.role}</p>
+                   </div>
+                </div>
+                <p style={{ color:'var(--text2)', fontSize:16, lineHeight:1.6, fontStyle:'italic' }}>"{item.text}"</p>
+             </div>
+           ))}
+        </div>
+      </section>
+
+      {/* Value Proposition */}
+      <section style={{ padding:'140px 24px', background:'var(--bg2)' }}>
+        <div className="container" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(320px, 1fr))', gap:40 }}>
+           {FEATURES.map((f, i) => (
+             <div key={i} className="card card-hover" style={{ padding:40, borderRadius:32 }}>
+                <div style={{ width:64, height:64, borderRadius:20, background:'var(--brand-bg)', display:'flex', alignItems:'center', justifyContent:'center', color:'var(--brand)', marginBottom:32 }}>
+                   {i === 0 ? <img src={f.img} style={{ width:'100%', height:'100%', objectFit:'cover', borderRadius:20 }} /> : null}
+                </div>
+                <h3 style={{ fontSize:28, fontWeight:900, marginBottom:20 }}>{f.title}</h3>
+                <p style={{ color:'var(--text2)', fontSize:18, lineHeight:1.7 }}>{f.desc}</p>
+             </div>
+           ))}
+        </div>
+      </section>
+
+      {/* Feedback & Community */}
+      <section style={{ padding:'140px 24px', background:'linear-gradient(to bottom, var(--bg), var(--bg2))' }}>
         <div className="container" style={{ textAlign:'center' }}>
-          <h2 style={{ fontSize:48, fontWeight:900, marginBottom:24 }}>Join the revolution.</h2>
-          <p style={{ color:'var(--text2)', fontSize:20, marginBottom:56, maxWidth:600, margin:'0 auto 56px' }}>Get the latest updates on AI, remote work, and Remote Team engineering.</p>
-          <form style={{ maxWidth:600, margin:'0 auto', display:'flex', gap:16 }}>
-            <input className="input" type="email" placeholder="Enter your email" style={{ padding:'20px 32px', fontSize:18, borderRadius:16 }} />
-            <button className="btn btn-primary" type="button" style={{ padding:'0 48px', borderRadius:16, fontSize:18 }}>Subscribe</button>
-          </form>
+          <div style={{ maxWidth:800, margin:'0 auto' }}>
+             <h2 style={{ fontSize:56, fontWeight:900, marginBottom:32 }}>Your voice <span className="text-gradient">Matters.</span></h2>
+             <p style={{ fontSize:22, color:'var(--text2)', marginBottom:48 }}>We build for you. Provide feedback directly within the platform to help us shape the future of workspace engineering.</p>
+             <Link to="/register" className="btn btn-primary" style={{ padding:'24px 80px', fontSize:22, borderRadius:24 }}>Join the Community</Link>
+          </div>
         </div>
       </section>
     </div>
