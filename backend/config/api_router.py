@@ -1,7 +1,7 @@
 from rest_framework.routers import DefaultRouter
 from apps.workspaces.views import WorkspaceViewSet
 from apps.projects.views import ProjectViewSet, TaskViewSet, CommentViewSet, SuggestionViewSet, ReactionViewSet
-from apps.chat.views import ChannelViewSet, MessageViewSet, DirectMessageViewSet, AuditLogViewSet
+from apps.chat.views import ChannelViewSet, MessageViewSet, DirectMessageViewSet, AuditLogViewSet, SearchView, ChatMessageAttachmentViewSet
 from apps.hr.views import EmployeeProfileViewSet, JobPostingViewSet, PayrollRecordViewSet
 from apps.notifications.views import NotificationViewSet
 from apps.presence.views import UserPresenceViewSet
@@ -28,6 +28,8 @@ router.register(r'reactions', ReactionViewSet, basename='reaction')
 router.register(r'channels', ChannelViewSet, basename='channel')
 router.register(r'messages', MessageViewSet, basename='message')
 router.register(r'direct-messages', DirectMessageViewSet, basename='directmessage')
+router.register(r'chat-attachments', ChatMessageAttachmentViewSet, basename='chatattachment')
+router.register(r'search', SearchView, basename='search')
 
 # HR
 router.register(r'employee-profiles', EmployeeProfileViewSet, basename='employeeprofile')

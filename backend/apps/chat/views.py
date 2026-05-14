@@ -4,11 +4,11 @@ from rest_framework.response import Response
 from django.db.models import Q
 from .models import (
     Channel, Message, DirectMessage, ChannelMembership, 
-    MessageReaction, MessageRead, AnalyticsEvent
+    MessageReaction, MessageRead, AnalyticsEvent, FileAttachment
 )
 from .serializers import (
     ChannelSerializer, MessageSerializer, DirectMessageSerializer, 
-    AnalyticsEventSerializer
+    AnalyticsEventSerializer, FileAttachmentSerializer
 )
 from apps.notifications.models import Notification
 from django.contrib.auth import get_user_model
@@ -142,3 +142,48 @@ class AuditLogViewSet(viewsets.ReadOnlyModelViewSet):
         if self.request.user.is_staff:
             return AnalyticsEvent.objects.all().order_by('-timestamp')
         return AnalyticsEvent.objects.filter(user=self.request.user).order_by('-timestamp')
+
+class ChatMessageAttachmentViewSet(viewsets.ModelViewSet):
+    serializer_class = FileAttachmentSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = FileAttachment.objects.all()
+
+    def get_queryset(self):
+        return FileAttachment.objects.filter(
+            Q(message__channel__memberships__user=self.request.user) |
+            Q(message__direct_message__participants=self.request.user)
+        ).distinct()
+
+    def perform_create(self, serializer):
+        serializer.save(uploaded_by=self.request.user)
+
+class SearchView(viewsets.ViewSet):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def list(self, request):
+        query = request.query_params.get('q', '')
+        if not query:
+            return Response({'results': []})
+
+        # Search Messages
+        messages = Message.objects.filter(
+            Q(content__icontains=query) &
+            (Q(channel__memberships__user=request.user) | Q(direct_message__participants=request.user))
+        ).distinct()[:20]
+
+        # Search Channels
+        channels = Channel.objects.filter(
+            Q(name__icontains=query) &
+            (Q(is_private=False) | Q(memberships__user=request.user))
+        ).distinct()[:20]
+
+        # Search Users
+        users = User.objects.filter(
+            Q(username__icontains=query) | Q(first_name__icontains=query) | Q(last_name__icontains=query)
+        ).distinct()[:20]
+
+        return Response({
+            'messages': MessageSerializer(messages, many=True).data,
+            'channels': ChannelSerializer(channels, many=True).data,
+            'users': [{'id': u.id, 'username': u.username, 'name': f"{u.first_name} {u.last_name}"} for u in users]
+        })

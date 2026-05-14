@@ -32,7 +32,7 @@ class MessageReactionSerializer(serializers.ModelSerializer):
 class FileAttachmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = FileAttachment
-        fields = ('id', 'file', 'uploaded_at')
+        fields = ('id', 'file', 'uploaded_at', 'uploaded_by')
 
 class MessageSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
