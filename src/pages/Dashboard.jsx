@@ -70,7 +70,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-10">
+    <div className="h-full overflow-y-auto custom-scrollbar p-8 max-w-7xl mx-auto space-y-10">
       {/* Welcome Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>

@@ -138,7 +138,7 @@ export default function Tasks() {
     : tasks.filter(t => t.project === parseInt(filterProject));
 
   return (
-    <div className="h-[calc(100vh-64px)] flex flex-col overflow-hidden bg-[#0a0f1d]">
+    <div className="h-full flex flex-col overflow-hidden bg-[#0a0f1d]">
       {/* Kanban Header */}
       <div className="p-6 border-b border-gray-800 bg-[#0d1425]">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">

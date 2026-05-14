@@ -101,7 +101,7 @@ export default function Notifications() {
   };
 
   return (
-    <div className="p-8 max-w-4xl mx-auto">
+    <div className="h-full overflow-y-auto custom-scrollbar p-8 max-w-4xl mx-auto">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
         <div>
           <h1 className="text-3xl font-black text-white tracking-tight flex items-center gap-3">

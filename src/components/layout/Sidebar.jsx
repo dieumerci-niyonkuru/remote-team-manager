@@ -183,20 +183,22 @@ export default function Sidebar() {
 
       {/* Sidebar Container */}
       <aside 
-        className={`fixed md:sticky top-0 left-0 h-screen z-[100] transition-all duration-300 ease-in-out
-          ${collapsed ? 'w-[72px]' : 'w-64'} 
+        className={`fixed md:sticky top-0 left-0 h-screen z-[100] transition-all duration-300 ease-in-out shadow-2xl md:shadow-none
+          ${collapsed ? 'w-[72px]' : 'w-72'} 
           ${mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
         `}
       >
-        <SidebarContent />
-
-        {/* Mobile Close Button */}
-        <button 
-          onClick={() => setMobileOpen(false)}
-          className="md:hidden absolute top-3 right-[-48px] p-2 text-white bg-gray-800 rounded-lg shadow-lg"
-        >
-          <X size={24} />
-        </button>
+        <div className="relative h-full">
+           <SidebarContent />
+           
+           {/* Mobile Close Button (Inside) */}
+           <button 
+             onClick={() => setMobileOpen(false)}
+             className="md:hidden absolute top-4 right-4 p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-xl transition-all"
+           >
+             <X size={20} />
+           </button>
+        </div>
       </aside>
     </>
   );

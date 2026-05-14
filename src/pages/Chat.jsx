@@ -364,6 +364,11 @@ export default function Chat() {
       `}>
         <div className="h-14 flex items-center justify-between px-4 border-b border-gray-200 dark:border-gray-800">
           <h2 className="font-black text-lg text-gray-900 dark:text-white truncate">Remote Team HQ</h2>
+          {isMobile && (
+            <button onClick={() => setShowSidebar(false)} className="p-1 text-gray-400 hover:text-white transition-colors">
+              <X size={20} />
+            </button>
+          )}
         </div>
 
         <div className="flex-1 overflow-y-auto custom-scrollbar py-4">
@@ -407,8 +412,12 @@ export default function Chat() {
         <div className="h-14 shrink-0 flex items-center justify-between px-4 md:px-6 border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-[#0b1429]/80 backdrop-blur-md z-10">
           <div className="flex items-center gap-3 truncate">
             {isMobile && (
-              <button onClick={() => setShowSidebar(true)} className="p-1 -ml-2 text-gray-500 hover:text-gray-900 dark:hover:text-white">
-                <ChevronDown className="rotate-90" size={24} />
+              <button 
+                onClick={() => setShowSidebar(true)} 
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-600/10 text-blue-500 font-bold text-xs -ml-2 hover:bg-blue-600/20 transition-all"
+              >
+                <Hash size={16} />
+                Channels
               </button>
             )}
             <div className="font-black text-[16px] text-gray-900 dark:text-white truncate flex items-center gap-2">
