@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
-import { Briefcase, Users, Settings, Plus, Mail, Shield, UserPlus, Trash2, ChevronRight } from 'lucide-react';
+import { Briefcase, Users, Settings, Plus, Mail, Shield, UserPlus, Trash2, ChevronRight, Link } from 'lucide-react';
 import api from '../services/api';
 import toast from 'react-hot-toast';
 
@@ -14,10 +14,22 @@ export default function WorkspaceDetail() {
   const [loading, setLoading] = useState(true);
   const [inviteEmail, setInviteEmail] = useState('');
   const [activeTab, setActiveTab] = useState('overview');
+  const [projects, setProjects] = useState([]);
+  const [targetProject, setTargetProject] = useState('');
 
   useEffect(() => {
     fetchWorkspaceData();
+    fetchProjects();
   }, [id]);
+
+  const fetchProjects = async () => {
+    try {
+      const res = await api.get(`/projects/?workspace=${id}`);
+      setProjects(res.data);
+    } catch (err) {
+      console.error('Failed to fetch projects:', err);
+    }
+  };
 
   const fetchWorkspaceData = async () => {
     try {
@@ -41,11 +53,26 @@ export default function WorkspaceDetail() {
   const handleInvite = async (e) => {
     e.preventDefault();
     try {
-      await api.post(`/workspaces/${id}/invite/`, { email: inviteEmail, role: 'member' });
+      await api.post(`/workspaces/${id}/invite/`, { 
+        email: inviteEmail, 
+        role: 'member',
+        project: targetProject || null
+      });
       toast.success(`Invite sent to ${inviteEmail}`);
       setInviteEmail('');
+      setTargetProject('');
     } catch (err) {
       toast.error('Failed to send invitation');
+    }
+  };
+
+  const handleShareLink = async () => {
+    try {
+      const res = await api.post('/invites/share_link/', { workspace_id: id });
+      navigator.clipboard.writeText(res.data.link);
+      toast.success('Invite link copied to clipboard!');
+    } catch (err) {
+      toast.error('Failed to generate invite link');
     }
   };
 
@@ -163,10 +190,36 @@ export default function WorkspaceDetail() {
                     className="w-full bg-gray-900 border border-gray-800 rounded-2xl pl-12 pr-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
                   />
                 </div>
+                <div className="space-y-2">
+                   <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Auto-attach to Project (Optional)</label>
+                   <select 
+                     value={targetProject}
+                     onChange={(e) => setTargetProject(e.target.value)}
+                     className="w-full bg-gray-900 border border-gray-800 rounded-2xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500/50 appearance-none"
+                   >
+                     <option value="">No Project (Workspace only)</option>
+                     {projects.map(p => (
+                       <option key={p.id} value={p.id}>{p.name}</option>
+                     ))}
+                   </select>
+                </div>
                 <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-2xl transition-all shadow-lg shadow-blue-600/20 active:scale-[0.98]">
                   Send Invitation
                 </button>
               </form>
+
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-800"></div></div>
+                <div className="relative flex justify-center text-[10px] uppercase font-black"><span className="bg-[#0d1425] px-2 text-gray-600">or</span></div>
+              </div>
+
+              <button 
+                onClick={handleShareLink}
+                className="w-full flex items-center justify-center gap-3 bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 rounded-2xl transition-all border border-gray-700"
+              >
+                <Link size={18} className="text-blue-500" />
+                Copy Invite Link
+              </button>
            </div>
 
            <div className="bg-gray-800/30 border border-gray-800 rounded-3xl p-6">

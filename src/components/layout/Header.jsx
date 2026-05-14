@@ -4,6 +4,7 @@ import { useStore } from '../../store'
 import { auth } from '../../services/api'
 import { useT } from '../../i18n'
 import toast from 'react-hot-toast'
+import NotificationBadge from './NotificationBadge'
 
 export default function Header() {
   const { isAuth, user, logout, theme, setTheme, lang, setLang } = useStore()
@@ -135,6 +136,8 @@ export default function Header() {
           <button className="btn-icon desktop-only" onClick={() => setLang(lang === 'en' ? 'rw' : lang === 'rw' ? 'fr' : 'en')} style={{ background:'var(--bg3)', borderRadius:14, fontSize:13, fontWeight:800, textTransform: 'uppercase' }}>
              {lang}
           </button>
+          
+          <NotificationBadge />
           
           <button className="btn-icon desktop-only" onClick={() => setTheme(theme==='dark'?'light':'dark')} style={{ background:'var(--bg3)', borderRadius:14 }}>
              {theme==='dark' ? '☀️' : '🌙'}

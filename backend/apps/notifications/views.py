@@ -4,6 +4,11 @@ from rest_framework.response import Response
 from .models import Notification, Invite
 from .serializers import NotificationSerializer, InviteSerializer
 
+from django.utils.crypto import get_random_string
+from django.utils.timezone import now
+from datetime import timedelta
+from django.conf import settings
+
 class InvitationViewSet(viewsets.ModelViewSet):
     serializer_class = InviteSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -33,6 +38,23 @@ class InvitationViewSet(viewsets.ModelViewSet):
         invite.accepted = True
         invite.save()
         return Response({'status': 'joined', 'workspace_id': invite.workspace.id})
+
+    @action(detail=False, methods=['post'])
+    def share_link(self, request):
+        workspace_id = request.data.get('workspace_id')
+        role = request.data.get('role', 'member')
+        invite = Invite.objects.create(
+            workspace_id=workspace_id,
+            email='link-invite@placeholder.com',
+            invited_by=request.user,
+            role=role,
+            token=get_random_string(64),
+            expires_at=now() + timedelta(days=7)
+        )
+        # Using a fallback if settings.FRONTEND_URL is not set
+        base_url = getattr(settings, 'FRONTEND_URL', 'http://localhost:5173')
+        link = f"{base_url}/invites/accept/{invite.token}"
+        return Response({'link': link})
 
 class NotificationViewSet(viewsets.GenericViewSet,
                           mixins.ListModelMixin,
