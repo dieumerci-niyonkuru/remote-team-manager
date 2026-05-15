@@ -10,43 +10,43 @@ class TestWorkspacePermissions:
     def setup_method(self):
         """Create users and workspace for each test."""
         self.owner = User.objects.create_user(
-            email='owner@test.com', password='Test1234x',
+            username='owner@test.com', email='owner@test.com', password='Test1234x',
             first_name='Owner', last_name='User'
         )
         self.manager = User.objects.create_user(
-            email='manager@test.com', password='Test1234x',
+            username='manager@test.com', email='manager@test.com', password='Test1234x',
             first_name='Manager', last_name='User'
         )
         self.developer = User.objects.create_user(
-            email='dev@test.com', password='Test1234x',
+            username='dev@test.com', email='dev@test.com', password='Test1234x',
             first_name='Dev', last_name='User'
         )
         self.viewer = User.objects.create_user(
-            email='viewer@test.com', password='Test1234x',
+            username='viewer@test.com', email='viewer@test.com', password='Test1234x',
             first_name='Viewer', last_name='User'
         )
         self.outsider = User.objects.create_user(
-            email='outsider@test.com', password='Test1234x',
+            username='outsider@test.com', email='outsider@test.com', password='Test1234x',
             first_name='Out', last_name='Sider'
         )
         self.workspace = Workspace.objects.create(
-            name='Test Workspace', owner=self.owner
+            name='Test Workspace', created_by=self.owner
         )
         WorkspaceMember.objects.create(
             workspace=self.workspace, user=self.owner,
-            role=WorkspaceMember.Role.OWNER
+            role='owner'
         )
         WorkspaceMember.objects.create(
             workspace=self.workspace, user=self.manager,
-            role=WorkspaceMember.Role.MANAGER
+            role='manager'
         )
         WorkspaceMember.objects.create(
             workspace=self.workspace, user=self.developer,
-            role=WorkspaceMember.Role.DEVELOPER
+            role='developer'
         )
         WorkspaceMember.objects.create(
             workspace=self.workspace, user=self.viewer,
-            role=WorkspaceMember.Role.VIEWER
+            role='viewer'
         )
 
     def get_role(self, user):
@@ -58,16 +58,16 @@ class TestWorkspacePermissions:
             return None
 
     def test_owner_role_is_correct(self):
-        assert self.get_role(self.owner) == WorkspaceMember.Role.OWNER
+        assert self.get_role(self.owner) == 'owner'
 
     def test_manager_role_is_correct(self):
-        assert self.get_role(self.manager) == WorkspaceMember.Role.MANAGER
+        assert self.get_role(self.manager) == 'manager'
 
     def test_developer_role_is_correct(self):
-        assert self.get_role(self.developer) == WorkspaceMember.Role.DEVELOPER
+        assert self.get_role(self.developer) == 'developer'
 
     def test_viewer_role_is_correct(self):
-        assert self.get_role(self.viewer) == WorkspaceMember.Role.VIEWER
+        assert self.get_role(self.viewer) == 'viewer'
 
     def test_outsider_is_not_member(self):
         assert self.get_role(self.outsider) is None
@@ -78,7 +78,7 @@ class TestWorkspacePermissions:
             WorkspaceMember.objects.create(
                 workspace=self.workspace,
                 user=self.owner,
-                role=WorkspaceMember.Role.VIEWER
+                role='viewer'
             )
 
     def test_workspace_has_4_members(self):
@@ -88,13 +88,13 @@ class TestWorkspacePermissions:
         member = WorkspaceMember.objects.get(
             workspace=self.workspace, user=self.owner
         )
-        assert member.role == WorkspaceMember.Role.OWNER
+        assert member.role == 'owner'
 
     def test_viewer_cannot_manage(self):
         member = WorkspaceMember.objects.get(
             workspace=self.workspace, user=self.viewer
         )
         assert member.role not in [
-            WorkspaceMember.Role.OWNER,
-            WorkspaceMember.Role.MANAGER,
+            'owner',
+            'manager',
         ]

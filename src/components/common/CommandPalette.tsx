@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Command, X, Folder, CheckSquare, Book, User, Hash, Zap, ArrowRight } from 'lucide-react';
+import { Search, Command, X, Folder, CheckSquare, Book, User, Hash, Zap } from 'lucide-react';
 import { useStore } from '../store';
 import api from '../services/api';
 
@@ -9,6 +9,7 @@ export default function CommandPalette() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState({ tasks: [], projects: [], wikis: [] });
   const [loading, setLoading] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(0);
   const { theme } = useStore();
   const navigate = useNavigate();
   const inputRef = useRef(null);
@@ -79,8 +80,10 @@ export default function CommandPalette() {
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-start justify-center pt-[15vh] px-4">
+      {/* Backdrop */}
       <div className="absolute inset-0 bg-[#060b18]/80 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setIsOpen(false)} />
       
+      {/* Palette */}
       <div className="relative w-full max-w-2xl bg-[#0b1429] border border-white/10 rounded-[32px] shadow-2xl shadow-brand/20 overflow-hidden animate-in fade-in zoom-in-95 slide-in-from-top-8 duration-300">
         <div className="p-6 border-b border-white/5 flex items-center gap-4 bg-white/2">
           <Search className="text-brand" size={20} />
@@ -124,7 +127,7 @@ export default function CommandPalette() {
                       ].map(c => (
                         <div key={c.label} onClick={() => { setIsOpen(false); navigate(c.path); }} className="flex items-center justify-between p-4 rounded-2xl bg-white/2 border border-white/5 hover:border-brand/40 hover:bg-brand/5 cursor-pointer transition-all group">
                            <div className="flex items-center gap-3">
-                              <div className="text-text-tertiary group-hover:text-brand transition-colors">{React.cloneElement(c.icon, { size: 16 })}</div>
+                              <div className="text-text-tertiary group-hover:text-brand transition-colors">{React.cloneElement(c.icon as React.ReactElement, { size: 16 })}</div>
                               <span className="text-sm font-black text-white">{c.label}</span>
                            </div>
                            <div className="text-[10px] font-black text-text-tertiary bg-white/5 px-2 py-0.5 rounded border border-white/10 group-hover:border-brand/40 group-hover:text-brand transition-all">{c.cmd}</div>
@@ -181,3 +184,10 @@ export default function CommandPalette() {
     </div>
   );
 }
+
+const ArrowRight = ({ size, className }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <line x1="5" y1="12" x2="19" y2="12"></line>
+    <polyline points="12 5 19 12 12 19"></polyline>
+  </svg>
+);

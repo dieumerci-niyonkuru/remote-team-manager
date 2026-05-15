@@ -3,6 +3,7 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from .models import Channel, Message
 from django.contrib.auth.models import AnonymousUser
+from .serializers import MessageSerializer
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -31,23 +32,18 @@ class ChatConsumer(AsyncWebsocketConsumer):
         user = self.scope['user']
 
         saved_message = await self.save_message(self.channel_id, user, message)
+        serializer = await self.get_serialized_message(saved_message)
 
         await self.channel_layer.group_send(
             self.room_group_name,
             {
                 'type': 'chat_message',
-                'message': message,
-                'username': user.first_name or user.username,
-                'timestamp': saved_message.created_at.isoformat(),
+                **serializer
             }
         )
 
     async def chat_message(self, event):
-        await self.send(text_data=json.dumps({
-            'message': event['message'],
-            'username': event['username'],
-            'timestamp': event['timestamp'],
-        }))
+        await self.send(text_data=json.dumps(event))
 
     @database_sync_to_async
     def channel_exists(self, channel_id, user):
@@ -61,3 +57,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
     def save_message(self, channel_id, user, content):
         channel = Channel.objects.get(id=channel_id)
         return Message.objects.create(channel=channel, user=user, content=content)
+
+    @database_sync_to_async
+    def get_serialized_message(self, message):
+        return MessageSerializer(message).data

@@ -45,7 +45,7 @@ export default function Tasks() {
     const token = localStorage.getItem('rtm_access');
     const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
     const host = window.location.host;
-    const wsHost = host.includes('localhost:5173') ? 'localhost:8000' : host;
+    const wsHost = host.includes('localhost') ? 'localhost:8000' : 'remote-team-manager-production.up.railway.app';
     const wsUrl = `${protocol}://${wsHost}/ws/tasks/${activeWorkspace.id}/?token=${token}`;
     
     wsRef.current = new WebSocket(wsUrl);
@@ -72,8 +72,8 @@ export default function Tasks() {
         api.get(`/projects/?workspace=${activeWorkspace.id}`),
         api.get(`/tasks/?workspace=${activeWorkspace.id}`)
       ]);
-      setProjects(projectsRes.data);
-      setTasks(tasksRes.data);
+      setProjects(projectsRes.data.data || projectsRes.data);
+      setTasks(tasksRes.data.data || tasksRes.data);
       if (projectsRes.data.length > 0) {
         setTaskForm(prev => ({ ...prev, project: projectsRes.data[0].id }));
       }
@@ -92,10 +92,10 @@ export default function Tasks() {
     }
     setCreating(true);
     try {
-      const res = await api.post('/tasks/', taskForm);
+      const { data } = await api.post('/tasks/', taskForm);
       // tasks will be updated via WebSocket if backend broadcasts, 
       // but let's add locally just in case WS is slow
-      setTasks(prev => [...prev, res.data]);
+      setTasks(prev => [...prev, data.data || data]);
       setIsCreateModalOpen(false);
       setTaskForm({ ...taskForm, title: '', description: '' });
       toast.success('Task created! 📝');
@@ -181,11 +181,11 @@ export default function Tasks() {
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
           </div>
         ) : (
-          <div className="flex gap-6 h-full min-w-max">
+          <div className="flex gap-4 md:gap-6 h-full min-w-max pb-6">
             {columns.map(col => (
               <div 
                 key={col.id} 
-                className="w-80 flex flex-col"
+                className="w-[85vw] md:w-80 flex flex-col shrink-0"
                 onDragOver={onDragOver}
                 onDrop={(e) => onDrop(e, col.id)}
               >
@@ -239,23 +239,24 @@ export default function Tasks() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Project</label>
+              <label className="text-[10px] font-black text-text-tertiary uppercase tracking-widest">Project</label>
               <select 
                 value={taskForm.project}
                 onChange={e => setTaskForm({...taskForm, project: e.target.value})}
-                className="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500/50"
+                className="w-full bg-[#0b1429] border border-white/5 rounded-2xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-brand/40"
               >
+                <option value="">Select a Project</option>
                 {projects.map(p => (
                   <option key={p.id} value={p.id}>{p.name}</option>
                 ))}
               </select>
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Priority</label>
+              <label className="text-[10px] font-black text-text-tertiary uppercase tracking-widest">Priority</label>
               <select 
                 value={taskForm.priority}
                 onChange={e => setTaskForm({...taskForm, priority: e.target.value})}
-                className="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500/50"
+                className="w-full bg-[#0b1429] border border-white/5 rounded-2xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-brand/40"
               >
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
@@ -265,22 +266,23 @@ export default function Tasks() {
             </div>
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Description</label>
+            <label className="text-[10px] font-black text-text-tertiary uppercase tracking-widest">Description</label>
             <textarea 
               value={taskForm.description}
               onChange={e => setTaskForm({...taskForm, description: e.target.value})}
               placeholder="Add details about this task..."
               rows={3}
-              className="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500/50 resize-none" 
+              className="w-full bg-[#0b1429] border border-white/5 rounded-2xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-brand/40 resize-none h-32" 
             />
           </div>
-          <button 
-            disabled={creating}
+          <Button 
+            disabled={creating || !taskForm.project || !taskForm.title}
             type="submit" 
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-2xl font-bold shadow-lg shadow-blue-600/20 transition-all active:scale-[0.98] disabled:opacity-50"
+            loading={creating}
+            className="w-full py-4 text-lg font-black"
           >
-            {creating ? 'Creating...' : 'Create Task'}
-          </button>
+            Create Task
+          </Button>
         </form>
       </Modal>
     </div>
@@ -290,203 +292,167 @@ export default function Tasks() {
 function TaskCard({ task, onDragStart, onClick }) {
   const getPriorityColor = (p) => {
     switch (p) {
-      case 'urgent': return 'text-rose-500 bg-rose-500/10 border-rose-500/20';
-      case 'high': return 'text-orange-500 bg-orange-500/10 border-orange-500/20';
-      case 'medium': return 'text-blue-500 bg-blue-500/10 border-blue-500/20';
-      default: return 'text-gray-400 bg-gray-400/10 border-gray-400/20';
+      case 'urgent': return 'text-rose-500 bg-rose-500/10 border-rose-500/20 shadow-[0_0_8px_rgba(244,63,94,0.2)]';
+      case 'high': return 'text-amber-500 bg-amber-500/10 border-amber-500/20 shadow-[0_0_8px_rgba(245,158,11,0.2)]';
+      case 'medium': return 'text-brand bg-brand/10 border-brand/20 shadow-[0_0_8px_rgba(51,102,255,0.2)]';
+      default: return 'text-text-tertiary bg-white/5 border-white/10';
     }
   };
 
   return (
-    <div 
+    <Card 
+      variant="default"
+      hover
       draggable
       onDragStart={(e) => onDragStart(e, task.id)}
       onClick={onClick}
-      className="bg-gray-800/40 border border-gray-800 hover:border-gray-700 rounded-2xl p-4 transition-all hover:translate-y-[-2px] shadow-sm hover:shadow-xl group cursor-grab active:cursor-grabbing"
+      className="!p-4 cursor-grab active:cursor-grabbing group border-white/5 hover:border-brand/40"
     >
-      <div className="flex items-start justify-between mb-3">
+      <div className="flex items-start justify-between mb-4">
         <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md border ${getPriorityColor(task.priority)}`}>
           {task.priority}
         </span>
         <div className="flex -space-x-1.5 opacity-60 group-hover:opacity-100 transition-opacity">
-          <Avatar user={task.assignee} size={24} className="ring-2 ring-gray-900" />
+          <Avatar user={task.assignee} size={24} className="ring-2 ring-[#0d1425]" />
         </div>
       </div>
       
-      <h4 className="text-sm font-bold text-white mb-2 leading-snug group-hover:text-blue-400 transition-colors">{task.title}</h4>
-      <p className="text-xs text-gray-500 mb-4 line-clamp-2">{task.description || 'No description provided.'}</p>
+      <h4 className="text-sm font-black text-white mb-2 leading-snug group-hover:text-brand transition-colors tracking-tight">{task.title}</h4>
+      <p className="text-xs text-text-tertiary mb-5 line-clamp-2 leading-relaxed">{task.description || 'No description provided.'}</p>
       
-      <div className="flex items-center justify-between pt-3 border-t border-gray-700/50">
-        <div className="flex items-center gap-3 text-gray-600">
-          <div className="flex items-center gap-1 text-[10px] font-bold">
-            <MessageSquare size={12} />
+      <div className="flex items-center justify-between pt-4 border-t border-white/5">
+        <div className="flex items-center gap-4 text-text-tertiary">
+          <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-tighter">
+            <MessageSquare size={12} className="text-brand" />
             {task.comments?.length || 0}
           </div>
-          <div className="flex items-center gap-1 text-[10px] font-bold">
-            <Paperclip size={12} />
+          <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-tighter">
+            <Paperclip size={12} className="text-brand" />
             {task.files?.length || 0}
           </div>
         </div>
         {task.due_date && (
-          <div className="flex items-center gap-1 text-[10px] font-bold text-gray-500">
+          <div className="flex items-center gap-1.5 text-[10px] font-black text-text-tertiary uppercase tracking-widest opacity-60">
             <Clock size={12} />
             {new Date(task.due_date).toLocaleDateString([], { month: 'short', day: 'numeric' })}
           </div>
         )}
       </div>
-    </div>
+    </Card>
   );
 }
 
 function TaskModal({ task, onClose }) {
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={onClose} />
-      <div className="bg-[#0d1425] border border-gray-800 w-full max-w-2xl rounded-3xl overflow-hidden shadow-2xl relative animate-in zoom-in-95 duration-200">
-        <div className="p-8">
-           <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                 <div className="w-10 h-10 rounded-xl bg-blue-600/10 flex items-center justify-center text-blue-500">
-                    <CheckSquare size={20} />
-                 </div>
-                 <div>
-                    <p className="text-[10px] font-black uppercase text-gray-500 tracking-widest">Task Details</p>
-                    <h2 className="text-2xl font-black text-white leading-tight">{task.title}</h2>
-                 </div>
-              </div>
-              <button onClick={onClose} className="p-2 hover:bg-gray-800 rounded-xl text-gray-500 hover:text-white transition-colors">
-                 <X size={24} />
-              </button>
-           </div>
-
-           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="md:col-span-2 space-y-6">
-                 <div>
-                    <h4 className="text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Description</h4>
-                    <p className="text-gray-300 leading-relaxed bg-gray-900/50 p-4 rounded-2xl border border-gray-800">
-                       {task.description || 'No detailed description provided for this task.'}
+    <Modal isOpen={!!task} onClose={onClose} title={task.title} size="lg">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="md:col-span-2 space-y-8">
+          <div>
+            <h4 className="text-[10px] font-black text-text-tertiary uppercase tracking-widest mb-3">Description</h4>
+            <div className="bg-white/2 p-5 rounded-3xl border border-white/5 text-text-secondary leading-relaxed">
+              {task.description || 'No detailed description provided for this task.'}
+            </div>
+          </div>
+          
+          <div>
+            <h4 className="text-[10px] font-black text-text-tertiary uppercase tracking-widest mb-5">Activity & Comments</h4>
+            <div className="space-y-5 mb-8">
+              {task.comments?.map(comment => (
+                <div key={comment.id} className="flex gap-4 animate-in fade-in slide-in-from-left-2 duration-300">
+                  <Avatar user={comment.user_obj || { username: comment.user }} size={36} />
+                  <div className="bg-white/3 p-4 rounded-3xl rounded-tl-none border border-white/5 flex-1 shadow-sm">
+                    <p className="text-sm text-text-secondary leading-relaxed">{comment.content}</p>
+                    <p className="text-[10px] text-text-tertiary mt-2 font-bold opacity-60">
+                      {new Date(comment.created_at).toLocaleString()}
                     </p>
-                 </div>
-                 
-                 <div>
-                    <h4 className="text-xs font-black text-gray-500 uppercase tracking-widest mb-4">Activity & Comments</h4>
-                    <div className="space-y-4 mb-6">
-                       {task.comments?.map(comment => (
-                          <div key={comment.id} className="flex gap-3">
-                             <Avatar user={comment.user_obj || { username: comment.user }} size={32} />
-                             <div className="bg-gray-800/50 p-3 rounded-2xl rounded-tl-none border border-gray-800 flex-1">
-                                <p className="text-sm text-gray-300">{comment.content}</p>
-                                <p className="text-[10px] text-gray-500 mt-1 font-bold">{new Date(comment.created_at).toLocaleString()}</p>
-                             </div>
-                          </div>
-                       ))}
-                    </div>
-                    <div className="flex gap-2">
-                       <input 
-                         type="text" 
-                         placeholder="Add a comment..."
-                         className="flex-1 bg-gray-900 border border-gray-800 rounded-xl px-4 py-2 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500/50"
-                       />
-                       <button className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-xl">
-                          <Send size={18} />
-                       </button>
-                    </div>
-                 </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="flex gap-3">
+              <input 
+                type="text" 
+                placeholder="Add a comment..."
+                className="flex-1 bg-[#0b1429] border border-white/5 rounded-2xl px-5 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-brand/40"
+              />
+              <Button size="sm" variant="primary">
+                <Send size={18} />
+              </Button>
+            </div>
+          </div>
 
-                 <div className="pt-6 border-t border-gray-800">
-                    <h4 className="text-xs font-black text-gray-500 uppercase tracking-widest mb-4">Task Activity History</h4>
-                    <div className="space-y-3">
-                       {task.activities?.map(act => (
-                          <div key={act.id} className="flex items-center gap-3 text-[11px]">
-                             <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_5px_rgba(59,130,246,0.5)]" />
-                             <p className="text-gray-400">
-                                <span className="text-white font-bold">{act.user_name}</span> {act.verb}
-                             </p>
-                             <span className="text-gray-600 ml-auto font-medium">{new Date(act.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                          </div>
-                       ))}
-                       {(!task.activities || task.activities.length === 0) && (
-                          <p className="text-[10px] text-gray-600 italic">No activity recorded yet.</p>
-                       )}
-                    </div>
-                 </div>
+          <div className="pt-8 border-t border-white/5">
+            <h4 className="text-[10px] font-black text-text-tertiary uppercase tracking-widest mb-5">Task Activity History</h4>
+            <div className="space-y-4">
+              {task.activities?.map(act => (
+                <div key={act.id} className="flex items-center gap-4 text-[11px] animate-in fade-in duration-500">
+                  <div className="w-2 h-2 rounded-full bg-brand shadow-[0_0_8px_rgba(51,102,255,0.5)]" />
+                  <p className="text-text-secondary">
+                    <span className="text-white font-black">{act.user_name}</span> {act.verb}
+                  </p>
+                  <span className="text-text-tertiary ml-auto font-bold opacity-50">
+                    {new Date(act.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
+              ))}
+              {(!task.activities || task.activities.length === 0) && (
+                <p className="text-[10px] text-text-tertiary italic opacity-60">No activity recorded yet.</p>
+              )}
+            </div>
+          </div>
 
-                 <div className="pt-6 border-t border-gray-800">
-                    <h4 className="text-xs font-black text-gray-500 uppercase tracking-widest mb-4">Attachments</h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                       {task.files?.map(file => (
-                          <div key={file.id} className="flex items-center gap-3 p-3 bg-gray-900/50 border border-gray-800 rounded-2xl hover:border-gray-700 transition-all cursor-pointer group">
-                             <div className="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center text-gray-500 group-hover:text-blue-500 transition-colors">
-                                <Paperclip size={14} />
-                             </div>
-                             <div className="min-w-0">
-                                <p className="text-xs font-bold text-gray-300 truncate">{file.filename}</p>
-                                <p className="text-[9px] text-gray-600 font-bold uppercase">{file.uploaded_by_name}</p>
-                             </div>
-                          </div>
-                       ))}
-                       <button className="flex items-center justify-center gap-2 p-3 border border-dashed border-gray-800 rounded-2xl text-gray-600 hover:text-blue-500 hover:border-blue-500/50 hover:bg-blue-500/5 transition-all text-xs font-bold">
-                          <Plus size={14} />
-                          Upload File
-                       </button>
-                    </div>
-                 </div>
+          <div className="pt-8 border-t border-white/5">
+            <h4 className="text-[10px] font-black text-text-tertiary uppercase tracking-widest mb-5">Attachments</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {task.files?.map(file => (
+                <div key={file.id} className="flex items-center gap-4 p-4 bg-white/2 border border-white/5 rounded-3xl hover:border-brand/40 transition-all cursor-pointer group shadow-sm">
+                  <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-text-tertiary group-hover:text-brand transition-colors">
+                    <Paperclip size={16} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-black text-white truncate">{file.filename}</p>
+                    <p className="text-[9px] text-text-tertiary font-black uppercase tracking-tight">{file.uploaded_by_name}</p>
+                  </div>
+                </div>
+              ))}
+              <button className="flex items-center justify-center gap-2 p-4 border border-dashed border-white/10 rounded-3xl text-text-tertiary hover:text-brand hover:border-brand/50 hover:bg-brand/5 transition-all text-xs font-black">
+                <Plus size={16} />
+                Upload File
+              </button>
+            </div>
+          </div>
+        </div>
 
-                 <div className="pt-6 border-t border-gray-800">
-                    <h4 className="text-xs font-black text-gray-500 uppercase tracking-widest mb-4">Subtasks</h4>
-                    <div className="space-y-2">
-                       {task.subtasks?.map(sub => (
-                          <div key={sub.id} className="flex items-center gap-3 p-2 bg-gray-900/30 border border-gray-800 rounded-xl hover:bg-gray-800/50 transition-colors">
-                             <input type="checkbox" checked={sub.is_completed} className="w-4 h-4 rounded border-gray-700 bg-gray-800 text-blue-600 focus:ring-blue-500/50" />
-                             <span className={`text-sm ${sub.is_completed ? 'text-gray-500 line-through' : 'text-gray-300'}`}>{sub.title}</span>
-                          </div>
-                       ))}
-                       <button className="text-xs font-bold text-blue-500 hover:underline flex items-center gap-1 mt-2">
-                          + Add Subtask
-                       </button>
-                    </div>
-                 </div>
+        <div className="space-y-6">
+          <div className="bg-white/2 p-6 rounded-[32px] border border-white/5 space-y-6 shadow-xl">
+            <div>
+              <label className="text-[10px] font-black text-text-tertiary block mb-2 uppercase tracking-widest">Status</label>
+              <div className="px-4 py-3 rounded-2xl bg-[#0b1429] border border-white/5 text-xs font-black text-white capitalize flex items-center gap-3">
+                <div className="w-2.5 h-2.5 rounded-full bg-brand shadow-[0_0_10px_rgba(51,102,255,0.6)]" />
+                {task.status.replace('_', ' ')}
               </div>
-
-              <div className="space-y-6">
-                 <div className="bg-gray-800/20 p-4 rounded-2xl border border-gray-800">
-                    <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Status & Assignee</h4>
-                    <div className="space-y-4">
-                       <div>
-                          <label className="text-[10px] font-bold text-gray-400 block mb-1">Status</label>
-                          <div className="px-3 py-2 rounded-xl bg-gray-900 border border-gray-800 text-sm font-bold text-white capitalize flex items-center gap-2">
-                             <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
-                             {task.status.replace('_', ' ')}
-                          </div>
-                       </div>
-                       <div>
-                          <label className="text-[10px] font-bold text-gray-400 block mb-1">Priority</label>
-                          <div className="px-3 py-2 rounded-xl bg-gray-900 border border-gray-800 text-sm font-bold text-white capitalize">
-                             {task.priority}
-                          </div>
-                       </div>
-                       <div>
-                          <label className="text-[10px] font-bold text-gray-400 block mb-1">Assignee</label>
-                           <div className="flex items-center gap-2 p-2 rounded-xl bg-gray-900 border border-gray-800">
-                              <Avatar user={task.assignee} size={24} className="rounded-lg" />
-                              <span className="text-xs font-bold text-white">{task.assignee_name || 'Unassigned'}</span>
-                           </div>
-                       </div>
-                    </div>
-                 </div>
-                 
-                 <div className="flex flex-col gap-2">
-                    <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-2xl transition-all shadow-lg shadow-blue-600/20">
-                       Edit Task
-                    </button>
-                    <button className="w-full bg-gray-800 hover:bg-red-600/20 hover:text-red-500 text-gray-400 font-bold py-3 rounded-2xl transition-all border border-gray-700 hover:border-red-500/50">
-                       Delete Task
-                    </button>
-                 </div>
+            </div>
+            <div>
+              <label className="text-[10px] font-black text-text-tertiary block mb-2 uppercase tracking-widest">Priority</label>
+              <div className="px-4 py-3 rounded-2xl bg-[#0b1429] border border-white/5 text-xs font-black text-white capitalize">
+                {task.priority}
               </div>
-           </div>
+            </div>
+            <div>
+              <label className="text-[10px] font-black text-text-tertiary block mb-2 uppercase tracking-widest">Assignee</label>
+              <div className="flex items-center gap-3 p-3 rounded-2xl bg-[#0b1429] border border-white/5">
+                <Avatar user={task.assignee} size={32} />
+                <span className="text-xs font-black text-white truncate">{task.assignee_name || 'Unassigned'}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex flex-col gap-3">
+            <Button variant="primary" className="w-full font-black py-4">Edit Task</Button>
+            <Button variant="danger" className="w-full font-black py-4">Delete Task</Button>
+          </div>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }

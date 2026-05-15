@@ -18,10 +18,10 @@ export default function Invitations() {
     try {
       const [received, sent] = await Promise.all([
         api.get('/invites/received/'),
-        activeWorkspace ? api.get(`/invites/sent/?workspace=${activeWorkspace.id}`) : Promise.resolve({ data: [] })
+        activeWorkspace ? api.get(`/invites/sent/?workspace=${activeWorkspace.id}`) : Promise.resolve({ data: { data: [] } })
       ]);
-      setReceivedInvites(received.data);
-      setSentInvites(sent.data);
+      setReceivedInvites(received.data.data || received.data || []);
+      setSentInvites(sent.data.data || sent.data || []);
     } catch (err) {
       console.error('Failed to fetch invites:', err);
     } finally {

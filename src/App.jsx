@@ -4,6 +4,7 @@ import { Toaster } from 'react-hot-toast'
 import { useStore } from './store'
 import Layout from './components/layout/Layout'
 import ErrorBoundary from './components/common/ErrorBoundary'
+import PresenceHandler from './components/common/PresenceHandler'
 
 // ⚡ Code-split every page — loads only what user visits
 const Home          = lazy(() => import('./pages/Home'))
@@ -30,6 +31,7 @@ const About         = lazy(() => import('./pages/About'))
 const Settings      = lazy(() => import('./pages/Settings'))
 const Notifications = lazy(() => import('./pages/Notifications'))
 const AuditLogs     = lazy(() => import('./pages/AuditLogs'))
+const Onboarding    = lazy(() => import('./pages/Onboarding'))
 
 const PageLoader = () => (
   <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'60vh', flexDirection:'column', gap:16 }}>
@@ -52,7 +54,8 @@ export default function App() {
   return (
     <div className={theme}>
       <ErrorBoundary>
-        <BrowserRouter>
+        <PresenceHandler>
+          <BrowserRouter>
           <Suspense fallback={<PageLoader />}>
             <Routes>
               <Route element={<Layout />}>
@@ -60,6 +63,7 @@ export default function App() {
                 <Route path="/login" element={<Public><Login /></Public>} />
                 <Route path="/register" element={<Public><Register /></Public>} />
                 <Route path="/about" element={<About />} />
+                <Route path="/onboarding" element={<Protected><Onboarding /></Protected>} />
                 <Route path="/dashboard" element={<Protected><Dashboard /></Protected>} />
                 <Route path="/workspaces" element={<Protected><Workspaces /></Protected>} />
                 <Route path="/workspaces/:id" element={<Protected><WorkspaceDetail /></Protected>} />
@@ -84,7 +88,8 @@ export default function App() {
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>
-        </BrowserRouter>
+          </BrowserRouter>
+        </PresenceHandler>
       </ErrorBoundary>
       <Toaster position="top-right" toastOptions={{ style:{ borderRadius:10, fontSize:13, fontFamily:'Plus Jakarta Sans, sans-serif' }, duration:3000 }} />
     </div>

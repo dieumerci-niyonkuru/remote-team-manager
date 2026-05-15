@@ -28,8 +28,8 @@ export default function Wiki() {
     
     Promise.all([wiki.list(), ws.list()])
       .then(([aRes, wRes]) => {
-        setArticles(aRes.data)
-        setWorkspaces(wRes.data.data || wRes.data)
+        setArticles(aRes.data.data || aRes.data || [])
+        setWorkspaces(wRes.data.data || wRes.data || [])
       })
       .catch(() => toast.error('Knowledge sync failed'))
       .finally(() => setLoading(false))
@@ -41,7 +41,7 @@ export default function Wiki() {
     e.preventDefault()
     try {
       const res = await wiki.list(searchQ)
-      setArticles(res.data)
+      setArticles(res.data.data || res.data || [])
     } catch { toast.error('Search failure') }
   }
 

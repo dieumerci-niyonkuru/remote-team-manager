@@ -25,9 +25,10 @@ import {
   Users,
   Mail,
   PieChart,
-  Sun,
-  Moon
 } from 'lucide-react';
+import ThemeSwitcher from './ThemeSwitcher';
+import { Tooltip } from '../common/Tooltip';
+import { Badge } from '../common/Badge';
 
 export default function Sidebar() {
   const { theme, setTheme, workspaces, activeWorkspace, setActiveWorkspace, user } = useStore();
@@ -149,20 +150,16 @@ export default function Sidebar() {
         
         {/* User Profile Section */}
         <div className={`mt-4 pt-4 border-t border-gray-800 flex items-center gap-3 px-2 ${collapsed ? 'justify-center' : ''}`}>
-          <Avatar user={user} size={collapsed ? 36 : 40} className="shadow-lg" />
+          <Avatar user={user} size={collapsed ? 36 : 40} className="shadow-lg" status="online" />
           {!collapsed && (
             <>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold text-white truncate">{user?.first_name ? `${user.first_name} ${user.last_name || ''}` : user?.username}</p>
                 <p className="text-[10px] text-gray-500 font-bold uppercase truncate">{user?.email}</p>
               </div>
-              <button 
-                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                className="p-2 rounded-xl bg-gray-800/50 text-gray-400 hover:text-white transition-all border border-transparent hover:border-gray-700"
-                title="Toggle Theme"
-              >
-                {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-              </button>
+              <div className="shrink-0">
+                <ThemeSwitcher />
+              </div>
             </>
           )}
           <CreateWorkspaceModal 
@@ -204,8 +201,8 @@ export default function Sidebar() {
 
       {/* Sidebar Container */}
       <aside 
-        className={`fixed md:sticky top-0 left-0 h-screen z-[100] transition-all duration-300 ease-in-out shadow-2xl md:shadow-none
-          ${collapsed ? 'w-[72px]' : 'w-72'} 
+        className={`fixed md:sticky top-0 left-0 h-screen z-[100] transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1) shadow-2xl md:shadow-none
+          ${collapsed ? 'w-[80px]' : 'w-72'} 
           ${mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
         `}
       >
@@ -241,22 +238,24 @@ function NavGroup({ links, collapsed }) {
           title={collapsed ? link.label : ''}
         >
           {({ isActive }) => (
-            <>
-              {isActive && (
-                <div className="absolute left-[-12px] top-1/2 -translate-y-1/2 w-1.5 h-6 bg-blue-500 rounded-r-full shadow-[0_0_10px_rgba(59,130,246,0.8)]" />
-              )}
-              <span className={`shrink-0 transition-transform ${isActive ? 'scale-110' : 'group-hover:scale-110'}`}>
-                {link.icon}
-              </span>
-              {!collapsed && (
-                <span className="flex-1 truncate text-[13px] tracking-tight">
-                  {link.label}
+            <Tooltip content={link.label} position="right">
+              <div className="flex items-center gap-4 w-full relative">
+                {isActive && (
+                  <div className="absolute left-[-16px] top-1/2 -translate-y-1/2 w-1 h-8 bg-brand rounded-r-full shadow-[0_0_15px_rgba(51,102,255,0.8)]" />
+                )}
+                <span className={`shrink-0 transition-all duration-300 ${isActive ? 'scale-110 text-white' : 'text-text-tertiary group-hover:scale-110 group-hover:text-white'}`}>
+                  {link.icon}
                 </span>
-              )}
-              {link.badge && !collapsed && (
-                <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)] animate-pulse" />
-              )}
-            </>
+                {!collapsed && (
+                  <span className={`flex-1 truncate text-sm font-black tracking-tight transition-colors ${isActive ? 'text-white' : 'text-text-secondary group-hover:text-white'}`}>
+                    {link.label}
+                  </span>
+                )}
+                {link.badge && !collapsed && (
+                  <Badge variant="primary" size="xs" className="animate-pulse">New</Badge>
+                )}
+              </div>
+            </Tooltip>
           )}
         </NavLink>
       ))}

@@ -2,8 +2,9 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.utils.timezone import now
-from .models import Workspace, WorkspaceMember
-from .serializers import WorkspaceSerializer, WorkspaceMemberSerializer
+from .models import Workspace, WorkspaceMember, ActivityFeed
+from .serializers import WorkspaceSerializer, WorkspaceMemberSerializer, ActivityFeedSerializer
+from .permissions import IsWorkspaceMember, HasWorkspaceRole
 from apps.notifications.models import Invite
 from django.conf import settings
 import uuid
@@ -11,33 +12,70 @@ from datetime import timedelta
 
 class WorkspaceViewSet(viewsets.ModelViewSet):
     serializer_class = WorkspaceSerializer
-    permission_classes = [permissions.IsAuthenticated]
+
+    def get_permissions(self):
+        if self.action == 'destroy':
+            return [permissions.IsAuthenticated(), HasWorkspaceRole(['owner'])]
+        if self.action in ['update', 'partial_update']:
+            return [permissions.IsAuthenticated(), HasWorkspaceRole(['owner', 'manager'])]
+        return [permissions.IsAuthenticated()]
 
     def get_queryset(self):
         return self.request.user.workspaces.all()
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response({
+            'data': serializer.data,
+            'message': 'Workspace created successfully.'
+        }, status=status.HTTP_201_CREATED)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({'data': serializer.data})
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        return Response({'data': serializer.data})
 
     def perform_create(self, serializer):
         workspace = serializer.save(created_by=self.request.user)
         WorkspaceMember.objects.create(workspace=workspace, user=self.request.user, role='owner')
 
-    @action(detail=True, methods=['post'])
-    def add_member(self, request, pk=None):
+    @action(detail=True, methods=['get'])
+    def activity(self, request, pk=None):
         workspace = self.get_object()
-        try:
-            member = workspace.workspacemember_set.get(user=request.user)
-            if member.role not in ['owner', 'manager']:
-                return Response({'error': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
-        except WorkspaceMember.DoesNotExist:
-            return Response({'error': 'Not a member'}, status=status.HTTP_403_FORBIDDEN)
+        activities = workspace.activity.all()
+        serializer = ActivityFeedSerializer(activities, many=True)
+        return Response({'data': serializer.data})
+
+    @action(detail=True, methods=['get', 'post'])
+    def members(self, request, pk=None):
+        workspace = self.get_object()
+        if request.method == 'GET':
+            members = workspace.workspacemember_set.all()
+            serializer = WorkspaceMemberSerializer(members, many=True)
+            return Response({'data': serializer.data})
         
-        user_id = request.data.get('user_id')
+        # Logic for POST (adding/inviting member)
+        email = request.data.get('email')
         role = request.data.get('role', 'viewer')
         try:
-            user = settings.AUTH_USER_MODEL.objects.get(id=user_id)
+            from apps.accounts.models import User
+            user = User.objects.get(email=email)
             WorkspaceMember.objects.get_or_create(workspace=workspace, user=user, defaults={'role': role})
-            return Response({'status': 'member added'})
-        except settings.AUTH_USER_MODEL.DoesNotExist:
-            return Response({'error': 'User not found'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'data': {'email': email, 'role': role}, 'message': 'Member added successfully.'}, status=status.HTTP_201_CREATED)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found. Please invite them instead.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['post'])
+    def add_member(self, request, pk=None):
+        # This matches the frontend call in api.js line 49
+        return self.members(request, pk)
 
     @action(detail=True, methods=['post'])
     def invite(self, request, pk=None):
@@ -55,9 +93,8 @@ class WorkspaceViewSet(viewsets.ModelViewSet):
             token=token,
             expires_at=expires_at
         )
-        # In production: send email with accept link
         accept_url = f"{request.build_absolute_uri('/invite/')}{token}"
-        return Response({'message': f'Invite sent to {email}', 'accept_url': accept_url})
+        return Response({'data': {'accept_url': accept_url}, 'message': f'Invite sent to {email}'})
 
     @action(detail=False, methods=['post'])
     def accept_invite(self, request):
@@ -68,6 +105,6 @@ class WorkspaceViewSet(viewsets.ModelViewSet):
             workspace.members.add(request.user, through_defaults={'role': invite.role})
             invite.accepted = True
             invite.save()
-            return Response({'message': f'Joined workspace {workspace.name}'})
+            return Response({'data': {'workspace_id': workspace.id}, 'message': f'Joined workspace {workspace.name}'})
         except Invite.DoesNotExist:
             return Response({'error': 'Invalid or expired invite'}, status=status.HTTP_400_BAD_REQUEST)

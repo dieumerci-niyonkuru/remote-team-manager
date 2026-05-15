@@ -9,19 +9,15 @@ import {
 import Avatar from '../components/common/Avatar';
 import CreateChannelModal from '../components/chat/CreateChannelModal';
 import api from '../services/api';
+import { Button } from '../components/common/Button';
+import { Modal } from '../components/common/Modal';
+import { Input } from '../components/common/Input';
 
-const MOCK_CHANNELS = [
-  { id: 'general', name: 'general', type: 'public', unread: 0 },
-  { id: 'engineering', name: 'engineering', type: 'public', unread: 5 },
-  { id: 'design', name: 'design', type: 'public', unread: 0 },
-];
-
-const MOCK_DMS = [
-  { id: 'sarah', name: 'Sarah Connor', status: 'online', avatar: 'https://i.pravatar.cc/150?u=sarah', unread: 1 },
-];
+const MOCK_CHANNELS = [];
+const MOCK_DMS = [];
 
 export default function Chat() {
-  const { user, theme, activeWorkspace } = useStore();
+  const { user, theme, activeWorkspace, onlineUsers } = useStore();
   const [channels, setChannels] = useState([]);
   const [dms, setDms] = useState([]);
   
@@ -55,11 +51,15 @@ export default function Chat() {
           api.get(`/channels/?workspace=${activeWorkspace.id}`),
           chat.dms()
         ]);
-        if (chData?.data?.length) {
-          setChannels(chData.data);
-          setActiveTab(chData.data[0].id);
+        const channelsData = chData.data.data || chData.data || [];
+        const dmsData = dmData.data.data || dmData.data || [];
+        
+        setChannels(channelsData);
+        setDms(dmsData);
+        
+        if (channelsData.length > 0 && !activeTab) {
+          setActiveTab(channelsData[0].id);
         }
-        if (dmData?.data?.length) setDms(dmData.data);
       } catch (err) {
         console.warn('Failed to fetch chat data:', err);
       }
@@ -98,15 +98,17 @@ export default function Chat() {
 
   const loadMessages = async (channelId, pageNum) => {
     try {
-      const res = await chat.messages({ channel_id: channelId, page: pageNum });
-      const newMessages = res.data.results || [];
+      const { data } = await chat.messages({ channel_id: channelId, page: pageNum });
+      const results = data.data?.results || data.results || [];
+      const next = data.data?.next || data.next;
+      
       if (pageNum === 1) {
-        setMessages(newMessages.reverse());
+        setMessages(results.reverse());
         setTimeout(() => scrollRef.current?.scrollIntoView(), 50);
       } else {
-        setMessages(prev => [...newMessages.reverse(), ...prev]);
+        setMessages(prev => [...results.reverse(), ...prev]);
       }
-      setHasMore(res.data.next !== null);
+      setHasMore(next !== null);
     } catch (err) {
       console.warn('Backend unavailable, message history is empty.');
       setHasMore(false);
@@ -132,8 +134,9 @@ export default function Chat() {
     if (wsRef.current) wsRef.current.close();
     const token = localStorage.getItem('rtm_access');
     const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-    const host = import.meta.env.VITE_WS_URL || (import.meta.env.PROD ? 'remote-team-manager-production.up.railway.app' : 'localhost:8000');
-    const wsUrl = `${protocol}://${host}/ws/chat/${activeTab}/?token=${token}`;
+    const host = window.location.host;
+    const wsHost = host.includes('localhost') ? 'localhost:8000' : 'remote-team-manager-production.up.railway.app';
+    const wsUrl = `${protocol}://${wsHost}/ws/chat/${activeTab}/?token=${token}`;
     
     wsRef.current = new WebSocket(wsUrl);
     
@@ -175,6 +178,10 @@ export default function Chat() {
               }
               return m;
             }));
+            break;
+
+          case 'message_delete_broadcast':
+            setMessages(prev => prev.filter(m => m.id !== data.message_id));
             break;
         }
       } catch (err) {}
@@ -279,16 +286,16 @@ export default function Chat() {
   const SidebarItem = ({ id, name, icon, unread, isActive }) => (
     <div 
       onClick={() => { setActiveTab(id); if (isMobile) setShowSidebar(false); setActiveThread(null); }}
-      className={`flex items-center justify-between px-3 py-1.5 mx-2 rounded-md cursor-pointer transition-colors group
-        ${isActive ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-gray-800 hover:text-gray-200'}
+      className={`flex items-center justify-between px-4 py-3 mx-2 rounded-2xl cursor-pointer transition-all duration-200 group
+        ${isActive ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-text-tertiary hover:bg-white/5 hover:text-white'}
       `}
     >
-      <div className="flex items-center gap-2 truncate">
-        <span className={`${isActive ? 'text-blue-200' : 'text-gray-500'} group-hover:text-gray-300`}>{icon}</span>
-        <span className={`truncate text-[15px] ${isActive ? 'font-semibold' : 'font-medium'}`}>{name}</span>
+      <div className="flex items-center gap-3 truncate">
+        <span className={`${isActive ? 'text-white' : 'text-text-tertiary'} group-hover:text-white transition-colors`}>{icon}</span>
+        <span className={`truncate text-sm font-black tracking-tight`}>{name}</span>
       </div>
       {unread > 0 && (
-        <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${isActive ? 'bg-white text-blue-600' : 'bg-red-500 text-white'}`}>
+        <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${isActive ? 'bg-white text-brand' : 'bg-rose-500 text-white shadow-lg shadow-rose-500/20'}`}>
           {unread}
         </span>
       )}
@@ -301,25 +308,38 @@ export default function Chat() {
       className="flex gap-4 group hover:bg-black/5 dark:hover:bg-white/5 p-2 md:px-6 -mx-2 md:-mx-6 rounded-lg transition-colors relative"
     >
       {/* Hover Actions */}
-      <div className="absolute right-4 top-2 opacity-0 group-hover:opacity-100 transition-opacity bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-md rounded-md flex items-center p-1 z-10">
-        <button onClick={() => addReaction(m.id, '👍')} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-500 hover:text-gray-900 dark:hover:text-white"><Smile size={16} /></button>
+      <div className="absolute right-4 top-2 opacity-0 group-hover:opacity-100 transition-opacity bg-white dark:bg-[#121b33] border border-gray-200 dark:border-white/10 shadow-xl rounded-xl flex items-center p-1 z-10">
+        <button onClick={() => addReaction(m.id, '👍')} className="p-2 hover:bg-white/5 rounded-lg text-text-tertiary hover:text-white" title="React"><Smile size={16} /></button>
         {m.user?.id === user?.id && (
-          <button onClick={() => { setEditingMessage(m); setInput(m.content); }} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-500 hover:text-gray-900 dark:hover:text-white"><Plus size={16} className="rotate-45" /></button>
+          <>
+            <button onClick={() => { setEditingMessage(m); setInput(m.content); }} className="p-2 hover:bg-white/5 rounded-lg text-text-tertiary hover:text-white" title="Edit"><Plus size={16} className="rotate-45" /></button>
+            <button 
+              onClick={() => {
+                if (wsRef.current?.readyState === WebSocket.OPEN) {
+                  wsRef.current.send(JSON.stringify({ type: 'delete_message', message_id: m.id }));
+                }
+              }} 
+              className="p-2 hover:bg-rose-500/10 rounded-lg text-text-tertiary hover:text-rose-500" 
+              title="Delete"
+            >
+              <X size={16} />
+            </button>
+          </>
         )}
         {!isThreadItem && (
-          <button onClick={() => setActiveThread(m)} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded text-gray-500 hover:text-gray-900 dark:hover:text-white"><MessageCircle size={16} /></button>
+          <button onClick={() => setActiveThread(m)} className="p-2 hover:bg-white/5 rounded-lg text-text-tertiary hover:text-white" title="Reply"><MessageCircle size={16} /></button>
         )}
       </div>
 
-      <Avatar user={m.user} size={40} className="rounded-lg" />
+      <Avatar user={m.user} size={isMobile ? 32 : 40} />
       
       <div className="flex-1 min-w-0">
         <div className="flex items-baseline gap-2 mb-1">
-          <span className="font-bold text-[15px] text-gray-900 dark:text-white">{m.user?.first_name} {m.user?.last_name}</span>
-          <span className="text-xs text-gray-500">{new Date(m.timestamp || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+          <span className="font-black text-sm text-gray-900 dark:text-white tracking-tight">{m.user?.first_name} {m.user?.last_name}</span>
+          <span className="text-[10px] font-bold text-text-tertiary opacity-60">{new Date(m.timestamp || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
         </div>
         
-        <div className="text-[15px] text-gray-800 dark:text-gray-300 leading-relaxed break-words">
+        <div className="text-sm text-gray-800 dark:text-text-secondary leading-relaxed break-words">
           {m.content}
         </div>
 
@@ -398,17 +418,17 @@ export default function Chat() {
             <button className="text-gray-400 hover:text-gray-900 dark:hover:text-white opacity-0 group-hover:opacity-100"><Plus size={16} /></button>
           </div>
           <div>
-            {dms.map(d => (
-              <SidebarItem 
-                key={d.id} id={d.id} name={d.name} unread={d.unread} isActive={activeTab === d.id}
-                icon={
-                  <div className="relative">
-                    {d.avatar ? <img src={d.avatar} className="w-4 h-4 rounded-md object-cover" /> : <div className="w-4 h-4 rounded-md bg-purple-500"></div>}
-                    <div className={`absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border-[1.5px] border-gray-50 dark:border-[#060b18] ${d.status === 'online' ? 'bg-green-500' : 'bg-gray-400'}`}></div>
-                  </div>
-                }
-              />
-            ))}
+            {dms.map(d => {
+              const isOnline = onlineUsers.includes(d.id);
+              return (
+                <SidebarItem 
+                  key={d.id} id={d.id} name={d.name} unread={d.unread} isActive={activeTab === d.id}
+                  icon={
+                    <Avatar user={d} size={24} status={isOnline ? 'online' : 'offline'} />
+                  }
+                />
+              );
+            })}
           </div>
         </div>
       </div>
@@ -417,29 +437,30 @@ export default function Chat() {
       <div className={`flex-1 flex flex-col min-w-0 bg-white dark:bg-[#0b1429] ${isMobile && showSidebar ? 'hidden' : 'flex'}`}>
         
         {/* Chat Header */}
-        <div className="h-14 shrink-0 flex items-center justify-between px-4 md:px-6 border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-[#0b1429]/80 backdrop-blur-md z-10">
-          <div className="flex items-center gap-3 truncate">
+        <div className="h-16 shrink-0 flex items-center justify-between px-4 md:px-8 border-b border-gray-200 dark:border-gray-800 bg-white/80 dark:bg-[#0b1429]/80 backdrop-blur-xl z-10">
+          <div className="flex items-center gap-4 truncate">
             {isMobile && (
-              <button 
+              <Button 
+                variant="secondary"
+                size="sm"
                 onClick={() => setShowSidebar(true)} 
-                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-600/10 text-blue-500 font-bold text-xs -ml-2 hover:bg-blue-600/20 transition-all"
+                className="font-black !px-3"
               >
                 <Hash size={16} />
-                Channels
-              </button>
+              </Button>
             )}
-            <div className="font-black text-[16px] text-gray-900 dark:text-white truncate flex items-center gap-2">
+            <div className="font-black text-lg text-gray-900 dark:text-white truncate flex items-center gap-2 tracking-tight">
               {headerName}
             </div>
           </div>
 
-          <div className="flex items-center gap-1 md:gap-3 text-gray-500 dark:text-gray-400">
-            <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md"><Phone size={18} /></button>
-            <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md"><Video size={18} /></button>
-            <div className="w-px h-6 bg-gray-300 dark:bg-gray-700 mx-1 hidden md:block"></div>
+          <div className="flex items-center gap-2 text-text-tertiary">
+            <Button variant="icon" size="sm"><Phone size={18} /></Button>
+            <Button variant="icon" size="sm"><Video size={18} /></Button>
+            <div className="w-px h-6 bg-white/5 mx-2 hidden md:block"></div>
             <div className="relative hidden md:block">
-              <Search className="absolute left-2.5 top-2 w-4 h-4" />
-              <input type="text" placeholder="Search..." className="pl-9 pr-4 py-1.5 bg-gray-100 dark:bg-gray-900 border border-transparent focus:border-blue-500 rounded-md text-sm outline-none transition-all w-48 focus:w-64" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 opacity-50" />
+              <input type="text" placeholder="Search message..." className="pl-10 pr-4 py-2 bg-white/2 border border-white/5 focus:border-brand/50 rounded-xl text-xs outline-none transition-all w-48 focus:w-64 text-white" />
             </div>
           </div>
         </div>

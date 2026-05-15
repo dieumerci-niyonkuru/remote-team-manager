@@ -2,7 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useStore } from '../store';
 import { FolderKanban, Plus, MoreVertical, LayoutGrid, List as ListIcon, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
 import api from '../services/api';
-import Modal from '../components/common/Modal';
+import { Modal } from '../components/common/Modal';
+import { Button } from '../components/common/Button';
+import { Card } from '../components/common/Card';
+import { Input } from '../components/common/Input';
+import { Dropdown } from '../components/common/Dropdown';
 import toast from 'react-hot-toast';
 
 export default function Projects() {
@@ -22,8 +26,8 @@ export default function Projects() {
 
   const fetchProjects = async () => {
     try {
-      const res = await api.get(`/projects/?workspace=${activeWorkspace.id}`);
-      setProjects(res.data);
+      const { data } = await api.get(`/projects/?workspace=${activeWorkspace.id}`);
+      setProjects(data.data || data);
     } catch (err) {
       console.error('Failed to fetch projects:', err);
     } finally {
@@ -204,61 +208,66 @@ function ProjectCard({ project, viewMode, getStatusIcon }) {
   }
 
   return (
-    <div className="bg-gray-800/40 border border-gray-800 hover:border-gray-700 rounded-3xl p-6 transition-all hover:translate-y-[-4px] shadow-lg hover:shadow-2xl hover:shadow-blue-600/10 flex flex-col group">
-      <div className="flex items-start justify-between mb-4">
-        <div className="w-12 h-12 rounded-2xl bg-blue-600/10 flex items-center justify-center text-blue-500 group-hover:bg-blue-600 group-hover:text-white transition-all duration-500">
-          <FolderKanban size={24} />
-        </div>
-        <button className="p-2 hover:bg-gray-700 rounded-xl text-gray-500 hover:text-white transition-colors">
-          <MoreVertical size={20} />
-        </button>
-      </div>
-      
-      <div className="mb-6 flex-1">
-        <div className="flex items-center gap-2 mb-1">
-          <span className="px-2 py-0.5 rounded-md bg-gray-800 text-[10px] font-bold text-gray-400 uppercase tracking-widest border border-gray-700">
-            {project.project_type}
-          </span>
-          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-gray-800 text-[10px] font-bold text-gray-400 border border-gray-700">
-            {getStatusIcon(project.status)}
-            <span className="capitalize">{project.status}</span>
+    <Card 
+      variant="default" 
+      hover 
+      className="flex flex-col group h-full !p-0 overflow-hidden"
+    >
+      <div className="p-6 flex-1 flex flex-col">
+        <div className="flex items-start justify-between mb-5">
+          <div className="w-12 h-12 rounded-2xl bg-brand/10 flex items-center justify-center text-brand group-hover:bg-brand group-hover:text-white transition-all duration-500 shadow-sm">
+            <FolderKanban size={24} />
           </div>
+          <Button variant="icon" size="sm">
+            <MoreVertical size={20} />
+          </Button>
         </div>
-        <h3 className="text-xl font-bold text-white mb-2 group-hover:text-blue-400 transition-colors">{project.name}</h3>
-        <p className="text-gray-400 text-sm line-clamp-2">{project.description || 'No description provided for this project.'}</p>
-      </div>
-
-      <div className="space-y-4">
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold text-gray-500 uppercase tracking-tighter">Project Progress</span>
-            <span className="text-sm font-bold text-white">{project.progress}%</span>
-          </div>
-          <div className="w-full bg-gray-800 rounded-full h-2 overflow-hidden border border-gray-700/50">
-            <div 
-              className="bg-gradient-to-r from-blue-600 to-indigo-500 h-full rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(37,99,235,0.4)]" 
-              style={{ width: `${project.progress}%` }}
-            ></div>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between pt-4 border-t border-gray-800">
-          <div className="flex -space-x-2">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="w-8 h-8 rounded-full border-2 border-gray-900 bg-gray-800 flex items-center justify-center text-[10px] font-bold text-white ring-2 ring-gray-800">
-                U{i}
-              </div>
-            ))}
-            <div className="w-8 h-8 rounded-full border-2 border-gray-900 bg-gray-700 flex items-center justify-center text-[10px] font-bold text-gray-400">
-              +{project.member_count}
+        
+        <div className="mb-6 flex-1">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="px-2 py-0.5 rounded-md bg-white/5 text-[10px] font-black text-text-tertiary uppercase tracking-widest border border-white/5">
+              {project.project_type}
+            </span>
+            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/5 text-[10px] font-black text-text-tertiary border border-white/5">
+              {getStatusIcon(project.status)}
+              <span className="capitalize">{project.status}</span>
             </div>
           </div>
-          <div className="text-right">
-            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Tasks</p>
-            <p className="text-lg font-black text-white">{project.task_count}</p>
+          <h3 className="text-xl font-black text-white mb-2 group-hover:text-brand transition-colors tracking-tight">{project.name}</h3>
+          <p className="text-text-tertiary text-sm line-clamp-2 leading-relaxed">{project.description || 'No description provided for this project.'}</p>
+        </div>
+
+        <div className="space-y-4 pt-6 border-t border-white/5">
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[10px] font-black text-text-tertiary uppercase tracking-tighter">Project Progress</span>
+              <span className="text-sm font-black text-white">{project.progress}%</span>
+            </div>
+            <div className="w-full bg-white/5 rounded-full h-2 overflow-hidden border border-white/5">
+              <div 
+                className="bg-gradient-to-r from-brand to-accent-violet h-full rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(51,102,255,0.4)]" 
+                style={{ width: `${project.progress}%` }}
+              ></div>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between pt-2">
+            <div className="flex -space-x-2">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="w-8 h-8 rounded-full border-2 border-[#0d1425] bg-white/5 flex items-center justify-center text-[10px] font-black text-white">
+                  {i}
+                </div>
+              ))}
+              <div className="w-8 h-8 rounded-full border-2 border-[#0d1425] bg-white/10 flex items-center justify-center text-[10px] font-black text-text-tertiary">
+                +{project.member_count}
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-[10px] font-black text-text-tertiary uppercase tracking-widest">Tasks</p>
+              <p className="text-lg font-black text-white">{project.task_count}</p>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
+    </Card>
   );
 }

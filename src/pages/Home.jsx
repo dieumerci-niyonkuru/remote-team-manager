@@ -1,163 +1,287 @@
-import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
-import { useStore } from '../store'
-import Dashboard from './Dashboard'
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useStore } from '../store';
+import { Button } from '../components/common/Button';
+import { Card } from '../components/common/Card';
+import { Check, ChevronRight, Star, ArrowRight, Shield, Zap, Globe, MessageSquare } from 'lucide-react';
+import Dashboard from './Dashboard';
 
-const BACKGROUNDS = [
-  'https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=2000',
-  'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2000',
-  'https://images.unsplash.com/photo-1557804506-669a67965ba0?q=80&w=2000',
-  'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?q=80&w=2000'
-]
+const HERO_IMG = '/saas_hero_dashboard_preview_1778872659955.png';
 
-const FEATURES = [
-  { 
-    title:'Real-time Sync', 
-    desc:'Websocket-powered chat and instant notifications keep your team in perfect rhythm.',
-    img: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=800'
+const PLANS = [
+  {
+    name: 'Free',
+    price: '$0',
+    desc: 'Perfect for small side projects.',
+    features: ['Up to 3 members', '2 Workspaces', 'Basic Chat', '5GB Storage'],
+    cta: 'Get Started',
+    popular: false
   },
-  { 
-    title:'AI Copilot', 
-    desc:'Advanced AI helps breakdown complex goals into manageable tasks automatically.',
-    img: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?q=80&w=800'
+  {
+    name: 'Pro',
+    price: '$12',
+    desc: 'Best for growing teams.',
+    features: ['Unlimited members', 'Unlimited Workspaces', 'Advanced Analytics', '50GB Storage', 'Priority Support'],
+    cta: 'Try Pro Free',
+    popular: true
   },
-  { 
-    title:'Project Insights', 
-    desc:'Visual dashboards and time tracking give you deep visibility into productivity.',
-    img: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=800'
+  {
+    name: 'Enterprise',
+    price: 'Custom',
+    desc: 'For large organizations.',
+    features: ['SSO & SAML', 'Audit Logs', 'Custom Workflows', 'Unlimited Storage', 'Dedicated Manager'],
+    cta: 'Contact Sales',
+    popular: false
   }
-]
+];
 
-const MARQUEE_ITEMS = [
-  { name: 'Sarah L.', role: 'Engineering Lead', text: 'RemoteTeam transformed how we deploy globally.', avatar: 'https://i.pravatar.cc/150?u=sarah' },
-  { name: 'Marcus J.', role: 'Product Manager', text: 'The AI workflows are a literal game changer.', avatar: 'https://i.pravatar.cc/150?u=marcus' },
-  { name: 'Elena R.', role: 'Head of Design', text: 'Beautiful UI, even better performance.', avatar: 'https://i.pravatar.cc/150?u=elena' },
-  { name: 'David K.', role: 'CEO @ TechFlow', text: 'Scaling to 500 members was seamless with the workspace OS.', avatar: 'https://i.pravatar.cc/150?u=david' },
-  { name: 'Sofia M.', role: 'Operations', text: 'The Kanban engine is the most stable we have ever used.', avatar: 'https://i.pravatar.cc/150?u=sofia' },
-]
+const FAQS = [
+  { q: "Is there a free trial for the Pro plan?", a: "Yes! You can try all Pro features for free for 14 days, no credit card required." },
+  { q: "Can I cancel my subscription anytime?", a: "Absolutely. You can cancel, upgrade, or downgrade your plan at any time from your billing settings." },
+  { q: "Do you offer discounts for non-profits?", a: "Yes, we offer special pricing for educational and non-profit organizations. Contact our support team to learn more." }
+];
 
 export default function Home() {
-  const { isAuth, theme } = useStore()
-  const [bgIndex, setBgIndex] = useState(0)
-
-  useEffect(() => {
-    if (isAuth) return
-    const timer = setInterval(() => setBgIndex(i => (i + 1) % BACKGROUNDS.length), 8000)
-    return () => clearInterval(timer)
-  }, [isAuth])
+  const { isAuth, theme } = useStore();
+  const navigate = useNavigate();
 
   if (isAuth) {
-    return <Dashboard />
+    return <Dashboard />;
   }
 
   return (
-    <div className={theme} style={{ background:'var(--bg)' }}>
+    <div className="bg-[#060b18] text-white overflow-x-hidden">
       {/* Hero Section */}
-      <section style={{ position:'relative', minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', padding:'120px 24px', overflow:'hidden' }}>
-        {/* Animated Background Overlay */}
-        <div style={{ position:'absolute', inset:0, zIndex:0 }}>
-           {BACKGROUNDS.map((bg, i) => (
-             <div key={bg} style={{ position:'absolute', inset:0, backgroundImage:`url(${bg})`, backgroundSize:'cover', backgroundPosition:'center', opacity: i === bgIndex ? 0.3 : 0, transition:'opacity 2s ease-in-out' }} />
-           ))}
-           <div className="moving-code-bg" style={{ opacity: 0.15 }} />
-        </div>
+      <section className="relative min-h-screen flex items-center justify-center pt-32 pb-20 px-6 overflow-hidden">
+        {/* Background Gradients */}
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-brand/20 blur-[120px] rounded-full pointer-events-none" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-accent-violet/20 blur-[120px] rounded-full pointer-events-none" />
         
-        <div style={{ position:'absolute', inset:0, background:'linear-gradient(to bottom, transparent, var(--bg))', zIndex:1 }} />
-        
-        <div className="container" style={{ position:'relative', zIndex:2, textAlign:'center' }}>
-          <div className="fade-in" style={{ display:'inline-flex', alignItems:'center', gap:10, background:'rgba(51,102,255,0.1)', border:'1px solid var(--brand)', borderRadius:40, padding:'10px 24px', fontSize:13, fontWeight:800, color:'var(--brand)', marginBottom:40, textTransform:'uppercase', letterSpacing:2 }}>
-            <span className="activity-dot" />
-            V.2.0 NOW LIVE — NEXT-GEN WORKSPACE OS
+        <div className="container mx-auto relative z-10 text-center">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-[11px] font-black tracking-[0.2em] text-brand mb-10 uppercase animate-in fade-in slide-in-from-top-4 duration-700">
+            <span className="w-2 h-2 rounded-full bg-brand animate-pulse" />
+            Next-Gen Workspace OS is here
           </div>
-          
-          <h1 className="fade-in" style={{ fontSize:'clamp(48px, 12vw, 120px)', fontWeight:900, color:'var(--text)', marginBottom:32, lineHeight:0.8, letterSpacing:'-0.06em' }}>
-            Build faster. <br/> 
-            Scale <span className="text-gradient">Global.</span>
+
+          <h1 className="text-6xl md:text-8xl lg:text-9xl font-black tracking-tighter leading-[0.85] mb-8 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+            Work at the speed <br />
+            of <span className="bg-gradient-to-r from-brand via-accent-violet to-accent-rose bg-clip-text text-transparent">thought.</span>
           </h1>
-          
-          <p className="fade-in" style={{ fontSize:'clamp(18px, 3vw, 26px)', color:'var(--text2)', maxWidth:850, margin:'0 auto 64px', lineHeight:1.5, animationDelay:'0.2s', fontWeight:500 }}>
-            The all-in-one mission control for modern teams. Real-time chat, AI workflows, and bank-grade security — built to scale with your ambition.
+
+          <p className="max-w-2xl mx-auto text-lg md:text-xl text-text-secondary font-medium leading-relaxed mb-12 animate-in fade-in slide-in-from-bottom-6 duration-1000 delay-200">
+            RemoteTeam is the unified mission control for elite engineering teams. 
+            Consolidate your tools, automate your workflows, and build the future.
           </p>
-          
-          <div className="fade-in" style={{ display:'flex', gap:20, justifyContent:'center', flexWrap:'wrap', animationDelay:'0.3s' }}>
-            <Link to="/register" className="btn btn-primary" style={{ padding:'24px 64px', fontSize:20, borderRadius:24 }}>Get Started Free</Link>
-            <Link to="/login" className="btn btn-secondary" style={{ padding:'24px 64px', fontSize:20, borderRadius:24, background:'rgba(255,255,255,0.05)' }}>Request Demo ➜</Link>
-          </div>
-        </div>
-      </section>
 
-      {/* Dashboard Preview Section (Mockup) */}
-      <section style={{ padding:'0 16px', position:'relative', marginTop:'-60px', zIndex:10 }}>
-        <div className="container" style={{ padding: 0 }}>
-          <div className="mockup-glow fade-in" style={{ padding:'10px', background:'rgba(255,255,255,0.02)', backdropFilter:'blur(40px)', border:'1px solid rgba(255,255,255,0.1)' }}>
-             <img 
-               src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2000" 
-               alt="Dashboard Preview" 
-               style={{ width:'100%', borderRadius:16, border:'1px solid rgba(255,255,255,0.05)' }} 
-             />
-             <div style={{ position:'absolute', top:'20%', right:'-40px', width:240, padding:20, borderRadius:20, background:'rgba(11,20,41,0.9)', border:'1px solid var(--brand)', boxShadow:'var(--shadow-lg)' }} className="float desktop-only">
-                <div className="flex items-center gap-3 mb-4">
-                   <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center font-bold">JD</div>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-500">
+            <Button size="lg" onClick={() => navigate('/register')} className="px-12 py-5 text-xl font-black">
+              Start Building — Free
+            </Button>
+            <Button variant="secondary" size="lg" onClick={() => navigate('/login')} className="px-12 py-5 text-xl font-black">
+              Book a Demo <ArrowRight className="ml-2" />
+            </Button>
+          </div>
+
+          {/* Dashboard Preview */}
+          <div className="mt-24 relative max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-700">
+             <div className="relative rounded-[40px] border border-white/10 bg-white/5 p-4 backdrop-blur-3xl shadow-2xl overflow-hidden group">
+               <img 
+                 src={HERO_IMG} 
+                 alt="RemoteTeam Dashboard" 
+                 className="w-full rounded-[24px] shadow-2xl transition-transform duration-700 group-hover:scale-[1.01]"
+               />
+               <div className="absolute inset-0 bg-gradient-to-t from-[#060b18] via-transparent to-transparent pointer-events-none" />
+             </div>
+             
+             {/* Floating Elements */}
+             <Card className="absolute -top-10 -left-10 hidden lg:block p-5 animate-bounce-slow">
+                <div className="flex items-center gap-3">
+                   <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500"><Zap size={20} /></div>
                    <div>
-                      <p className="text-xs font-bold text-white">Project Launch</p>
-                      <p className="text-[10px] text-gray-400">Due in 2 hours</p>
+                      <p className="text-[10px] font-black text-emerald-500 uppercase">Productivity</p>
+                      <p className="text-sm font-black">+42% efficiency</p>
                    </div>
                 </div>
-                <div className="h-2 w-full bg-gray-800 rounded-full overflow-hidden">
-                   <div className="h-full bg-blue-500" style={{ width:'75%' }} />
-                </div>
-             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Infinite Moving Cards Section */}
-      <section style={{ padding:'140px 0', overflow:'hidden', background:'var(--bg)' }}>
-        <div style={{ textAlign:'center', marginBottom:80, padding: '0 24px' }}>
-          <h2 style={{ fontSize:'clamp(32px, 8vw, 64px)', fontWeight:900, letterSpacing:'-0.04em' }}>Trusted by the <span className="text-gradient">Best.</span></h2>
-        </div>
-        
-        <div className="marquee-container">
-           {[...MARQUEE_ITEMS, ...MARQUEE_ITEMS].map((item, i) => (
-             <div key={i} className="card" style={{ width:350, margin:'0 15px', padding:32, background:'var(--bg2)', borderRadius:28, border:'1px solid var(--border2)' }}>
-                <div className="flex items-center gap-4 mb-6">
-                   <img src={item.avatar} alt={item.name} style={{ width:56, height:56, borderRadius:20, border:'2px solid var(--brand)' }} />
+             </Card>
+             <Card className="absolute top-1/2 -right-16 hidden lg:block p-5 animate-bounce-delayed">
+                <div className="flex items-center gap-3">
+                   <div className="w-10 h-10 rounded-full bg-brand/20 flex items-center justify-center text-brand"><MessageSquare size={20} /></div>
                    <div>
-                      <h4 style={{ fontSize:18, fontWeight:800, color:'#fff' }}>{item.name}</h4>
-                      <p style={{ fontSize:12, color:'var(--brand)', fontWeight:700, textTransform:'uppercase' }}>{item.role}</p>
+                      <p className="text-[10px] font-black text-brand uppercase">Sync Status</p>
+                      <p className="text-sm font-black">All teams connected</p>
                    </div>
                 </div>
-                <p style={{ color:'var(--text2)', fontSize:16, lineHeight:1.6, fontStyle:'italic' }}>"{item.text}"</p>
-             </div>
-           ))}
-        </div>
-      </section>
-
-      {/* Value Proposition */}
-      <section style={{ padding:'140px 24px', background:'var(--bg2)' }}>
-        <div className="container" style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(320px, 1fr))', gap:40 }}>
-           {FEATURES.map((f, i) => (
-             <div key={i} className="card card-hover" style={{ padding:40, borderRadius:32 }}>
-                <div style={{ width:64, height:64, borderRadius:20, background:'var(--brand-bg)', display:'flex', alignItems:'center', justifyContent:'center', color:'var(--brand)', marginBottom:32 }}>
-                   {i === 0 ? <img src={f.img} style={{ width:'100%', height:'100%', objectFit:'cover', borderRadius:20 }} /> : null}
-                </div>
-                <h3 style={{ fontSize:28, fontWeight:900, marginBottom:20 }}>{f.title}</h3>
-                <p style={{ color:'var(--text2)', fontSize:18, lineHeight:1.7 }}>{f.desc}</p>
-             </div>
-           ))}
-        </div>
-      </section>
-
-      {/* Feedback & Community */}
-      <section style={{ padding:'140px 24px', background:'linear-gradient(to bottom, var(--bg), var(--bg2))' }}>
-        <div className="container" style={{ textAlign:'center' }}>
-          <div style={{ maxWidth:800, margin:'0 auto', padding: '0 24px' }}>
-             <h2 style={{ fontSize:'clamp(40px, 10vw, 72px)', fontWeight:900, marginBottom:32, lineHeight: 1.1 }}>Your voice <span className="text-gradient">Matters.</span></h2>
-             <p style={{ fontSize:'clamp(16px, 3vw, 22px)', color:'var(--text2)', marginBottom:48 }}>We build for you. Provide feedback directly within the platform to help us shape the future of workspace engineering.</p>
-             <Link to="/register" className="btn btn-primary" style={{ padding:'24px 80px', fontSize:22, borderRadius:24 }}>Join the Community</Link>
+             </Card>
           </div>
         </div>
       </section>
+
+      {/* Features Grid */}
+      <section className="py-32 px-6 bg-[#080d1a]">
+        <div className="container mx-auto">
+          <div className="text-center mb-24">
+            <h2 className="text-4xl md:text-6xl font-black tracking-tight mb-6">Built for the <span className="text-brand">elite.</span></h2>
+            <p className="text-text-secondary text-lg max-w-2xl mx-auto font-medium">Everything you need to manage complex projects without the friction of traditional enterprise tools.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <Card hover variant="glass" className="p-10 space-y-6">
+              <div className="w-14 h-14 rounded-2xl bg-brand/10 flex items-center justify-center text-brand"><Zap size={28} /></div>
+              <h3 className="text-2xl font-black">Real-time Velocity</h3>
+              <p className="text-text-tertiary leading-relaxed">Websocket-powered task boards and chat ensure every update is reflected instantly across your global team.</p>
+            </Card>
+            <Card hover variant="glass" className="p-10 space-y-6">
+              <div className="w-14 h-14 rounded-2xl bg-accent-violet/10 flex items-center justify-center text-accent-violet"><Shield size={28} /></div>
+              <h3 className="text-2xl font-black">Bank-grade Security</h3>
+              <p className="text-text-tertiary leading-relaxed">Role-based access, audit trails, and end-to-end encryption keep your data safe and compliant.</p>
+            </Card>
+            <Card hover variant="glass" className="p-10 space-y-6">
+              <div className="w-14 h-14 rounded-2xl bg-accent-rose/10 flex items-center justify-center text-accent-rose"><Globe size={28} /></div>
+              <h3 className="text-2xl font-black">Global Ready</h3>
+              <p className="text-text-tertiary leading-relaxed">Multi-timezone support, localized collaboration, and CDN-powered asset delivery for teams everywhere.</p>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section className="py-32 px-6">
+        <div className="container mx-auto">
+          <div className="text-center mb-24">
+            <h2 className="text-4xl md:text-6xl font-black tracking-tight mb-6">Simple, <span className="text-accent-violet">transparent</span> pricing.</h2>
+            <p className="text-text-secondary text-lg max-w-2xl mx-auto font-medium">Choose the plan that fits your team's ambition. No hidden fees.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {PLANS.map(plan => (
+              <Card key={plan.name} className={`relative p-10 flex flex-col h-full ${plan.popular ? 'border-brand/40 shadow-2xl shadow-brand/10 bg-brand/5 scale-105 z-10' : ''}`}>
+                {plan.popular && (
+                  <div className="absolute top-5 right-5 bg-brand text-white px-3 py-1 rounded-full text-[10px] font-black uppercase">Most Popular</div>
+                )}
+                <div className="mb-8">
+                  <h3 className="text-xl font-black mb-2">{plan.name}</h3>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-4xl font-black">{plan.price}</span>
+                    {plan.price !== 'Custom' && <span className="text-text-tertiary font-bold">/mo</span>}
+                  </div>
+                  <p className="text-text-tertiary text-sm mt-4 font-medium">{plan.desc}</p>
+                </div>
+                
+                <ul className="space-y-4 mb-12 flex-1">
+                  {plan.features.map(f => (
+                    <li key={f} className="flex items-center gap-3 text-sm text-text-secondary font-bold">
+                      <Check size={16} className="text-brand" />
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+
+                <Button variant={plan.popular ? 'primary' : 'secondary'} className="w-full font-black py-4">
+                  {plan.cta}
+                </Button>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ & Footer */}
+      <section className="py-32 px-6 bg-[#080d1a] border-t border-white/5">
+        <div className="container mx-auto max-w-4xl">
+          <div className="text-center mb-20">
+             <h2 className="text-4xl font-black tracking-tight mb-4">Frequently Asked Questions</h2>
+          </div>
+          <div className="space-y-4">
+             {FAQS.map((faq, i) => (
+               <Card key={i} className="p-6">
+                 <h4 className="text-lg font-black text-white mb-2">{faq.q}</h4>
+                 <p className="text-text-tertiary text-sm leading-relaxed">{faq.a}</p>
+               </Card>
+             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA */}
+      <section className="py-40 px-6 text-center relative overflow-hidden">
+        <div className="absolute inset-0 bg-brand/5 blur-[100px] rounded-full translate-y-1/2 pointer-events-none" />
+        <h2 className="text-5xl md:text-8xl font-black tracking-tighter mb-12 relative z-10">
+          Ready to build the <br />
+          <span className="text-brand">future?</span>
+        </h2>
+        <Button size="lg" onClick={() => navigate('/register')} className="px-16 py-6 text-2xl font-black relative z-10 shadow-2xl">
+          Join the Mission
+        </Button>
+      </section>
+
+      {/* Footer */}
+      <footer className="py-20 px-6 border-t border-white/5">
+        <div className="container mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-20">
+            <div className="col-span-1 md:col-span-1">
+              <Link to="/" className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-xl bg-brand flex items-center justify-center text-white">
+                  <Zap size={24} />
+                </div>
+                <span className="text-xl font-black tracking-tighter">RemoteTeam</span>
+              </Link>
+              <p className="text-text-tertiary text-sm leading-relaxed max-w-xs">
+                The next-generation Workspace OS for elite engineering teams.
+              </p>
+            </div>
+            <div>
+              <h4 className="text-white font-black mb-6 uppercase text-xs tracking-widest">Product</h4>
+              <ul className="space-y-4 text-sm text-text-tertiary font-bold">
+                <li><Link to="/features" className="hover:text-white transition-colors">Features</Link></li>
+                <li><Link to="/integrations" className="hover:text-white transition-colors">Integrations</Link></li>
+                <li><Link to="/pricing" className="hover:text-white transition-colors">Pricing</Link></li>
+                <li><Link to="/changelog" className="hover:text-white transition-colors">Changelog</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-white font-black mb-6 uppercase text-xs tracking-widest">Resources</h4>
+              <ul className="space-y-4 text-sm text-text-tertiary font-bold">
+                <li><Link to="/docs" className="hover:text-white transition-colors">Documentation</Link></li>
+                <li><Link to="/api" className="hover:text-white transition-colors">API Reference</Link></li>
+                <li><Link to="/blog" className="hover:text-white transition-colors">Blog</Link></li>
+                <li><Link to="/help" className="hover:text-white transition-colors">Help Center</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-white font-black mb-6 uppercase text-xs tracking-widest">Company</h4>
+              <ul className="space-y-4 text-sm text-text-tertiary font-bold">
+                <li><Link to="/about" className="hover:text-white transition-colors">About Us</Link></li>
+                <li><Link to="/careers" className="hover:text-white transition-colors">Careers</Link></li>
+                <li><Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
+                <li><Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
+              </ul>
+            </div>
+          </div>
+          <div className="flex flex-col md:flex-row items-center justify-between pt-12 border-t border-white/5 gap-6">
+            <p className="text-text-tertiary text-[10px] font-black uppercase tracking-widest">
+              © 2026 RemoteTeam Inc. All rights reserved.
+            </p>
+            <div className="flex items-center gap-6">
+              <Link to="#" className="text-text-tertiary hover:text-white transition-colors font-black uppercase text-[10px] tracking-widest">Twitter</Link>
+              <Link to="#" className="text-text-tertiary hover:text-white transition-colors font-black uppercase text-[10px] tracking-widest">GitHub</Link>
+              <Link to="#" className="text-text-tertiary hover:text-white transition-colors font-black uppercase text-[10px] tracking-widest">LinkedIn</Link>
+            </div>
+          </div>
+        </div>
+      </footer>
+
+      <style>{`
+        @keyframes bounce-slow {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-20px); }
+        }
+        @keyframes bounce-delayed {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(20px); }
+        }
+        .animate-bounce-slow { animation: bounce-slow 6s ease-in-out infinite; }
+        .animate-bounce-delayed { animation: bounce-delayed 7s ease-in-out infinite; animation-delay: 1s; }
+      `}</style>
     </div>
-  )
+  );
 }

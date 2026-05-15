@@ -6,6 +6,22 @@ import pytest
 from rest_framework.test import APIClient
 
 
+@pytest.fixture(autouse=True)
+def disable_html_render(settings):
+    """Disable HTML rendering for tests to avoid Python 3.14 template issues."""
+    settings.DEBUG = False
+    settings.REST_FRAMEWORK = {
+        'DEFAULT_AUTHENTICATION_CLASSES': (
+            'rest_framework_simplejwt.authentication.JWTAuthentication',
+        ),
+        'DEFAULT_PERMISSION_CLASSES': (
+            'rest_framework.permissions.AllowAny',
+        ),
+        'DEFAULT_RENDERER_CLASSES': (
+            'rest_framework.renderers.JSONRenderer',
+        ),
+    }
+
 @pytest.fixture
 def api_client():
     """Return an unauthenticated API client."""
@@ -32,6 +48,7 @@ def create_user(db):
         last_name='User',
     ):
         return User.objects.create_user(
+            username=email,
             email=email,
             password=password,
             first_name=first_name,

@@ -64,6 +64,25 @@ body {
   transition: background 0.5s ease;
 }
 
+/* Accessibility & Focus States */
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
 /* Glassmorphism */
 .glass {
   background: var(--bg-card);

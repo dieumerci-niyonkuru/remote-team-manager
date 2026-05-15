@@ -24,8 +24,8 @@ export default function Team() {
 
   const fetchMembers = async () => {
     try {
-      const res = await api.get(`/workspaces/${activeWorkspace.id}/members/`);
-      setMembers(res.data);
+      const { data } = await api.get(`/workspaces/${activeWorkspace.id}/members/`);
+      setMembers(data.data || data);
     } catch (err) {
       console.error('Failed to fetch team members:', err);
     } finally {

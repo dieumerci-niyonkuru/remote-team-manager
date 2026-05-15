@@ -1,75 +1,120 @@
-import { useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import React, { useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { Button } from '../components/common/Button';
+import { Card } from '../components/common/Card';
+import { Globe, Users, Zap, Shield, Rocket, Target, Heart } from 'lucide-react';
+
+const HQ_IMG = '/kigali_innovation_city_futuristic_1778873019544.png';
 
 export default function About() {
   useEffect(() => {
-    window.scrollTo(0, 0)
-  }, [])
+    window.scrollTo(0, 0);
+  }, []);
 
   return (
-    <div style={{ background: 'var(--bg)', minHeight: '100vh', padding: '120px 0 80px' }}>
-      <div className="container" style={{ maxWidth: 1000 }}>
-        
+    <div className="bg-[#060b18] text-white min-h-screen pt-32 pb-20 overflow-hidden">
+      <div className="container mx-auto px-6 relative">
+        {/* Background Gradients */}
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand/10 blur-[120px] rounded-full pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-accent-violet/10 blur-[120px] rounded-full pointer-events-none" />
+
         {/* Hero Section */}
-        <div style={{ textAlign: 'center', marginBottom: 80 }} className="fade-in">
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 12, background: 'var(--brand-bg)', color: 'var(--brand)', padding: '8px 20px', borderRadius: 100, fontSize: 13, fontWeight: 900, textTransform: 'uppercase', letterSpacing: 2, marginBottom: 32 }}>
-             <span>🚀</span> OUR MISSION
+        <div className="text-center mb-32 relative z-10">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand/10 border border-brand/20 text-[11px] font-black tracking-[0.2em] text-brand mb-8 uppercase animate-in fade-in slide-in-from-top-4 duration-700">
+            <Rocket size={14} /> Our Mission
           </div>
-          <h1 style={{ fontSize: 'clamp(40px, 6vw, 72px)', fontWeight: 900, color: 'var(--text)', marginBottom: 24, letterSpacing: '-0.05em', lineHeight: 1.1 }}>
-            Unifying <span className="text-gradient">Human Intelligence</span>
+          <h1 className="text-5xl md:text-8xl font-black tracking-tighter leading-tight mb-8 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+            Engineering the <br />
+            <span className="bg-gradient-to-r from-brand to-accent-violet bg-clip-text text-transparent">Future of Work.</span>
           </h1>
-          <p style={{ fontSize: 20, color: 'var(--text2)', lineHeight: 1.6, maxWidth: 700, margin: '0 auto' }}>
-            Remote Team Manager is more than a tool—it's a high-fidelity mission control for the modern era, designed to empower teams in Rwanda and across the globe.
+          <p className="max-w-3xl mx-auto text-xl text-text-secondary font-medium leading-relaxed animate-in fade-in slide-in-from-bottom-6 duration-1000 delay-200">
+            RemoteTeam is more than a tool—it's a high-fidelity mission control for the modern era. 
+            We are dedicated to unifying human intelligence and technological velocity.
           </p>
         </div>
 
-        {/* The System Section */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 48, marginBottom: 100 }}>
-          <div className="card glass" style={{ padding: 48 }}>
-            <div style={{ fontSize: 40, marginBottom: 24 }}>🧠</div>
-            <h2 style={{ fontSize: 24, fontWeight: 900, color: 'var(--text)', marginBottom: 16 }}>What is Remote Team Manager?</h2>
-            <p style={{ color: 'var(--text2)', lineHeight: 1.8, fontSize: 16 }}>
-              It is a multi-tenant, secure collaboration hub where communication, task management, and resource allocation converge. Built with enterprise-grade encryption, it ensures that your team's intelligence remains protected and synchronized.
+        {/* Values Section */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-40 relative z-10">
+          <Card variant="glass" className="p-10 space-y-6">
+            <div className="w-14 h-14 rounded-2xl bg-brand/10 flex items-center justify-center text-brand"><Target size={28} /></div>
+            <h3 className="text-2xl font-black">Unified Intelligence</h3>
+            <p className="text-text-tertiary leading-relaxed font-medium">
+              We believe that when communication, task management, and data converge, teams achieve unprecedented levels of clarity and speed.
             </p>
+          </Card>
+          <Card variant="glass" className="p-10 space-y-6">
+            <div className="w-14 h-14 rounded-2xl bg-accent-violet/10 flex items-center justify-center text-accent-violet"><Zap size={28} /></div>
+            <h3 className="text-2xl font-black">Radical Velocity</h3>
+            <p className="text-text-tertiary leading-relaxed font-medium">
+              Eliminating friction from the development lifecycle. Our platform is built for teams that move fast and ship even faster.
+            </p>
+          </Card>
+          <Card variant="glass" className="p-10 space-y-6">
+            <div className="w-14 h-14 rounded-2xl bg-accent-rose/10 flex items-center justify-center text-accent-rose"><Shield size={28} /></div>
+            <h3 className="text-2xl font-black">Fortified Trust</h3>
+            <p className="text-text-tertiary leading-relaxed font-medium">
+              Security is not an afterthought. We implement bank-grade encryption and strict access controls to protect your intellectual capital.
+            </p>
+          </Card>
+        </div>
+
+        {/* The Kigali Story */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center mb-40 relative z-10">
+          <div className="order-2 lg:order-1">
+             <div className="relative rounded-[40px] border border-white/10 bg-white/5 p-4 backdrop-blur-3xl shadow-2xl overflow-hidden group">
+               <img 
+                 src={HQ_IMG} 
+                 alt="Kigali Innovation City HQ" 
+                 className="w-full rounded-[24px] shadow-2xl transition-transform duration-700 group-hover:scale-[1.02]"
+               />
+               <div className="absolute inset-0 bg-gradient-to-t from-[#060b18]/60 to-transparent pointer-events-none" />
+             </div>
           </div>
-          <div className="card glass" style={{ padding: 48 }}>
-            <div style={{ fontSize: 40, marginBottom: 24 }}>⚡</div>
-            <h2 style={{ fontSize: 24, fontWeight: 900, color: 'var(--text)', marginBottom: 16 }}>How it Works?</h2>
-            <p style={{ color: 'var(--text2)', lineHeight: 1.8, fontSize: 16 }}>
-              Operators connect via secure nodes (Workspaces). Real-time WebSockets handle instant communication, while our AI engine analyzes project pulse to provide actionable insights. Navigation is streamlined via the Command Bridge (Cmd+K).
-            </p>
+          <div className="order-1 lg:order-2 space-y-8">
+             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-black tracking-widest text-emerald-500 uppercase">
+                Global Impact
+             </div>
+             <h2 className="text-4xl md:text-6xl font-black tracking-tight leading-tight">
+                Proudly Engineered in <span className="text-emerald-500">Rwanda.</span>
+             </h2>
+             <p className="text-lg text-text-secondary font-medium leading-relaxed">
+                Our global technical heartbeat is located in Kigali Innovation City. We are committed to the digital transformation of East Africa and beyond.
+             </p>
+             <p className="text-text-tertiary leading-relaxed">
+                By leveraging local talent and a global perspective, we've built a platform that scales across continents while maintaining the soul of its origin.
+             </p>
+             <div className="flex items-center gap-4 pt-4">
+                <div className="flex -space-x-3">
+                   {[1, 2, 3, 4].map(i => (
+                     <div key={i} className="w-12 h-12 rounded-full border-4 border-[#060b18] bg-white/10 flex items-center justify-center text-[10px] font-black">U{i}</div>
+                   ))}
+                </div>
+                <div className="text-sm font-black text-white">Join 1,000+ pioneers in Kigali</div>
+             </div>
           </div>
         </div>
 
-        {/* Core Capabilities */}
-        <div style={{ marginBottom: 100 }}>
-          <h2 style={{ fontSize: 32, fontWeight: 900, color: 'var(--text)', marginBottom: 48, textAlign:'center' }}>Core Platform Capabilities</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 24 }}>
-            {[
-              { t: 'Real-time Sync', d: 'Zero-latency frequency for instant team alignment.', i: '📡' },
-              { t: 'AI Copilot', d: 'Intelligent task breakdown and resource optimization.', i: '🤖' },
-              { t: 'Asset Vault', d: 'Encrypted storage for mission-critical documents.', i: '🔒' },
-              { t: 'Global Map', d: 'Localized presence in Kigali Innovation City.', i: '🌍' },
-            ].map(f => (
-              <div key={f.t} style={{ padding:32, background:'var(--bg2)', borderRadius:24, border:'1px solid var(--border)' }}>
-                <div style={{ fontSize:32, marginBottom:16 }}>{f.i}</div>
-                <h3 style={{ fontSize:18, fontWeight:800, color:'var(--text)', marginBottom:8 }}>{f.t}</h3>
-                <p style={{ fontSize:14, color:'var(--text3)', lineHeight:1.6 }}>{f.d}</p>
+        {/* Join Us Section */}
+        <Card variant="glass" className="relative p-20 text-center overflow-hidden">
+           <div className="absolute inset-0 bg-brand/5 blur-[100px] pointer-events-none" />
+           <div className="relative z-10 max-w-2xl mx-auto space-y-10">
+              <h2 className="text-4xl md:text-7xl font-black tracking-tight leading-tight">
+                 Ready to Join the <br /> <span className="text-brand">Mission?</span>
+              </h2>
+              <p className="text-xl text-text-secondary font-medium">
+                 Experience the first true Workspace OS built for the modern era. Start your journey today.
+              </p>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
+                 <Button size="lg" className="px-12 py-5 text-xl font-black">
+                    Get Started Free
+                 </Button>
+                 <Button variant="secondary" size="lg" className="px-12 py-5 text-xl font-black">
+                    View Careers
+                 </Button>
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Rwanda HQ */}
-        <div className="card glass" style={{ padding: 64, textAlign: 'center', background:'linear-gradient(135deg, var(--bg-card), var(--brand-bg))' }}>
-          <h2 style={{ fontSize: 32, fontWeight: 900, color: 'var(--text)', marginBottom: 24 }}>Proudly Engineered in Rwanda</h2>
-          <p style={{ fontSize: 18, color: 'var(--text2)', lineHeight: 1.8, maxWidth: 700, margin: '0 auto 40px' }}>
-            We are committed to the digital transformation of East Africa. Our global headquarters in Kigali Innovation City serves as the heartbeat of our technical operations.
-          </p>
-          <Link to="/register" className="btn btn-primary" style={{ padding: '18px 48px', borderRadius: 16, fontSize: 18, fontWeight: 800 }}>Join the Revolution ➜</Link>
-        </div>
-
+           </div>
+        </Card>
       </div>
     </div>
-  )
+  );
 }

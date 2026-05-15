@@ -6,6 +6,9 @@ import { useT } from '../../i18n'
 import toast from 'react-hot-toast'
 import NotificationBadge from './NotificationBadge'
 
+import ThemeSwitcher from './ThemeSwitcher'
+import { Button } from '../common/Button'
+
 export default function Header() {
   const { isAuth, user, logout, theme, setTheme } = useStore()
   const t = useT('en')
@@ -133,16 +136,16 @@ export default function Header() {
           
           <NotificationBadge />
           
-          <button className="btn-icon desktop-only" onClick={() => setTheme(theme==='dark'?'light':'dark')} style={{ background:'var(--bg3)', borderRadius:14 }}>
-             {theme==='dark' ? '☀️' : '🌙'}
-          </button>
+          <div className="desktop-only">
+            <ThemeSwitcher />
+          </div>
 
           {isAuth ? (
-            <button className="btn btn-secondary" onClick={handleLogout} style={{ borderRadius:14, padding:'10px 20px', fontWeight:800 }}>{t.exit}</button>
+            <Button variant="secondary" onClick={handleLogout} size="sm" className="font-black">{t.exit}</Button>
           ) : (
             <div style={{ display:'flex', gap:8 }}>
-               <Link to="/login" className="btn btn-secondary desktop-only" style={{ borderRadius:14, padding:'10px 20px', fontWeight:800 }}>{t.login}</Link>
-               <Link to="/register" className="btn btn-primary" style={{ borderRadius:14, padding:'10px 24px', fontWeight:800 }}>{t.joinMission}</Link>
+               <Button variant="secondary" size="sm" className="desktop-only font-black" onClick={() => navigate('/login')}>{t.login}</Button>
+               <Button variant="primary" size="sm" className="font-black" onClick={() => navigate('/register')}>{t.joinMission}</Button>
             </div>
           )}
 

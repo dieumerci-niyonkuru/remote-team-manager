@@ -1,16 +1,26 @@
-import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { useAuthStore } from './authStore';
+import { useWorkspaceStore } from './workspaceStore';
+import { useUIStore } from './uiStore';
+import { usePresenceStore } from './presenceStore';
 
-export const useStore = create(persist(set => ({
-  user: null, isAuth: false, theme: 'dark',
-  workspaces: [], activeWorkspace: null,
-  setUser: u => set({ user: u, isAuth: !!u }),
-  setWorkspaces: w => set({ workspaces: w }),
-  setActiveWorkspace: aw => set({ activeWorkspace: aw }),
-  logout: () => { 
-    localStorage.removeItem('rtm_access'); 
-    localStorage.removeItem('rtm_refresh'); 
-    set({ user: null, isAuth: false, workspaces: [], activeWorkspace: null }) 
-  },
-  setTheme: t => set({ theme: t }),
-}), { name: 'rtm-store' }))
+// Unified hook for backward compatibility with existing components
+export const useStore = () => {
+  const auth = useAuthStore();
+  const workspace = useWorkspaceStore();
+  const ui = useUIStore();
+  const presence = usePresenceStore();
+
+  return {
+    ...auth,
+    ...workspace,
+    ...ui,
+    ...presence,
+    // Custom unified logout
+    logout: () => {
+      auth.logout();
+      workspace.clearWorkspaces();
+    }
+  };
+};
+
+export { useAuthStore, useWorkspaceStore, useUIStore, usePresenceStore };
