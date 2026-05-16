@@ -18,22 +18,31 @@ class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-[#0a0f1d] flex items-center justify-center p-6 text-center">
-          <div className="max-w-md w-full bg-gray-800/20 border border-gray-800 p-10 rounded-[40px] backdrop-blur-3xl">
-            <div className="w-20 h-20 bg-rose-600/20 rounded-[32px] flex items-center justify-center text-rose-500 mx-auto mb-8 shadow-2xl shadow-rose-600/20">
-              <AlertTriangle size={40} />
+        <div className="min-h-screen bg-[#060b18] flex items-center justify-center p-6 text-center">
+          <div className="absolute inset-0 bg-brand/5 blur-[120px] pointer-events-none" />
+          <div className="max-w-md w-full bg-[#0d1425]/40 border border-white/5 p-12 rounded-[48px] backdrop-blur-3xl shadow-2xl relative z-10">
+            <div className="w-24 h-24 bg-rose-600/10 rounded-[32px] flex items-center justify-center text-rose-500 mx-auto mb-10 border border-rose-500/20">
+              <AlertTriangle size={48} />
             </div>
-            <h1 className="text-3xl font-black text-white mb-4 tracking-tight">System Interruption</h1>
-            <p className="text-gray-400 mb-8 leading-relaxed">
-              We encountered an unexpected error while processing this module. Your data remains safe.
+            <h1 className="text-4xl font-black text-white mb-4 tracking-tighter">System Halt</h1>
+            <p className="text-gray-400 mb-10 leading-relaxed font-medium">
+              A critical module encountered an unexpected interruption. We've captured the diagnostics and your workspace state is preserved.
             </p>
-            <button 
-              onClick={() => window.location.reload()}
-              className="w-full flex items-center justify-center gap-3 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl transition-all shadow-xl shadow-blue-600/20 active:scale-95"
-            >
-              <RotateCcw size={20} />
-              Reload Platform
-            </button>
+            <div className="space-y-4">
+              <button 
+                onClick={() => window.location.reload()}
+                className="w-full flex items-center justify-center gap-3 bg-blue-600 hover:bg-blue-700 text-white font-black py-5 rounded-2xl transition-all shadow-xl shadow-blue-600/20 active:scale-95 text-lg"
+              >
+                <RotateCcw size={22} />
+                REBOOT PLATFORM
+              </button>
+              <button 
+                onClick={() => this.setState({ hasError: false })}
+                className="w-full text-[10px] font-black text-gray-500 hover:text-white transition-colors uppercase tracking-widest"
+              >
+                Attempt Recovery Without Reboot
+              </button>
+            </div>
           </div>
         </div>
       );

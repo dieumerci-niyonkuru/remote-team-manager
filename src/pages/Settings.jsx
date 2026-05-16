@@ -16,6 +16,7 @@ import {
 import toast from 'react-hot-toast';
 import { auth as api } from '../services/api';
 import Avatar from '../components/common/Avatar';
+import Input from '../components/common/Input';
 
 export default function Settings() {
   const { user, logout } = useStore();
@@ -114,52 +115,13 @@ export default function Settings() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Username</label>
-                    <input 
-                      type="text" 
-                      value={formData.username} 
-                      onChange={e => setFormData({ ...formData, username: e.target.value })}
-                      className="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500/50" 
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Email Address</label>
-                    <input 
-                      type="email" 
-                      value={formData.email} 
-                      onChange={e => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500/50" 
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">First Name</label>
-                    <input 
-                      type="text" 
-                      value={formData.first_name} 
-                      onChange={e => setFormData({ ...formData, first_name: e.target.value })}
-                      className="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500/50" 
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Last Name</label>
-                    <input 
-                      type="text" 
-                      value={formData.last_name} 
-                      onChange={e => setFormData({ ...formData, last_name: e.target.value })}
-                      className="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500/50" 
-                    />
-                  </div>
+                  <Input label="Username" value={formData.username} onChange={e => setFormData({ ...formData, username: e.target.value })} />
+                  <Input label="Email Address" type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
+                  <Input label="First Name" value={formData.first_name} onChange={e => setFormData({ ...formData, first_name: e.target.value })} />
+                  <Input label="Last Name" value={formData.last_name} onChange={e => setFormData({ ...formData, last_name: e.target.value })} />
                 </div>
-
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Bio</label>
-                  <textarea 
-                    value={formData.bio} 
-                    onChange={e => setFormData({ ...formData, bio: e.target.value })}
-                    rows={3}
-                    className="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500/50 resize-none" 
-                  />
+                  <Input label="Bio" multiline rows={3} value={formData.bio} onChange={e => setFormData({ ...formData, bio: e.target.value })} />
                 </div>
 
                 <div className="pt-6 flex justify-end">
@@ -212,13 +174,71 @@ export default function Settings() {
               </div>
             )}
 
-            {(activeTab === 'security' || activeTab === 'notifications') && (
-              <div className="py-20 text-center space-y-4">
-                <div className="w-16 h-16 bg-gray-800/50 rounded-full flex items-center justify-center mx-auto text-gray-600">
-                  <Globe size={32} />
+            {activeTab === 'security' && (
+              <div className="space-y-8 animate-in fade-in duration-500">
+                <div>
+                  <h3 className="text-lg font-bold text-white mb-2">Password & Authentication</h3>
+                  <p className="text-sm text-gray-500 mb-6">Manage your password and secure your account with two-factor authentication.</p>
+                  
+                  <div className="space-y-4 max-w-lg">
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Current Password</label>
+                      <input type="password" placeholder="••••••••" className="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500/50" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">New Password</label>
+                      <input type="password" placeholder="••••••••" className="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500/50" />
+                    </div>
+                    <button className="bg-gray-800 hover:bg-gray-700 text-white px-6 py-2 rounded-xl text-sm font-bold transition-all">Update Password</button>
+                  </div>
                 </div>
-                <h3 className="text-xl font-bold text-white">Settings Coming Soon</h3>
-                <p className="text-gray-500 max-w-xs mx-auto">We're finalizing these configuration modules for the next Workspace OS update.</p>
+
+                <div className="pt-8 border-t border-gray-800">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="text-lg font-bold text-white">Two-Factor Authentication (2FA)</h3>
+                      <p className="text-sm text-gray-500">Add an extra layer of security to your account.</p>
+                    </div>
+                    <div className="w-12 h-6 bg-gray-800 rounded-full relative cursor-pointer">
+                      <div className="w-5 h-5 bg-gray-500 rounded-full absolute left-0.5 top-0.5"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-8 border-t border-gray-800">
+                  <h3 className="text-lg font-bold text-rose-500 mb-2">Danger Zone</h3>
+                  <p className="text-sm text-gray-500 mb-4">Permanently delete your account and all associated data.</p>
+                  <button className="border border-rose-500/30 text-rose-500 hover:bg-rose-500 hover:text-white px-6 py-2 rounded-xl text-sm font-bold transition-all">Delete Account</button>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'notifications' && (
+              <div className="space-y-8 animate-in fade-in duration-500">
+                <div>
+                  <h3 className="text-lg font-bold text-white mb-2">Notification Preferences</h3>
+                  <p className="text-sm text-gray-500 mb-8">Choose what we notify you about and how we deliver those notifications.</p>
+
+                  <div className="space-y-6">
+                    {[
+                      { title: 'Email Notifications', desc: 'Receive daily summaries and critical alerts via email.', active: true },
+                      { title: 'Push Notifications', desc: 'Get real-time updates directly in your browser or desktop app.', active: true },
+                      { title: 'Direct Messages', desc: 'Notify me when someone sends me a direct message.', active: true },
+                      { title: 'Mentions', desc: 'Notify me when someone mentions me in a task or channel.', active: true },
+                      { title: 'Marketing Updates', desc: 'Receive news about product updates and new features.', active: false }
+                    ].map((item, i) => (
+                      <div key={i} className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-bold text-white">{item.title}</p>
+                          <p className="text-xs text-gray-500 mt-1">{item.desc}</p>
+                        </div>
+                        <div className={`w-12 h-6 rounded-full relative cursor-pointer transition-colors ${item.active ? 'bg-blue-600' : 'bg-gray-800'}`}>
+                          <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-all ${item.active ? 'left-6' : 'left-0.5 bg-gray-500'}`}></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
           </div>

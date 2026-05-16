@@ -29,7 +29,7 @@ export default function Layout({ showFooter = true }) {
     <div className={`${theme} min-h-screen bg-[var(--bg)] text-[var(--text)] transition-colors duration-500`}>
       {isAuth ? (
         // Authenticated Dashboard Layout
-        <div className="flex h-screen overflow-hidden bg-[#0b1429] dark:bg-[#060b18]">
+        <div className="flex flex-col md:flex-row h-screen overflow-hidden bg-[#0b1429] dark:bg-[#060b18]">
           <Sidebar />
           
           <main className="flex-1 flex flex-col h-screen overflow-hidden relative">

@@ -22,7 +22,7 @@ export default function Onboarding() {
   const [invites, setInvites] = useState(['']);
 
   const handleAddInvite = () => setInvites([...invites, '']);
-  const handleInviteChange = (index, val) => {
+  const handleInviteChange = (index: number, val: string) => {
     const newInvites = [...invites];
     newInvites[index] = val;
     setInvites(newInvites);
@@ -142,7 +142,7 @@ export default function Onboarding() {
                     placeholder="email@example.com"
                     value={email}
                     onChange={e => handleInviteChange(idx, e.target.value)}
-                    icon={<Mail size={16} />}
+                    leftIcon={<Mail size={16} />}
                   />
                 </div>
               ))}

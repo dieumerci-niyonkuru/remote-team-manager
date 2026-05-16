@@ -12,9 +12,9 @@ import api from '../services/api';
 import { Button } from '../components/common/Button';
 import { Modal } from '../components/common/Modal';
 import { Input } from '../components/common/Input';
+import useWebSocket from '../hooks/useWebSocket';
 
-const MOCK_CHANNELS = [];
-const MOCK_DMS = [];
+
 
 export default function Chat() {
   const { user, theme, activeWorkspace, onlineUsers } = useStore();
@@ -25,6 +25,29 @@ export default function Chat() {
   const [messages, setMessages] = useState([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+
+  const loadMessages = async (tabId, pageNum = 1) => {
+    if (!tabId) return;
+    try {
+      const res = await chat.messages({ channel: tabId, page: pageNum });
+      const history = res.data?.data || res.data?.results || res.data || [];
+      // Assuming backend returns history from oldest to newest, or newest to oldest. 
+      // Typically history comes newest to oldest. We want them oldest to newest in UI.
+      const formatted = Array.isArray(history) ? history.reverse() : [];
+      
+      if (pageNum === 1) {
+        setMessages(formatted);
+        setTimeout(() => scrollRef.current?.scrollIntoView({ behavior: 'auto' }), 100);
+      } else {
+        setMessages(prev => [...formatted, ...prev]);
+      }
+      
+      setHasMore(res.data?.next !== null);
+      setPage(pageNum);
+    } catch (err) {
+      console.warn('Failed to load chat history:', err);
+    }
+  };
   
   const [input, setInput] = useState('');
   const [activeThread, setActiveThread] = useState(null);
@@ -38,8 +61,6 @@ export default function Chat() {
   const scrollRef = useRef(null);
   const threadScrollRef = useRef(null);
   const observerRef = useRef(null);
-  const wsRef = useRef(null);
-  const reconnectTimeoutRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   
   // Load Channels & DMs when activeWorkspace changes
@@ -78,136 +99,68 @@ export default function Chat() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Load Messages & Connect WS when activeTab changes
+  // Mark channel as read when activeTab changes
   useEffect(() => {
     setMessages([]);
     setPage(1);
     setHasMore(true);
     setTypingUsers([]);
     loadMessages(activeTab, 1);
-    connectWS();
-    
-    // Mark channel as read
     chat.markRead(activeTab).catch(() => {});
-
-    return () => {
-      if (wsRef.current) wsRef.current.close();
-      if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
-    };
   }, [activeTab]);
 
-  const loadMessages = async (channelId, pageNum) => {
-    try {
-      const { data } = await chat.messages({ channel_id: channelId, page: pageNum });
-      const results = data.data?.results || data.results || [];
-      const next = data.data?.next || data.next;
-      
-      if (pageNum === 1) {
-        setMessages(results.reverse());
-        setTimeout(() => scrollRef.current?.scrollIntoView(), 50);
-      } else {
-        setMessages(prev => [...results.reverse(), ...prev]);
-      }
-      setHasMore(next !== null);
-    } catch (err) {
-      console.warn('Backend unavailable, message history is empty.');
-      setHasMore(false);
-    }
-  };
-
-  // Intersection Observer for Infinite Scroll
-  const topMessageRef = useCallback(node => {
-    if (observerRef.current) observerRef.current.disconnect();
-    observerRef.current = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting && hasMore) {
-        setPage(p => {
-          const next = p + 1;
-          loadMessages(activeTab, next);
-          return next;
-        });
-      }
-    });
-    if (node) observerRef.current.observe(node);
-  }, [hasMore, activeTab]);
-
-  const connectWS = () => {
-    if (wsRef.current) wsRef.current.close();
-    const token = localStorage.getItem('rtm_access');
-    const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-    const host = window.location.host;
-    const wsHost = host.includes('localhost') ? 'localhost:8000' : 'remote-team-manager-production.up.railway.app';
-    const wsUrl = `${protocol}://${wsHost}/ws/chat/${activeTab}/?token=${token}`;
-    
-    wsRef.current = new WebSocket(wsUrl);
-    
-    wsRef.current.onmessage = (e) => {
-      try {
-        const data = JSON.parse(e.data);
-        
-        switch (data.type) {
-          case 'chat_message':
-            setMessages(prev => [...prev, data]);
-            setTimeout(() => scrollRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
-            break;
-            
-          case 'typing':
-            if (data.is_typing) {
-              if (!typingUsers.includes(data.username)) {
-                setTypingUsers(prev => [...prev, data.username]);
-              }
-            } else {
-              setTypingUsers(prev => prev.filter(u => u !== data.username));
+  const { send, status } = useWebSocket(`/ws/chat/${activeTab}/`, {
+    enabled: !!activeTab,
+    onMessage: (data) => {
+      switch (data.type) {
+        case 'chat_message':
+          setMessages(prev => [...prev, data]);
+          setTimeout(() => scrollRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
+          break;
+        case 'typing':
+          if (data.is_typing) {
+            if (!typingUsers.includes(data.username)) {
+              setTypingUsers(prev => [...prev, data.username]);
             }
-            break;
-            
-          case 'message_update_broadcast':
-            setMessages(prev => prev.map(m => m.id === data.message_id ? { ...m, content: data.message, edited_at: data.edited_at } : m));
-            break;
-            
-          case 'reaction':
-            setMessages(prev => prev.map(m => {
-              if (m.id === data.message_id) {
-                const existing = m.reactions?.find(r => r.emoji === data.emoji);
-                let newReactions = m.reactions || [];
-                if (existing) {
-                  newReactions = newReactions.map(r => r.emoji === data.emoji ? { ...r, count: r.count + 1 } : r);
-                } else {
-                  newReactions.push({ emoji: data.emoji, count: 1 });
-                }
-                return { ...m, reactions: newReactions };
+          } else {
+            setTypingUsers(prev => prev.filter(u => u !== data.username));
+          }
+          break;
+        case 'message_update_broadcast':
+          setMessages(prev => prev.map(m => m.id === data.message_id ? { ...m, content: data.message, edited_at: data.edited_at } : m));
+          break;
+        case 'reaction':
+          setMessages(prev => prev.map(m => {
+            if (m.id === data.message_id) {
+              const existing = m.reactions?.find(r => r.emoji === data.emoji);
+              let newReactions = m.reactions || [];
+              if (existing) {
+                newReactions = newReactions.map(r => r.emoji === data.emoji ? { ...r, count: r.count + 1 } : r);
+              } else {
+                newReactions.push({ emoji: data.emoji, count: 1 });
               }
-              return m;
-            }));
-            break;
-
-          case 'message_delete_broadcast':
-            setMessages(prev => prev.filter(m => m.id !== data.message_id));
-            break;
-        }
-      } catch (err) {}
-    };
-
-    wsRef.current.onclose = () => {
-      reconnectTimeoutRef.current = setTimeout(() => {
-        connectWS();
-      }, 3000);
-    };
-  };
+              return { ...m, reactions: newReactions };
+            }
+            return m;
+          }));
+          break;
+        case 'message_delete_broadcast':
+          setMessages(prev => prev.filter(m => m.id !== data.message_id));
+          break;
+      }
+    }
+  });
 
   const handleInput = (e) => {
     setInput(e.target.value);
     
     // Broadcast typing event
-    if (wsRef.current?.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify({ type: 'typing', is_typing: true }));
-      
-      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
-      typingTimeoutRef.current = setTimeout(() => {
-        if (wsRef.current?.readyState === WebSocket.OPEN) {
-          wsRef.current.send(JSON.stringify({ type: 'typing', is_typing: false }));
-        }
-      }, 2000);
-    }
+    send({ type: 'typing', is_typing: true });
+    
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+    typingTimeoutRef.current = setTimeout(() => {
+      send({ type: 'typing', is_typing: false });
+    }, 2000);
   };
 
   const sendMessage = (e, isThread = false) => {
@@ -221,17 +174,16 @@ export default function Chat() {
       thread_id: isThread ? activeThread.id : null
     };
 
-    if (wsRef.current?.readyState === WebSocket.OPEN) {
-      if (editingMessage) {
-        wsRef.current.send(JSON.stringify({
+    const sent = editingMessage 
+      ? send({
           type: 'edit_message',
           message_id: editingMessage.id,
           message: text
-        }));
-        setEditingMessage(null);
-      } else {
-        wsRef.current.send(JSON.stringify(msg));
-      }
+        })
+      : send(msg);
+
+    if (sent) {
+      if (editingMessage) setEditingMessage(null);
     } else {
       // Fallback local UI update if WS is down
       const localMsg = {
@@ -315,9 +267,7 @@ export default function Chat() {
             <button onClick={() => { setEditingMessage(m); setInput(m.content); }} className="p-2 hover:bg-white/5 rounded-lg text-text-tertiary hover:text-white" title="Edit"><Plus size={16} className="rotate-45" /></button>
             <button 
               onClick={() => {
-                if (wsRef.current?.readyState === WebSocket.OPEN) {
-                  wsRef.current.send(JSON.stringify({ type: 'delete_message', message_id: m.id }));
-                }
+                send({ type: 'delete_message', message_id: m.id });
               }} 
               className="p-2 hover:bg-rose-500/10 rounded-lg text-text-tertiary hover:text-rose-500" 
               title="Delete"
@@ -496,7 +446,7 @@ export default function Chat() {
         )}
 
         {/* Input Area */}
-        <div className="p-4 md:p-6 pt-0">
+        <div className="p-4 md:p-6 pt-0 pb-[env(safe-area-inset-bottom,16px)]">
           <form onSubmit={e => sendMessage(e, false)} className="relative border border-gray-300 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-900 overflow-hidden shadow-sm focus-within:border-gray-400 dark:focus-within:border-gray-500 focus-within:shadow-md transition-all">
             <textarea 
               rows="1"

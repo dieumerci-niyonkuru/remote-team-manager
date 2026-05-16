@@ -3,24 +3,20 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useStore } from '../store'
 import { auth } from '../services/api'
 import toast from 'react-hot-toast'
+import { Button } from '../components/common/Button'
+import { Input } from '../components/common/Input'
+import { Card } from '../components/common/Card'
+import { ShieldPlus, ArrowRight, Upload, User, UserPlus } from 'lucide-react'
 
 const ROLES = [
-  { value: 'viewer', label: 'Viewer', desc: 'Read-only node access', icon: 'https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?auto=format&fit=crop&q=80&w=100' },
-  { value: 'developer', label: 'Developer', desc: 'Build & Deploy nodes', icon: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100' },
-  { value: 'manager', label: 'Manager', desc: 'Team synchronization', icon: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=100' },
-  { value: 'designer', label: 'Designer', desc: 'Interface engineering', icon: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=100' },
+  { value: 'viewer', label: 'Viewer', desc: 'Read-only node access', color: 'bg-blue-500' },
+  { value: 'developer', label: 'Developer', desc: 'Build & Deploy nodes', color: 'bg-purple-500' },
+  { value: 'manager', label: 'Manager', desc: 'Team synchronization', color: 'bg-emerald-500' },
+  { value: 'designer', label: 'Designer', desc: 'Interface engineering', color: 'bg-rose-500' },
 ]
 
-const F = ({ name, label, type = 'text', placeholder, value, onChange, error, children }) => (
-  <div style={{ flex: 1 }}>
-    <label className="label" style={{ marginBottom: 10, fontSize: 11, fontWeight: 800, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: 1.5 }}>{label}</label>
-    {children || <input className={`input ${error ? 'error' : ''}`} type={type} placeholder={placeholder} value={value} onChange={e => onChange(name, e.target.value)} style={{ padding: '16px 24px', borderRadius: 16, fontSize: 15 }} />}
-    {error && <div className="error-msg" style={{ marginTop: 4, fontSize: 11 }}>{error}</div>}
-  </div>
-)
-
 export default function Register() {
-  const { setUser, theme } = useStore()
+  const { theme } = useStore()
   const navigate = useNavigate()
   const fileInputRef = useRef(null)
 
@@ -44,13 +40,13 @@ export default function Register() {
 
   const validate = () => {
     const e = {}
-    if (!form.first_name) e.first_name = 'This field is required'
-    if (!form.last_name) e.last_name = 'This field is required'
-    if (!form.email) e.email = 'This field is required'
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = 'Invalid email address'
-    if (!form.password) e.password = 'This field is required'
-    else if (form.password.length < 8) e.password = 'At least 8 characters'
-    if (form.password !== form.password2) e.password2 = 'Passwords do not match'
+    if (!form.first_name) e.first_name = 'Required'
+    if (!form.last_name) e.last_name = 'Required'
+    if (!form.email) e.email = 'Required'
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = 'Invalid email'
+    if (!form.password) e.password = 'Required'
+    else if (form.password.length < 8) e.password = 'Min 8 chars'
+    if (form.password !== form.password2) e.password2 = 'No match'
     setErrors(e)
     return !Object.keys(e).length
   }
@@ -83,78 +79,90 @@ export default function Register() {
   }
 
   return (
-    <div className={theme} style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg)', padding: '100px 24px', position: 'relative', overflow: 'hidden' }}>
-      <div className="moving-code-bg" />
+    <div className={`min-h-screen bg-[#060b18] flex items-center justify-center p-6 relative overflow-hidden ${theme}`}>
+      <div className="absolute top-0 -left-20 w-96 h-96 bg-blue-600/10 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-0 -right-20 w-96 h-96 bg-purple-600/10 blur-[120px] rounded-full pointer-events-none" />
 
-      <div className="card glass-premium fade-in" style={{ width: '100%', maxWidth: 580, padding: 56, borderRadius: 40, boxShadow: '0 50px 100px -20px rgba(0,0,0,0.5)', position: 'relative', zIndex: 10 }}>
-        <div style={{ textAlign: 'center', marginBottom: 48 }}>
-          <Link to="/" style={{ display: 'inline-flex', width: 64, height: 64, borderRadius: 16, background: 'linear-gradient(135deg,#3366ff,#8b5cf6)', alignItems: 'center', justifyContent: 'center', color: '#fff', margin: '0 auto 24px', boxShadow: '0 15px 30px -5px rgba(51,102,255,0.4)' }}>
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /></svg>
+      <Card variant="glass" className="w-full max-w-[640px] p-8 md:p-12 relative z-10 border-white/5 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="text-center mb-10">
+          <Link to="/" className="inline-flex w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-purple-600 items-center justify-center text-white mb-6 shadow-xl shadow-blue-600/20 active:scale-95 transition-transform">
+              <ShieldPlus size={32} strokeWidth={2.5} />
           </Link>
-          <h2 style={{ fontSize: 36, fontWeight: 900, color: 'var(--text)', marginBottom: 12, letterSpacing: '-0.03em' }}>{t.register}</h2>
-          <p style={{ color: 'var(--text2)', fontSize: 16, fontWeight: 500 }}>{t.createAccountDesc}</p>
+          <h2 className="text-4xl font-black text-white mb-2 tracking-tighter">Initialize Node</h2>
+          <p className="text-gray-400 font-medium">Join the decentralized workspace intelligence network.</p>
         </div>
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
-          {/* Avatar Selection */}
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 8 }}>
-            <div
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {/* Avatar Upload */}
+          <div className="flex justify-center">
+            <div 
               onClick={() => fileInputRef.current?.click()}
-              style={{ width: 100, height: 100, borderRadius: 32, border: '3px dashed var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor:'pointer', overflow:'hidden', position:'relative', background:'var(--bg3)', transition:'0.3s' }}
+              className="group relative w-24 h-24 rounded-3xl bg-white/5 border-2 border-dashed border-white/10 flex items-center justify-center cursor-pointer hover:border-blue-500/50 hover:bg-blue-500/5 transition-all overflow-hidden"
             >
               {avatarPreview ? (
-                <img src={avatarPreview} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <img src={avatarPreview} alt="Preview" className="w-full h-full object-cover" />
               ) : (
-                <div style={{ textAlign: 'center', color: 'var(--text3)' }}>
-                   <img src="https://images.unsplash.com/photo-1633332755192-727a05c4013d?auto=format&fit=crop&q=80&w=100" style={{ width:44, height:44, borderRadius:'50%', opacity:0.5, marginBottom:4 }} />
-                   <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: 1 }}>UPLOAD PHOTO</div>
+                <div className="text-center text-gray-500 group-hover:text-blue-500 transition-colors">
+                  <Upload size={24} className="mx-auto mb-1" />
+                  <span className="text-[8px] font-black uppercase tracking-widest">Photo</span>
                 </div>
               )}
+              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-[8px] font-black uppercase transition-opacity">Change</div>
             </div>
             <input ref={fileInputRef} type="file" hidden accept="image/*" onChange={handleFileChange} />
           </div>
 
-          <div style={{ display: 'flex', gap: 20 }}>
-            <F name="first_name" label="First Name" placeholder="John" value={form.first_name} onChange={set} error={errors.first_name} />
-            <F name="last_name" label="Last Name" placeholder="Doe" value={form.last_name} onChange={set} error={errors.last_name} />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Input label="First Name" placeholder="John" value={form.first_name} onChange={v => set('first_name', v)} error={errors.first_name} />
+            <Input label="Last Name" placeholder="Doe" value={form.last_name} onChange={v => set('last_name', v)} error={errors.last_name} />
           </div>
 
-          <F name="email" label="Email Address" type="email" placeholder="john@example.com" value={form.email} onChange={set} error={errors.email} />
+          <Input label="Email Address" type="email" placeholder="john@example.com" value={form.email} onChange={v => set('email', v)} error={errors.email} />
 
-          {/* Role Selection Grid with Photos */}
-          <div>
-            <label className="label" style={{ marginBottom: 16, fontSize: 11, fontWeight: 800, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: 1.5 }}>Select Your Role</label>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
+          {/* Role Selection */}
+          <div className="space-y-4">
+            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Assigned Role</label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {ROLES.map(r => (
-                <div key={r.value} onClick={() => set('role', r.value)} style={{ padding: 18, borderRadius: 20, background: form.role === r.value ? 'var(--brand-bg)' : 'var(--bg3)', border: form.role === r.value ? '2px solid var(--brand)' : '2px solid transparent', cursor: 'pointer', transition: '0.3s', display: 'flex', alignItems: 'center', gap: 16 }}>
-                  <img src={r.icon} style={{ width: 44, height: 44, borderRadius: 14, objectFit: 'cover', border: form.role === r.value ? '2px solid var(--brand)' : '1px solid var(--border)' }} />
-                  <div>
-                    <div style={{ fontWeight: 800, fontSize: 15, color: form.role === r.value ? 'var(--brand)' : 'var(--text)' }}>{r.label}</div>
-                    <div style={{ fontSize: 10, color: 'var(--text3)', marginTop: 2 }}>{r.desc}</div>
+                <div 
+                  key={r.value} 
+                  onClick={() => set('role', r.value)} 
+                  className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center gap-4 ${form.role === r.value ? 'bg-blue-600/10 border-blue-600 shadow-[0_0_15px_rgba(37,99,235,0.2)]' : 'bg-white/2 border-white/5 hover:border-white/10'}`}
+                >
+                  <div className={`w-10 h-10 rounded-xl ${r.color} flex items-center justify-center text-white font-black shadow-lg`}>
+                    {r.label.charAt(0)}
+                  </div>
+                  <div className="min-w-0">
+                    <p className={`text-sm font-black transition-colors ${form.role === r.value ? 'text-blue-500' : 'text-white'}`}>{r.label}</p>
+                    <p className="text-[10px] text-gray-500 font-bold truncate">{r.desc}</p>
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: 20 }}>
-            <F name="password" label="Password" type="password" placeholder="••••••••" value={form.password} onChange={set} error={errors.password} />
-            <F name="password2" label="Confirm Password" type="password" placeholder="••••••••" value={form.password2} onChange={set} error={errors.password2} />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Input label="Password" type="password" placeholder="••••••••" value={form.password} onChange={v => set('password', v)} error={errors.password} />
+            <Input label="Confirm" type="password" placeholder="••••••••" value={form.password2} onChange={v => set('password2', v)} error={errors.password2} />
           </div>
 
-          <button type="submit" className="btn btn-primary" disabled={loading} style={{ width: '100%', padding: '20px', fontSize: 18, borderRadius: 20, fontWeight: 900, marginTop: 12 }}>
-            {loading ? 'Processing...' : 'Create Account ➜'}
-          </button>
+          <Button 
+            type="submit" 
+            loading={loading} 
+            fullWidth 
+            className="py-4 text-lg font-black"
+            rightIcon={<ArrowRight size={20} />}
+          >
+            {loading ? 'Processing...' : 'Complete Initialization'}
+          </Button>
         </form>
 
-        <p style={{ textAlign: 'center', fontSize: 15, color: 'var(--text2)', marginTop: 48, fontWeight: 600 }}>
-          Already registered? <Link to="/login" style={{ color: 'var(--brand)', fontWeight: 800, textDecoration: 'none' }}>Log In</Link>
-        </p>
-      </div>
-
-      <style>{`
-        .glass-premium { background: rgba(var(--bg-card-rgb), 0.7); backdrop-filter: blur(40px); border: 1px solid rgba(255,255,255,0.05); }
-      `}</style>
+        <div className="mt-10 pt-8 border-t border-white/5 text-center">
+          <p className="text-sm text-gray-500 font-medium">
+            Already have a node? <Link to="/login" className="text-blue-500 font-black hover:text-blue-400 ml-1 underline-offset-4 hover:underline">Log In</Link>
+          </p>
+        </div>
+      </Card>
     </div>
   )
 }

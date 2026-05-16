@@ -135,17 +135,17 @@ export default function Register() {
                 label={t.firstName} 
                 placeholder="John" 
                 value={form.first_name} 
-                onChange={v => updateForm('first_name', v)} 
+                onChange={e => updateForm('first_name', e.target.value)} 
                 error={errors.first_name} 
-                icon={<UserIcon size={16} />}
+                leftIcon={<UserIcon size={16} />}
               />
               <Input 
                 label={t.lastName} 
                 placeholder="Doe" 
                 value={form.last_name} 
-                onChange={v => updateForm('last_name', v)} 
+                onChange={e => updateForm('last_name', e.target.value)} 
                 error={errors.last_name} 
-                icon={<UserIcon size={16} />}
+                leftIcon={<UserIcon size={16} />}
               />
             </div>
 
@@ -154,9 +154,9 @@ export default function Register() {
               type="email" 
               placeholder="name@company.com" 
               value={form.email} 
-              onChange={v => updateForm('email', v)} 
+              onChange={e => updateForm('email', e.target.value)} 
               error={errors.email} 
-              icon={<Mail size={16} />}
+              leftIcon={<Mail size={16} />}
             />
 
             {/* Role Selection Grid */}
@@ -183,18 +183,18 @@ export default function Register() {
                 type="password" 
                 placeholder="••••••••" 
                 value={form.password} 
-                onChange={v => updateForm('password', v)} 
+                onChange={e => updateForm('password', e.target.value)} 
                 error={errors.password} 
-                icon={<Lock size={16} />}
+                leftIcon={<Lock size={16} />}
               />
               <Input 
                 label={t.confirmPass} 
                 type="password" 
                 placeholder="••••••••" 
                 value={form.password2} 
-                onChange={v => updateForm('password2', v)} 
+                onChange={e => updateForm('password2', e.target.value)} 
                 error={errors.password2} 
-                icon={<Lock size={16} />}
+                leftIcon={<Lock size={16} />}
               />
             </div>
 

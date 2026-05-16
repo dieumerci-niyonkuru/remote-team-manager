@@ -5,6 +5,62 @@ import api from '../services/api';
 import toast from 'react-hot-toast';
 import Modal from '../components/common/Modal';
 import Avatar from '../components/common/Avatar';
+import Button from '../components/common/Button';
+import Card from '../components/common/Card';
+import useWebSocket from '../hooks/useWebSocket';
+
+const TaskCard = React.memo(({ task, onDragStart, onClick }) => {
+  const getPriorityColor = (p) => {
+    switch (p) {
+      case 'urgent': return 'text-rose-500 bg-rose-500/10 border-rose-500/20 shadow-[0_0_8px_rgba(244,63,94,0.2)]';
+      case 'high': return 'text-amber-500 bg-amber-500/10 border-amber-500/20 shadow-[0_0_8px_rgba(245,158,11,0.2)]';
+      case 'medium': return 'text-brand bg-brand/10 border-brand/20 shadow-[0_0_8px_rgba(51,102,255,0.2)]';
+      default: return 'text-text-tertiary bg-white/5 border-white/10';
+    }
+  };
+
+  return (
+    <Card 
+      variant="default"
+      hover
+      draggable
+      onDragStart={(e) => onDragStart(e, task.id)}
+      onClick={onClick}
+      className="!p-4 cursor-grab active:cursor-grabbing group border-white/5 hover:border-brand/40"
+    >
+      <div className="flex items-start justify-between mb-4">
+        <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md border ${getPriorityColor(task.priority)}`}>
+          {task.priority}
+        </span>
+        <div className="flex -space-x-1.5 opacity-60 group-hover:opacity-100 transition-opacity">
+          <Avatar user={task.assignee} size={24} className="ring-2 ring-[#0d1425]" />
+        </div>
+      </div>
+      
+      <h4 className="text-sm font-black text-white mb-2 leading-snug group-hover:text-brand transition-colors tracking-tight">{task.title}</h4>
+      <p className="text-xs text-text-tertiary mb-5 line-clamp-2 leading-relaxed">{task.description || 'No description provided.'}</p>
+      
+      <div className="flex items-center justify-between pt-4 border-t border-white/5">
+        <div className="flex items-center gap-4 text-text-tertiary">
+          <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-tighter">
+            <MessageSquare size={12} className="text-brand" />
+            {task.comments?.length || 0}
+          </div>
+          <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-tighter">
+            <Paperclip size={12} className="text-brand" />
+            {task.files?.length || 0}
+          </div>
+        </div>
+        {task.due_date && (
+          <div className="flex items-center gap-1.5 text-[10px] font-black text-text-tertiary uppercase tracking-widest opacity-60">
+            <Clock size={12} />
+            {new Date(task.due_date).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+          </div>
+        )}
+      </div>
+    </Card>
+  );
+});
 
 export default function Tasks() {
   const { activeWorkspace } = useStore();
@@ -22,7 +78,6 @@ export default function Tasks() {
     status: 'todo' 
   });
 
-  const wsRef = useRef(null);
   const columns = [
     { id: 'todo', title: 'To Do', color: 'gray' },
     { id: 'in_progress', title: 'In Progress', color: 'blue' },
@@ -33,25 +88,12 @@ export default function Tasks() {
   useEffect(() => {
     if (activeWorkspace) {
       fetchInitialData();
-      connectWS();
     }
-    return () => {
-      if (wsRef.current) wsRef.current.close();
-    };
   }, [activeWorkspace]);
 
-  const connectWS = () => {
-    if (wsRef.current) wsRef.current.close();
-    const token = localStorage.getItem('rtm_access');
-    const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-    const host = window.location.host;
-    const wsHost = host.includes('localhost') ? 'localhost:8000' : 'remote-team-manager-production.up.railway.app';
-    const wsUrl = `${protocol}://${wsHost}/ws/tasks/${activeWorkspace.id}/?token=${token}`;
-    
-    wsRef.current = new WebSocket(wsUrl);
-    
-    wsRef.current.onmessage = (e) => {
-      const data = JSON.parse(e.data);
+  useWebSocket(`/ws/tasks/${activeWorkspace?.id}/`, {
+    enabled: !!activeWorkspace,
+    onMessage: (data) => {
       if (data.action === 'created') {
         setTasks(prev => [...prev, data.task]);
       } else if (data.action === 'updated') {
@@ -59,12 +101,8 @@ export default function Tasks() {
       } else if (data.action === 'deleted') {
         setTasks(prev => prev.filter(t => t.id !== data.task_id));
       }
-    };
-
-    wsRef.current.onclose = () => {
-      setTimeout(connectWS, 3000);
-    };
-  };
+    }
+  });
 
   const fetchInitialData = async () => {
     try {
@@ -109,12 +147,18 @@ export default function Tasks() {
   const [draggingTaskId, setDraggingTaskId] = useState(null);
   const [selectedTask, setSelectedTask] = useState(null);
 
-  const onDragStart = (e, taskId) => {
+  const filteredTasks = React.useMemo(() => {
+    return filterProject === 'all' 
+      ? tasks 
+      : tasks.filter(t => t.project === parseInt(filterProject));
+  }, [tasks, filterProject]);
+
+  const onDragStart = React.useCallback((e, taskId) => {
     setDraggingTaskId(taskId);
     e.dataTransfer.setData('taskId', taskId);
-  };
+  }, []);
 
-  const onDrop = async (e, status) => {
+  const onDrop = React.useCallback(async (e, status) => {
     e.preventDefault();
     const taskId = e.dataTransfer.getData('taskId');
     if (!taskId) return;
@@ -127,15 +171,11 @@ export default function Tasks() {
       toast.error('Failed to move task');
     }
     setDraggingTaskId(null);
-  };
+  }, []);
 
-  const onDragOver = (e) => {
+  const onDragOver = React.useCallback((e) => {
     e.preventDefault();
-  };
-
-  const filteredTasks = filterProject === 'all' 
-    ? tasks 
-    : tasks.filter(t => t.project === parseInt(filterProject));
+  }, []);
 
   return (
     <div className="h-full flex flex-col overflow-hidden bg-[#0a0f1d]">
@@ -175,17 +215,17 @@ export default function Tasks() {
       </div>
 
       {/* Kanban Content */}
-      <div className="flex-1 overflow-x-auto p-6 custom-scrollbar bg-[#0a0f1d]">
+      <div className="flex-1 overflow-x-auto p-4 md:p-6 custom-scrollbar bg-[#0a0f1d] snap-x snap-mandatory">
         {loading ? (
           <div className="flex items-center justify-center h-full">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
           </div>
         ) : (
-          <div className="flex gap-4 md:gap-6 h-full min-w-max pb-6">
+          <div className="flex gap-4 md:gap-6 h-full min-w-max pb-6 px-2 md:px-0">
             {columns.map(col => (
               <div 
                 key={col.id} 
-                className="w-[85vw] md:w-80 flex flex-col shrink-0"
+                className="w-[85vw] md:w-80 flex flex-col shrink-0 snap-center md:snap-none"
                 onDragOver={onDragOver}
                 onDrop={(e) => onDrop(e, col.id)}
               >
@@ -279,7 +319,7 @@ export default function Tasks() {
             disabled={creating || !taskForm.project || !taskForm.title}
             type="submit" 
             loading={creating}
-            className="w-full py-4 text-lg font-black"
+            className="w-full py-3 md:py-4 text-base md:text-lg"
           >
             Create Task
           </Button>
@@ -289,58 +329,7 @@ export default function Tasks() {
   );
 }
 
-function TaskCard({ task, onDragStart, onClick }) {
-  const getPriorityColor = (p) => {
-    switch (p) {
-      case 'urgent': return 'text-rose-500 bg-rose-500/10 border-rose-500/20 shadow-[0_0_8px_rgba(244,63,94,0.2)]';
-      case 'high': return 'text-amber-500 bg-amber-500/10 border-amber-500/20 shadow-[0_0_8px_rgba(245,158,11,0.2)]';
-      case 'medium': return 'text-brand bg-brand/10 border-brand/20 shadow-[0_0_8px_rgba(51,102,255,0.2)]';
-      default: return 'text-text-tertiary bg-white/5 border-white/10';
-    }
-  };
 
-  return (
-    <Card 
-      variant="default"
-      hover
-      draggable
-      onDragStart={(e) => onDragStart(e, task.id)}
-      onClick={onClick}
-      className="!p-4 cursor-grab active:cursor-grabbing group border-white/5 hover:border-brand/40"
-    >
-      <div className="flex items-start justify-between mb-4">
-        <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md border ${getPriorityColor(task.priority)}`}>
-          {task.priority}
-        </span>
-        <div className="flex -space-x-1.5 opacity-60 group-hover:opacity-100 transition-opacity">
-          <Avatar user={task.assignee} size={24} className="ring-2 ring-[#0d1425]" />
-        </div>
-      </div>
-      
-      <h4 className="text-sm font-black text-white mb-2 leading-snug group-hover:text-brand transition-colors tracking-tight">{task.title}</h4>
-      <p className="text-xs text-text-tertiary mb-5 line-clamp-2 leading-relaxed">{task.description || 'No description provided.'}</p>
-      
-      <div className="flex items-center justify-between pt-4 border-t border-white/5">
-        <div className="flex items-center gap-4 text-text-tertiary">
-          <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-tighter">
-            <MessageSquare size={12} className="text-brand" />
-            {task.comments?.length || 0}
-          </div>
-          <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-tighter">
-            <Paperclip size={12} className="text-brand" />
-            {task.files?.length || 0}
-          </div>
-        </div>
-        {task.due_date && (
-          <div className="flex items-center gap-1.5 text-[10px] font-black text-text-tertiary uppercase tracking-widest opacity-60">
-            <Clock size={12} />
-            {new Date(task.due_date).toLocaleDateString([], { month: 'short', day: 'numeric' })}
-          </div>
-        )}
-      </div>
-    </Card>
-  );
-}
 
 function TaskModal({ task, onClose }) {
   return (

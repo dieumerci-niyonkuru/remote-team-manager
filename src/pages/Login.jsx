@@ -4,6 +4,10 @@ import { useStore } from '../store'
 import { auth } from '../services/api'
 import { useT } from '../i18n'
 import toast from 'react-hot-toast'
+import { Button } from '../components/common/Button'
+import { Input } from '../components/common/Input'
+import { Card } from '../components/common/Card'
+import { ShieldCheck, ArrowRight } from 'lucide-react'
 
 export default function Login() {
   const { setUser, theme, lang } = useStore()
@@ -38,45 +42,63 @@ export default function Login() {
   }
 
   return (
-    <div className={theme} style={{ minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:'var(--bg)', padding:'100px 24px', position:'relative', overflow:'hidden' }}>
-      <div className="moving-code-bg" />
+    <div className={`min-h-screen bg-[#060b18] flex items-center justify-center p-6 relative overflow-hidden ${theme}`}>
+      {/* Background Orbs */}
+      <div className="absolute top-0 -left-20 w-96 h-96 bg-blue-600/10 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-0 -right-20 w-96 h-96 bg-purple-600/10 blur-[120px] rounded-full pointer-events-none" />
       
-      <div className="card glass-premium fade-in" style={{ width:'100%', maxWidth:500, padding:56, borderRadius:40, boxShadow:'0 50px 100px -20px rgba(0,0,0,0.5)', position:'relative', zIndex:10 }}>
-        <div style={{ textAlign:'center', marginBottom:48 }}>
-          <Link to="/" style={{ display:'inline-flex', width:64, height:64, borderRadius:16, background:'linear-gradient(135deg, var(--brand), #8b5cf6)', alignItems:'center', justifyContent:'center', color:'#fff', margin:'0 auto 24px', boxShadow:'0 15px 30px -5px rgba(51,102,255,0.4)' }}>
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      <Card variant="glass" className="w-full max-w-[480px] p-8 md:p-12 relative z-10 border-white/5 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="text-center mb-10">
+          <Link to="/" className="inline-flex w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-purple-600 items-center justify-center text-white mb-6 shadow-xl shadow-blue-600/20 active:scale-95 transition-transform">
+              <ShieldCheck size={32} strokeWidth={2.5} />
           </Link>
-          <h2 style={{ fontSize:36, fontWeight:900, color:'var(--text)', marginBottom:12, letterSpacing:'-0.03em' }}>{t.welcomeBack}</h2>
-          <p style={{ color:'var(--text2)', fontSize:16, fontWeight:500 }}>{t.enterCreds}</p>
+          <h2 className="text-4xl font-black text-white mb-2 tracking-tighter">{t.welcomeBack}</h2>
+          <p className="text-gray-400 font-medium">{t.enterCreds}</p>
         </div>
 
-        <form onSubmit={handleSubmit} style={{ display:'flex', flexDirection:'column', gap:28 }}>
-          <div>
-            <label className="label" style={{ marginBottom:12, fontSize:11, fontWeight:800, color:'var(--text3)', textTransform:'uppercase', letterSpacing:1.5 }}>{t.neuralId}</label>
-            <input className="input" type="email" placeholder="email@company.com" required value={form.email} onChange={e => setForm({...form, email:e.target.value})} style={{ padding:'18px 24px', fontSize:16, borderRadius:16 }} />
-          </div>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <Input 
+            label={t.neuralId || "Email Address"}
+            type="email" 
+            placeholder="name@company.com" 
+            required 
+            value={form.email} 
+            onChange={e => setForm({...form, email:e.target.value})} 
+          />
           
-          <div>
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
-              <label className="label" style={{ marginBottom:0, fontSize:11, fontWeight:800, color:'var(--text3)', textTransform:'uppercase', letterSpacing:1.5 }}>{t.accessKey}</label>
-              <Link to="/forgot-password" style={{ fontSize:12, color:'var(--brand)', textDecoration:'none', fontWeight:800 }}>{t.recoverKey}</Link>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center px-1">
+              <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{t.accessKey || "Password"}</label>
+              <Link to="/forgot-password" size="sm" className="text-[10px] font-black text-blue-500 uppercase tracking-widest hover:text-blue-400 transition-colors">
+                {t.recoverKey || "Forgot?"}
+              </Link>
             </div>
-            <input className="input" type="password" placeholder="••••••••" required value={form.password} onChange={e => setForm({...form, password:e.target.value})} style={{ padding:'18px 24px', fontSize:16, borderRadius:16 }} />
+            <Input 
+              type="password" 
+              placeholder="••••••••" 
+              required 
+              value={form.password} 
+              onChange={e => setForm({...form, password:e.target.value})} 
+            />
           </div>
 
-          <button type="submit" className="btn btn-primary" disabled={loading} style={{ width:'100%', padding:'20px', fontSize:18, borderRadius:20, fontWeight:900, marginTop:12 }}>
-            {loading ? t.authorizing : t.establishConn}
-          </button>
+          <Button 
+            type="submit" 
+            loading={loading} 
+            fullWidth 
+            className="py-4 text-lg font-black"
+            rightIcon={<ArrowRight size={20} />}
+          >
+            {t.establishConn || "Establish Connection"}
+          </Button>
         </form>
 
-        <p style={{ textAlign:'center', fontSize:15, color:'var(--text2)', marginTop:48, fontWeight:600 }}>
-          {t.newToWs} <Link to="/register" style={{ color:'var(--brand)', fontWeight:800, textDecoration:'none' }}>{t.joinMission}</Link>
-        </p>
-      </div>
-
-      <style>{`
-        .glass-premium { background: rgba(var(--bg-card-rgb), 0.7); backdrop-filter: blur(40px); border: 1px solid rgba(255,255,255,0.05); }
-      `}</style>
+        <div className="mt-10 pt-8 border-t border-white/5 text-center">
+          <p className="text-sm text-gray-500 font-medium">
+            {t.newToWs || "New to RemoteTeam?"} <Link to="/register" className="text-blue-500 font-black hover:text-blue-400 ml-1 underline-offset-4 hover:underline">{t.joinMission || "Join Mission"}</Link>
+          </p>
+        </div>
+      </Card>
     </div>
   )
 }

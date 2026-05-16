@@ -1,22 +1,22 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Command, X, Folder, CheckSquare, Book, User, Hash, Zap } from 'lucide-react';
-import { useStore } from '../store';
-import api from '../services/api';
+import { useStore } from '../../store';
+import api from '../../services/api';
 
 export default function CommandPalette() {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState({ tasks: [], projects: [], wikis: [] });
+  const [results, setResults] = useState<{tasks: any[], projects: any[], wikis: any[]}>({ tasks: [], projects: [], wikis: [] });
   const [loading, setLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const { theme } = useStore();
   const navigate = useNavigate();
-  const inputRef = useRef(null);
-  const debounceRef = useRef(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const debounceRef = useRef<number | ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    const handleKeyDown = (e) => {
+    const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
         setIsOpen(prev => !prev);
@@ -35,7 +35,7 @@ export default function CommandPalette() {
     }
   }, [isOpen]);
 
-  const performSearch = async (q) => {
+  const performSearch = async (q: string) => {
     if (!q.trim()) {
       setResults({ tasks: [], projects: [], wikis: [] });
       return;
@@ -58,7 +58,7 @@ export default function CommandPalette() {
     }
   };
 
-  const handleQueryChange = (e) => {
+  const handleQueryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const q = e.target.value;
     setQuery(q);
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -72,7 +72,7 @@ export default function CommandPalette() {
     ...results.tasks.map(t => ({ ...t, type: 'task', icon: <CheckSquare size={14} /> }))
   ];
 
-  const handleNavigate = (item) => {
+  const handleNavigate = (item: any) => {
     setIsOpen(false);
     if (item.type === 'project') navigate(`/workspaces/${item.workspace}/projects`);
     else if (item.type === 'task') navigate('/tasks');
@@ -127,7 +127,7 @@ export default function CommandPalette() {
                       ].map(c => (
                         <div key={c.label} onClick={() => { setIsOpen(false); navigate(c.path); }} className="flex items-center justify-between p-4 rounded-2xl bg-white/2 border border-white/5 hover:border-brand/40 hover:bg-brand/5 cursor-pointer transition-all group">
                            <div className="flex items-center gap-3">
-                              <div className="text-text-tertiary group-hover:text-brand transition-colors">{React.cloneElement(c.icon as React.ReactElement, { size: 16 })}</div>
+                              <div className="text-text-tertiary group-hover:text-brand transition-colors">{React.cloneElement(c.icon as React.ReactElement<any>, { size: 16 })}</div>
                               <span className="text-sm font-black text-white">{c.label}</span>
                            </div>
                            <div className="text-[10px] font-black text-text-tertiary bg-white/5 px-2 py-0.5 rounded border border-white/10 group-hover:border-brand/40 group-hover:text-brand transition-all">{c.cmd}</div>
@@ -185,7 +185,7 @@ export default function CommandPalette() {
   );
 }
 
-const ArrowRight = ({ size, className }) => (
+const ArrowRight = ({ size, className }: { size?: number; className?: string }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
     <line x1="5" y1="12" x2="19" y2="12"></line>
     <polyline points="12 5 19 12 12 19"></polyline>

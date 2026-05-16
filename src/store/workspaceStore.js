@@ -6,9 +6,13 @@ export const useWorkspaceStore = create(
     (set) => ({
       workspaces: [],
       activeWorkspace: null,
-      setWorkspaces: (workspaces) => set({ workspaces }),
+      isLoading: false,
+      error: null,
+      setWorkspaces: (workspaces) => set({ workspaces, isLoading: false, error: null }),
       setActiveWorkspace: (activeWorkspace) => set({ activeWorkspace }),
-      clearWorkspaces: () => set({ workspaces: [], activeWorkspace: null }),
+      setLoading: (isLoading) => set({ isLoading }),
+      setError: (error) => set({ error, isLoading: false }),
+      clearWorkspaces: () => set({ workspaces: [], activeWorkspace: null, error: null }),
     }),
     { name: 'rtm-workspace' }
   )

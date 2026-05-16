@@ -26,18 +26,12 @@ export default function Activity() {
 
   const fetchActivity = async () => {
     try {
-      // In production, this would be a dedicated /activity/ endpoint
-      // For now, we simulate with a premium feed structure
-      const mockData = [
-        { id: 1, actor: 'Sarah Connor', verb: 'completed task', target: 'API Implementation', time: '2 mins ago', type: 'task' },
-        { id: 2, actor: 'John Doe', verb: 'posted a comment in', target: 'UX Research', time: '15 mins ago', type: 'comment' },
-        { id: 3, actor: 'Alex Murphy', verb: 'created a new project', target: 'Mobile Redesign', time: '1 hr ago', type: 'project' },
-        { id: 4, actor: 'James Bond', verb: 'joined the workspace', target: activeWorkspace?.name, time: '3 hrs ago', type: 'member' },
-        { id: 5, actor: 'Ellen Ripley', verb: 'updated priority for', target: 'Security Audit', time: '5 hrs ago', type: 'task' },
-      ];
-      setActivities(mockData);
+      const res = await api.get(`/workspaces/${activeWorkspace.id}/activity/`);
+      setActivities(res.data?.data || res.data || []);
     } catch (err) {
       console.error('Failed to fetch activity:', err);
+      // Fallback if backend doesn't support this yet
+      setActivities([]);
     } finally {
       setLoading(false);
     }

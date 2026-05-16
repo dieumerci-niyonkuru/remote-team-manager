@@ -116,6 +116,20 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Trusted By Section */}
+      <section className="py-10 border-y border-white/5 bg-[#0a0f1d]">
+        <div className="container mx-auto px-6">
+          <p className="text-center text-[10px] font-black tracking-widest text-text-tertiary uppercase mb-8">Trusted by elite engineering teams worldwide</p>
+          <div className="flex flex-wrap justify-center items-center gap-10 md:gap-20 opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
+            {['Acme Corp', 'GlobalTech', 'Quantum', 'Nexus', 'Stark Ind'].map(company => (
+              <div key={company} className="text-xl font-black text-white tracking-tighter">
+                {company}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Features Grid */}
       <section className="py-32 px-6 bg-[#080d1a]">
         <div className="container mx-auto">
@@ -179,6 +193,34 @@ export default function Home() {
                 <Button variant={plan.popular ? 'primary' : 'secondary'} className="w-full font-black py-4">
                   {plan.cta}
                 </Button>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section className="py-32 px-6 bg-[#060b18]">
+        <div className="container mx-auto">
+          <div className="text-center mb-20">
+            <h2 className="text-4xl md:text-5xl font-black tracking-tight mb-6">Don't just take our word for it.</h2>
+            <p className="text-text-secondary text-lg max-w-2xl mx-auto font-medium">Hear how RemoteTeam has transformed the way top organizations operate.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              { text: "RemoteTeam has completely changed our velocity. We ship 40% faster now.", author: "Sarah Jenkins", role: "VP of Engineering, Acme Corp" },
+              { text: "The WebSocket integration is flawless. We finally have a single source of truth.", author: "David Chen", role: "CTO, GlobalTech" },
+              { text: "Best-in-class UI and incredible performance. My team refuses to use anything else.", author: "Elena Rodriguez", role: "Product Lead, Quantum" }
+            ].map((testimonial, i) => (
+              <Card key={i} variant="glass" className="p-8">
+                <div className="flex text-yellow-500 mb-6">
+                  {[1,2,3,4,5].map(star => <Star key={star} size={16} fill="currentColor" />)}
+                </div>
+                <p className="text-lg font-medium leading-relaxed mb-8">"{testimonial.text}"</p>
+                <div>
+                  <p className="font-black text-white">{testimonial.author}</p>
+                  <p className="text-sm text-text-tertiary font-bold">{testimonial.role}</p>
+                </div>
               </Card>
             ))}
           </div>

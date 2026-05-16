@@ -25,6 +25,7 @@ const Files         = lazy(() => import('./pages/Files'))
 const AIAssistant   = lazy(() => import('./pages/AIAssistant'))
 const Automations   = lazy(() => import('./pages/Automations'))
 const Wiki          = lazy(() => import('./pages/Wiki'))
+const Analytics     = lazy(() => import('./pages/Analytics'))
 const Search        = lazy(() => import('./pages/Search'))
 const Integrations  = lazy(() => import('./pages/Integrations'))
 const About         = lazy(() => import('./pages/About'))
@@ -79,6 +80,7 @@ export default function App() {
                 <Route path="/ai" element={<Protected><AIAssistant /></Protected>} />
                 <Route path="/automations" element={<Protected><Automations /></Protected>} />
                 <Route path="/wiki" element={<Protected><Wiki /></Protected>} />
+                <Route path="/analytics" element={<Protected><Analytics /></Protected>} />
                 <Route path="/search" element={<Protected><Search /></Protected>} />
                 <Route path="/integrations" element={<Protected><Integrations /></Protected>} />
                 <Route path="/notifications" element={<Protected><Notifications /></Protected>} />

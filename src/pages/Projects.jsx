@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../store';
-import { FolderKanban, Plus, MoreVertical, LayoutGrid, List as ListIcon, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
+import { FolderKanban, Plus, MoreVertical, LayoutGrid, List as ListIcon, Clock, CheckCircle2, AlertCircle, Search } from 'lucide-react';
 import api from '../services/api';
-import { Modal } from '../components/common/Modal';
+import Modal from '../components/common/Modal';
 import { Button } from '../components/common/Button';
 import { Card } from '../components/common/Card';
 import { Input } from '../components/common/Input';
-import { Dropdown } from '../components/common/Dropdown';
 import toast from 'react-hot-toast';
 
 export default function Projects() {
@@ -41,7 +40,7 @@ export default function Projects() {
     setCreating(true);
     try {
       const res = await api.post('/projects/', { ...formData, workspace: activeWorkspace.id });
-      setProjects([res.data, ...projects]);
+      setProjects([res.data.data || res.data, ...projects]);
       setIsModalOpen(false);
       setFormData({ name: '', description: '', project_type: 'Software Development' });
       toast.success('Project created! 🚀');
@@ -55,88 +54,86 @@ export default function Projects() {
   const getStatusIcon = (status) => {
     switch (status) {
       case 'active': return <Clock size={16} className="text-blue-500" />;
-      case 'completed': return <CheckCircle2 size={16} className="text-green-500" />;
+      case 'completed': return <CheckCircle2 size={16} className="text-emerald-500" />;
       case 'on_hold': return <AlertCircle size={16} className="text-amber-500" />;
-      default: return null;
+      default: return <Clock size={16} className="text-gray-500" />;
     }
   };
 
   return (
-    <div className="h-full overflow-y-auto custom-scrollbar p-6 max-w-7xl mx-auto">
+    <div className="h-full overflow-y-auto custom-scrollbar p-6 md:p-10 max-w-7xl mx-auto bg-[#060b18]">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12 animate-in fade-in slide-in-from-top-4 duration-500">
         <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
-            <FolderKanban className="text-blue-500" size={32} />
+          <h1 className="text-4xl font-black text-white tracking-tighter flex items-center gap-4">
+            <FolderKanban className="text-blue-500" size={36} />
             Projects
           </h1>
-          <p className="text-gray-400 mt-1">Manage and track your team's initiatives in {activeWorkspace?.name}</p>
+          <p className="text-gray-400 mt-2 font-medium">Manage and track your team's initiatives in {activeWorkspace?.name}</p>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="bg-gray-800 p-1 rounded-lg flex items-center border border-gray-700">
+        <div className="flex items-center gap-4">
+          <div className="bg-white/5 p-1 rounded-xl flex items-center border border-white/5 backdrop-blur-xl">
             <button 
               onClick={() => setViewMode('grid')}
-              className={`p-1.5 rounded-md transition-colors ${viewMode === 'grid' ? 'bg-gray-700 text-white' : 'text-gray-500 hover:text-white'}`}
+              className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-500 hover:text-white'}`}
             >
-              <LayoutGrid size={18} />
+              <LayoutGrid size={20} />
             </button>
             <button 
               onClick={() => setViewMode('list')}
-              className={`p-1.5 rounded-md transition-colors ${viewMode === 'list' ? 'bg-gray-700 text-white' : 'text-gray-500 hover:text-white'}`}
+              className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-500 hover:text-white'}`}
             >
-              <ListIcon size={18} />
+              <ListIcon size={20} />
             </button>
           </div>
-          <button 
+          <Button 
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl font-semibold transition-all shadow-lg shadow-blue-600/20 active:scale-95"
+            variant="primary"
+            className="px-6 py-3 font-black text-sm uppercase tracking-widest"
+            leftIcon={<Plus size={18} />}
           >
-            <Plus size={20} />
             New Project
-          </button>
+          </Button>
         </div>
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="flex flex-col items-center justify-center h-96 animate-pulse">
+          <div className="w-16 h-16 rounded-3xl border-2 border-blue-500/20 border-t-blue-500 animate-spin mb-4" />
+          <p className="text-gray-500 font-black uppercase tracking-widest text-[10px]">Syncing Projects...</p>
         </div>
       ) : projects.length === 0 ? (
-        <div className="bg-gray-800/50 border border-dashed border-gray-700 rounded-3xl p-12 text-center">
-          <div className="w-16 h-16 bg-gray-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <FolderKanban className="text-gray-500" size={32} />
+        <Card variant="glass" className="border-dashed border-white/10 p-20 text-center flex flex-col items-center">
+          <div className="w-20 h-20 bg-white/5 rounded-3xl flex items-center justify-center mb-6 text-gray-500">
+            <FolderKanban size={40} />
           </div>
-          <h3 className="text-xl font-bold text-white mb-2">No projects yet</h3>
-          <p className="text-gray-400 max-w-xs mx-auto mb-6">Start by creating your first project to organize your team's work.</p>
-          <button onClick={() => setIsModalOpen(true)} className="text-blue-500 font-bold hover:underline">+ Create your first project</button>
-        </div>
+          <h3 className="text-2xl font-black text-white mb-2 tracking-tight">Zero Projects Found</h3>
+          <p className="text-gray-400 max-w-sm mx-auto mb-10 font-medium">Start by creating your first project to organize your team's workspace intelligence.</p>
+          <Button variant="outline" onClick={() => setIsModalOpen(true)}>Initialize Project Node</Button>
+        </Card>
       ) : (
-        <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' : 'space-y-4'}>
+        <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8' : 'space-y-4'}>
           {projects.map(project => (
             <ProjectCard key={project.id} project={project} viewMode={viewMode} getStatusIcon={getStatusIcon} />
           ))}
         </div>
       )}
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="New Project">
-        <form onSubmit={handleCreate} className="space-y-6">
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="New Project Node">
+        <form onSubmit={handleCreate} className="space-y-8 py-4">
+          <Input 
+            label="Project Title"
+            required
+            value={formData.name}
+            onChange={v => setFormData({...formData, name: v})}
+            placeholder="e.g. Project Orion, Q4 Engineering"
+          />
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Project Name</label>
-            <input 
-              required
-              type="text" 
-              value={formData.name}
-              onChange={e => setFormData({...formData, name: e.target.value})}
-              placeholder="e.g. Website Redesign, Q4 Marketing"
-              className="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500/50" 
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Project Type</label>
+            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Project Classification</label>
             <select 
               value={formData.project_type}
               onChange={e => setFormData({...formData, project_type: e.target.value})}
-              className="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500/50"
+              className="w-full bg-[#0b1429] border border-white/5 rounded-2xl px-5 py-4 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500/40 appearance-none"
             >
               <option value="Software Development">Software Development</option>
               <option value="Marketing">Marketing</option>
@@ -146,22 +143,24 @@ export default function Projects() {
             </select>
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Description</label>
+            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Intelligence Overview</label>
             <textarea 
               value={formData.description}
               onChange={e => setFormData({...formData, description: e.target.value})}
-              placeholder="Brief overview of the project goals..."
-              rows={3}
-              className="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500/50 resize-none" 
+              placeholder="Primary objectives and scope..."
+              rows={4}
+              className="w-full bg-[#0b1429] border border-white/5 rounded-2xl px-5 py-4 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500/40 resize-none" 
             />
           </div>
-          <button 
+          <Button 
             disabled={creating}
             type="submit" 
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-2xl font-bold shadow-lg shadow-blue-600/20 transition-all active:scale-[0.98] disabled:opacity-50"
+            fullWidth
+            className="py-4 font-black"
+            loading={creating}
           >
-            {creating ? 'Creating...' : 'Create Project'}
-          </button>
+            Create Project
+          </Button>
         </form>
       </Modal>
     </div>
@@ -171,37 +170,37 @@ export default function Projects() {
 function ProjectCard({ project, viewMode, getStatusIcon }) {
   if (viewMode === 'list') {
     return (
-      <div className="bg-gray-800/40 border border-gray-800 hover:border-gray-700 rounded-2xl p-4 transition-all flex items-center gap-4 group">
-        <div className="w-10 h-10 rounded-xl bg-blue-600/10 flex items-center justify-center text-blue-500">
-          <FolderKanban size={20} />
+      <div className="bg-[#0d1425]/40 border border-white/5 hover:border-blue-500/30 rounded-[24px] p-5 transition-all flex items-center gap-6 group backdrop-blur-xl">
+        <div className="w-12 h-12 rounded-2xl bg-blue-600/10 flex items-center justify-center text-blue-500 border border-blue-500/20 group-hover:bg-blue-600 group-hover:text-white transition-all duration-500">
+          <FolderKanban size={24} />
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="text-white font-bold truncate group-hover:text-blue-400 transition-colors">{project.name}</h3>
-          <p className="text-xs text-gray-500 uppercase font-bold tracking-widest">{project.project_type}</p>
+          <h3 className="text-lg font-black text-white truncate group-hover:text-blue-400 transition-colors tracking-tight leading-none mb-2">{project.name}</h3>
+          <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">{project.project_type}</p>
         </div>
-        <div className="hidden md:flex flex-col items-end px-4 border-r border-gray-800">
-          <div className="flex items-center gap-2 text-sm text-gray-300">
+        <div className="hidden md:flex flex-col items-end px-6 border-r border-white/5">
+          <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400">
             {getStatusIcon(project.status)}
-            <span className="capitalize">{project.status}</span>
+            <span>{project.status}</span>
           </div>
         </div>
-        <div className="w-48 hidden lg:block px-4 border-r border-gray-800">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-[10px] font-bold text-gray-500 uppercase">Progress</span>
-            <span className="text-[10px] font-bold text-white">{project.progress}%</span>
+        <div className="w-64 hidden lg:block px-6 border-r border-white/5">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[10px] font-black text-gray-500 uppercase tracking-tighter">Progress</span>
+            <span className="text-[10px] font-black text-white">{project.progress || 0}%</span>
           </div>
-          <div className="w-full bg-gray-800 rounded-full h-1.5 overflow-hidden">
-            <div className="bg-blue-600 h-full rounded-full transition-all duration-1000" style={{ width: `${project.progress}%` }}></div>
+          <div className="w-full bg-white/5 rounded-full h-2 overflow-hidden border border-white/5">
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 h-full rounded-full shadow-[0_0_8px_rgba(59,130,246,0.5)]" style={{ width: `${project.progress || 0}%` }}></div>
           </div>
         </div>
-        <div className="flex items-center gap-4 text-gray-500 text-sm px-4">
+        <div className="flex items-center gap-6 text-gray-500 px-6">
           <div className="flex flex-col items-center">
-            <span className="font-bold text-white">{project.task_count}</span>
-            <span className="text-[10px] uppercase font-bold">Tasks</span>
+            <span className="text-lg font-black text-white">{project.task_count || 0}</span>
+            <span className="text-[10px] uppercase font-black tracking-tighter">Tasks</span>
           </div>
         </div>
-        <button className="p-2 hover:bg-gray-700 rounded-lg text-gray-500 hover:text-white transition-colors">
-          <MoreVertical size={18} />
+        <button className="p-3 hover:bg-white/5 rounded-xl text-gray-600 hover:text-white transition-colors">
+          <MoreVertical size={20} />
         </button>
       </div>
     );
@@ -209,65 +208,69 @@ function ProjectCard({ project, viewMode, getStatusIcon }) {
 
   return (
     <Card 
-      variant="default" 
-      hover 
-      className="flex flex-col group h-full !p-0 overflow-hidden"
+      variant="glass" 
+      className="flex flex-col group h-full !p-0 overflow-hidden border-white/5 hover:border-blue-500/30 transition-all duration-500"
     >
-      <div className="p-6 flex-1 flex flex-col">
-        <div className="flex items-start justify-between mb-5">
-          <div className="w-12 h-12 rounded-2xl bg-brand/10 flex items-center justify-center text-brand group-hover:bg-brand group-hover:text-white transition-all duration-500 shadow-sm">
-            <FolderKanban size={24} />
-          </div>
-          <Button variant="icon" size="sm">
-            <MoreVertical size={20} />
-          </Button>
+      <div className="p-8 flex-1 flex flex-col relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none group-hover:scale-150 transition-transform duration-1000">
+          <FolderKanban size={100} />
         </div>
         
-        <div className="mb-6 flex-1">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="px-2 py-0.5 rounded-md bg-white/5 text-[10px] font-black text-text-tertiary uppercase tracking-widest border border-white/5">
+        <div className="flex items-start justify-between mb-8 relative z-10">
+          <div className="w-14 h-14 rounded-2xl bg-blue-600/10 flex items-center justify-center text-blue-500 border border-blue-500/20 group-hover:bg-blue-600 group-hover:text-white transition-all duration-500 shadow-xl">
+            <FolderKanban size={28} />
+          </div>
+          <button className="p-2 hover:bg-white/5 rounded-xl text-gray-500 hover:text-white transition-colors">
+            <MoreVertical size={22} />
+          </button>
+        </div>
+        
+        <div className="mb-8 flex-1 relative z-10">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="px-2 py-1 rounded-lg bg-white/5 text-[10px] font-black text-gray-500 uppercase tracking-widest border border-white/5">
               {project.project_type}
             </span>
-            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-white/5 text-[10px] font-black text-text-tertiary border border-white/5">
+            <div className="flex items-center gap-2 px-2 py-1 rounded-lg bg-white/5 text-[10px] font-black text-gray-500 border border-white/5 uppercase tracking-widest">
               {getStatusIcon(project.status)}
-              <span className="capitalize">{project.status}</span>
+              <span>{project.status}</span>
             </div>
           </div>
-          <h3 className="text-xl font-black text-white mb-2 group-hover:text-brand transition-colors tracking-tight">{project.name}</h3>
-          <p className="text-text-tertiary text-sm line-clamp-2 leading-relaxed">{project.description || 'No description provided for this project.'}</p>
+          <h3 className="text-2xl font-black text-white mb-3 group-hover:text-blue-400 transition-colors tracking-tighter leading-tight">{project.name}</h3>
+          <p className="text-gray-400 text-sm font-medium line-clamp-3 leading-relaxed">{project.description || 'No detailed intelligence overview provided for this project.'}</p>
         </div>
 
-        <div className="space-y-4 pt-6 border-t border-white/5">
+        <div className="space-y-6 pt-8 border-t border-white/5 relative z-10">
           <div>
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] font-black text-text-tertiary uppercase tracking-tighter">Project Progress</span>
-              <span className="text-sm font-black text-white">{project.progress}%</span>
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Intelligence Velocity</span>
+              <span className="text-sm font-black text-white">{project.progress || 0}%</span>
             </div>
-            <div className="w-full bg-white/5 rounded-full h-2 overflow-hidden border border-white/5">
+            <div className="w-full bg-white/5 rounded-full h-2.5 overflow-hidden border border-white/5">
               <div 
-                className="bg-gradient-to-r from-brand to-accent-violet h-full rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(51,102,255,0.4)]" 
-                style={{ width: `${project.progress}%` }}
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 h-full rounded-full shadow-[0_0_12px_rgba(59,130,246,0.6)] transition-all duration-1000 ease-out" 
+                style={{ width: `${project.progress || 0}%` }}
               ></div>
             </div>
           </div>
 
           <div className="flex items-center justify-between pt-2">
-            <div className="flex -space-x-2">
+            <div className="flex -space-x-3">
               {[1, 2, 3].map(i => (
-                <div key={i} className="w-8 h-8 rounded-full border-2 border-[#0d1425] bg-white/5 flex items-center justify-center text-[10px] font-black text-white">
+                <div key={i} className="w-9 h-9 rounded-2xl border-4 border-[#0b1429] bg-gray-800 flex items-center justify-center text-[10px] font-black text-white shadow-lg">
                   {i}
                 </div>
               ))}
-              <div className="w-8 h-8 rounded-full border-2 border-[#0d1425] bg-white/10 flex items-center justify-center text-[10px] font-black text-text-tertiary">
-                +{project.member_count}
+              <div className="w-9 h-9 rounded-2xl border-4 border-[#0b1429] bg-white/5 backdrop-blur-xl flex items-center justify-center text-[10px] font-black text-gray-400">
+                +{project.member_count || 0}
               </div>
             </div>
             <div className="text-right">
-              <p className="text-[10px] font-black text-text-tertiary uppercase tracking-widest">Tasks</p>
-              <p className="text-lg font-black text-white">{project.task_count}</p>
+              <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Trajectory Units</p>
+              <p className="text-2xl font-black text-white tracking-tighter">{project.task_count || 0}</p>
             </div>
           </div>
         </div>
+      </div>
     </Card>
   );
 }

@@ -55,7 +55,7 @@ export const Modal: React.FC<ModalProps> = ({
           <div>
             <h2 className="text-xl font-black text-white tracking-tight">{title}</h2>
           </div>
-          <Button variant="icon" onClick={onClose} size="sm">
+          <Button variant="ghost" size="icon" onClick={onClose}>
             <X size={20} />
           </Button>
         </div>

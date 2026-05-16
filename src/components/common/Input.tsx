@@ -7,6 +7,8 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement | HTMLTe
   rows?: number;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
+  icon?: React.ReactNode; // backward compatibility, maps to left icon
+  className?: string;
 }
 
 export const Input: React.FC<InputProps> = ({

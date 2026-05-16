@@ -22,10 +22,20 @@ export default function Notifications() {
 
   useEffect(() => {
     fetchNotifications();
-    const ws = connectWS();
-    return () => {
-      if (ws) ws.close();
+    const token = localStorage.getItem('rtm_access');
+    const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+    const host = window.location.host;
+    const wsHost = host.includes('localhost:5173') ? 'localhost:8000' : host;
+    const wsUrl = `${protocol}://${wsHost}/ws/notifications/?token=${token}`;
+    const socket = new WebSocket(wsUrl);
+    socket.onmessage = (e) => {
+      const data = JSON.parse(e.data);
+      if (data.type === 'send_notification') {
+        setNotifications(prev => [data.notification, ...prev]);
+        toast.success(`New: ${data.notification.verb}`);
+      }
     };
+    return () => socket.close();
   }, []);
 
   const connectWS = () => {

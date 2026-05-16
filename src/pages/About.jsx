@@ -94,6 +94,33 @@ export default function About() {
           </div>
         </div>
 
+        {/* The Team Section */}
+        <div className="mb-40 relative z-10">
+          <div className="text-center mb-16">
+             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand/10 border border-brand/20 text-[10px] font-black tracking-widest text-brand uppercase mb-6">
+                The Architects
+             </div>
+             <h2 className="text-4xl md:text-5xl font-black tracking-tight mb-4">Meet the leadership.</h2>
+             <p className="text-lg text-text-secondary font-medium max-w-2xl mx-auto">Built by engineers who were tired of fragmented, slow tools. We're a remote-first team distributed across 12 countries.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+             {[
+               { name: "Sarah Chen", role: "Chief Executive Officer", bg: "bg-blue-500" },
+               { name: "Marcus Johnson", role: "Chief Technology Officer", bg: "bg-purple-500" },
+               { name: "Elena Rodriguez", role: "Head of Product", bg: "bg-emerald-500" },
+               { name: "David Kim", role: "Head of Engineering", bg: "bg-rose-500" }
+             ].map(member => (
+               <Card key={member.name} hover variant="glass" className="p-6 text-center group">
+                 <div className={`w-24 h-24 mx-auto rounded-3xl ${member.bg} mb-6 flex items-center justify-center text-3xl font-black text-white shadow-xl group-hover:-translate-y-2 transition-transform duration-500`}>
+                   {member.name.charAt(0)}
+                 </div>
+                 <h3 className="text-xl font-black text-white mb-1">{member.name}</h3>
+                 <p className="text-sm font-bold text-text-tertiary">{member.role}</p>
+               </Card>
+             ))}
+          </div>
+        </div>
+
         {/* Join Us Section */}
         <Card variant="glass" className="relative p-20 text-center overflow-hidden">
            <div className="absolute inset-0 bg-brand/5 blur-[100px] pointer-events-none" />

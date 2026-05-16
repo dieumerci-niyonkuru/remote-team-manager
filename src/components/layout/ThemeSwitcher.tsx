@@ -12,7 +12,8 @@ export const ThemeSwitcher: React.FC = () => {
 
   return (
     <Button 
-      variant="icon" 
+      variant="ghost"
+      size="icon"
       onClick={toggleTheme} 
       className="relative overflow-hidden group"
       aria-label="Toggle Theme"

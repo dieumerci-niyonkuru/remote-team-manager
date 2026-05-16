@@ -31,7 +31,7 @@ import { Tooltip } from '../common/Tooltip';
 import { Badge } from '../common/Badge';
 
 export default function Sidebar() {
-  const { theme, setTheme, workspaces, activeWorkspace, setActiveWorkspace, user } = useStore();
+  const { theme, setTheme, workspaces, activeWorkspace, setActiveWorkspace, user, status, isSyncing } = useStore();
   const t = useT('en');
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -146,6 +146,22 @@ export default function Sidebar() {
 
       {/* Bottom Actions */}
       <div className="p-3 border-t border-gray-800">
+        {!collapsed && (
+          <div className="flex items-center justify-between px-3 py-2 mb-2">
+            <div className="flex items-center gap-2">
+              <div className={`w-2 h-2 rounded-full ${status === 'open' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]' : status === 'connecting' ? 'bg-amber-500 animate-pulse' : 'bg-rose-500'}`} />
+              <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">
+                {status === 'open' ? 'Live' : status === 'connecting' ? 'Connecting' : 'Offline'}
+              </span>
+            </div>
+            {isSyncing && (
+              <div className="flex items-center gap-1.5 text-[9px] font-black text-blue-500 uppercase tracking-widest">
+                <div className="w-1 h-1 bg-blue-500 rounded-full animate-ping" />
+                Syncing
+              </div>
+            )}
+          </div>
+        )}
         <NavGroup links={bottomLinks} collapsed={collapsed} />
         
         {/* User Profile Section */}
@@ -175,13 +191,15 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* Mobile Menu Button */}
-      <button 
-        onClick={() => setMobileOpen(true)}
-        className="md:hidden fixed top-3 left-3 z-50 p-2 rounded-lg bg-[#111e3b] text-white shadow-lg border border-gray-700"
-      >
-        <Menu size={24} />
-      </button>
+      {/* Mobile Menu Header Space */}
+      <div className="md:hidden h-14 bg-[#111e3b] dark:bg-[#060b18] border-b border-gray-800 flex items-center px-3 shrink-0">
+        <button 
+          onClick={() => setMobileOpen(true)}
+          className="p-2 rounded-lg bg-white/5 text-white shadow-lg border border-gray-700"
+        >
+          <Menu size={24} />
+        </button>
+      </div>
 
       {/* Desktop Collapse Toggle */}
       <button 
