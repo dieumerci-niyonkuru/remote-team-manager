@@ -48,69 +48,69 @@ const FOOTER_LINKS = {
 
 export default function Footer() {
   return (
-    <footer id="footer" style={{ background: '#f5f5f7', borderTop: '1px solid #e5e5e5', padding: '80px 0 40px' }}>
-      <div className="container" style={{ maxWidth: 1200, margin: '0 auto', padding: '0 24px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 40, marginBottom: 64 }}>
+    <footer id="footer" className="bg-gray-100 dark:bg-[#060b18] border-t border-gray-200 dark:border-gray-800 pt-20 pb-10 transition-colors duration-500">
+      <div className="container mx-auto px-6 max-w-7xl">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10 mb-16">
           
           {/* About */}
           <div>
-            <h4 style={{ color: '#000', fontWeight: 700, marginBottom: 24, fontSize: 14 }}>About</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <h4 className="text-gray-900 dark:text-white font-bold mb-6 text-sm">About</h4>
+            <div className="flex flex-col gap-3">
               {FOOTER_LINKS.about.map(item => (
-                <Link key={item.label} to={item.to} style={{ color: '#666', textDecoration: 'none', fontSize: 13 }} className="zoom-link">{item.label}</Link>
+                <Link key={item.label} to={item.to} className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 text-[13px] no-underline hover:underline transition-colors">{item.label}</Link>
               ))}
             </div>
           </div>
 
           {/* Download */}
           <div>
-            <h4 style={{ color: '#000', fontWeight: 700, marginBottom: 24, fontSize: 14 }}>Download</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <h4 className="text-gray-900 dark:text-white font-bold mb-6 text-sm">Download</h4>
+            <div className="flex flex-col gap-3">
               {FOOTER_LINKS.download.map(item => (
-                <Link key={item.label} to={item.to} style={{ color: '#666', textDecoration: 'none', fontSize: 13 }} className="zoom-link">{item.label}</Link>
+                <Link key={item.label} to={item.to} className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 text-[13px] no-underline hover:underline transition-colors">{item.label}</Link>
               ))}
             </div>
           </div>
 
           {/* Sales */}
           <div>
-            <h4 style={{ color: '#000', fontWeight: 700, marginBottom: 24, fontSize: 14 }}>Sales</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <h4 className="text-gray-900 dark:text-white font-bold mb-6 text-sm">Sales</h4>
+            <div className="flex flex-col gap-3">
               {FOOTER_LINKS.sales.map(item => (
-                <Link key={item.label} to={item.to} style={{ color: '#666', textDecoration: 'none', fontSize: 13 }} className="zoom-link">{item.label}</Link>
+                <Link key={item.label} to={item.to} className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 text-[13px] no-underline hover:underline transition-colors">{item.label}</Link>
               ))}
             </div>
           </div>
 
           {/* Support */}
           <div>
-            <h4 style={{ color: '#000', fontWeight: 700, marginBottom: 24, fontSize: 14 }}>Support</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <h4 className="text-gray-900 dark:text-white font-bold mb-6 text-sm">Support</h4>
+            <div className="flex flex-col gap-3">
               {FOOTER_LINKS.support.map(item => (
-                <Link key={item.label} to={item.to} style={{ color: '#666', textDecoration: 'none', fontSize: 13 }} className="zoom-link">{item.label}</Link>
+                <Link key={item.label} to={item.to} className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 text-[13px] no-underline hover:underline transition-colors">{item.label}</Link>
               ))}
             </div>
           </div>
         </div>
 
         {/* Bottom Section */}
-        <div style={{ borderTop: '1px solid #ddd', paddingTop: 40 }}>
-           <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
-             <Link to="/" style={{ display:'flex', alignItems:'center', gap:8, textDecoration:'none' }}>
-                <div style={{ width:32, height:32, borderRadius:8, background:'#0b5cff', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff' }}>
+        <div className="border-t border-gray-300 dark:border-gray-800 pt-10">
+           <div className="flex items-center gap-4 mb-6">
+             <Link to="/" className="flex items-center gap-2 no-underline">
+                <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white">
                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
                 </div>
-                <span style={{ fontSize:18, fontWeight:900, color:'#000' }}>RemoteTeam</span>
+                <span className="text-lg font-black text-gray-900 dark:text-white">RemoteTeam</span>
              </Link>
            </div>
            
-           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 20 }}>
-              <div style={{ color: '#666', fontSize: 12 }}>
+           <div className="flex justify-between items-center flex-wrap gap-5">
+              <div className="text-gray-600 dark:text-gray-500 text-xs">
                 Copyright ©{new Date().getFullYear()} RemoteTeam Workspace, Inc. All rights reserved.
               </div>
-              <div style={{ display:'flex', gap:16, flexWrap:'wrap' }}>
+              <div className="flex gap-4 flex-wrap">
                  {['Terms', 'Privacy', 'Trust Center', 'Acceptable Use', 'Legal & Compliance', 'Cookies Settings', 'Site Map'].map(l => (
-                   <a key={l} href="#" style={{ color:'#666', textDecoration:'none', fontSize:12, fontWeight:500 }}>{l}</a>
+                   <a key={l} href="#" className="text-gray-600 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white text-xs font-medium no-underline transition-colors">{l}</a>
                  ))}
               </div>
            </div>
