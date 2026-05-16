@@ -1,7 +1,7 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from apps.workspaces.permissions import IsWorkspaceMember, IsWorkspaceAdmin
+from apps.workspaces.permissions import IsWorkspaceMember, IsWorkspaceAdmin, IsWorkspaceDeveloperOrAdmin
 from .models import Project, Task, Subtask, Comment, Suggestion, Reaction
 from .serializers import ProjectSerializer, TaskSerializer, SubtaskSerializer, CommentSerializer, SuggestionSerializer, ReactionSerializer
 from apps.timetracking.models import TimeLog
@@ -37,19 +37,45 @@ class ProjectViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         serializer = self.get_serializer(queryset, many=True)
-        return Response({'data': serializer.data})
+        return Response({
+            'data': serializer.data,
+            'message': 'Projects retrieved successfully.'
+        })
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
-        return Response({'data': serializer.data})
+        return Response({
+            'data': serializer.data,
+            'message': 'Project retrieved successfully.'
+        })
 
     def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user)
+        project = serializer.save(created_by=self.request.user)
+        try:
+            from apps.workspaces.models import ActivityFeed
+            ActivityFeed.objects.create(
+                workspace=project.workspace,
+                actor=self.request.user,
+                action='created',
+                object_type='project',
+                object_id=project.id,
+                object_name=project.name
+            )
+        except Exception:
+            pass
 
 class TaskViewSet(viewsets.ModelViewSet):
     serializer_class = TaskSerializer
-    permission_classes = [permissions.IsAuthenticated, IsWorkspaceMember]
+    
+    def get_permissions(self):
+        if self.action == 'destroy':
+            return [permissions.IsAuthenticated(), IsWorkspaceAdmin()]
+        if self.action in ['create', 'update', 'partial_update']:
+            return [permissions.IsAuthenticated(), IsWorkspaceDeveloperOrAdmin()]
+        if getattr(self, 'action', None) in ['subtasks', 'add_subtask', 'timelogs'] and self.request.method == 'POST':
+            return [permissions.IsAuthenticated(), IsWorkspaceDeveloperOrAdmin()]
+        return [permissions.IsAuthenticated(), IsWorkspaceMember()]
     queryset = Task.objects.none()
 
     def get_queryset(self):
@@ -96,12 +122,18 @@ class TaskViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         serializer = self.get_serializer(queryset, many=True)
-        return Response({'data': serializer.data})
+        return Response({
+            'data': serializer.data,
+            'message': 'Tasks retrieved successfully.'
+        })
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
-        return Response({'data': serializer.data})
+        return Response({
+            'data': serializer.data,
+            'message': 'Task retrieved successfully.'
+        })
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -109,7 +141,19 @@ class TaskViewSet(viewsets.ModelViewSet):
         return Response({'message': 'Task deleted successfully.'}, status=status.HTTP_200_OK)
 
     def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user)
+        task = serializer.save(created_by=self.request.user)
+        try:
+            from apps.workspaces.models import ActivityFeed
+            ActivityFeed.objects.create(
+                workspace=task.project.workspace,
+                actor=self.request.user,
+                action='created',
+                object_type='task',
+                object_id=task.id,
+                object_name=task.title
+            )
+        except Exception:
+            pass
 
     @action(detail=True, methods=['get', 'post'])
     def subtasks(self, request, pk=None):
@@ -132,7 +176,11 @@ class TaskViewSet(viewsets.ModelViewSet):
     def timelogs(self, request, pk=None):
         task = self.get_object()
         if request.method == 'GET':
-            serializer = TimeLogSerializer(task.time_logs.all(), many=True)
+            qs = task.time_logs.all()
+            member = task.project.workspace.workspacemember_set.filter(user=request.user).first()
+            if member and member.role not in ['owner', 'manager']:
+                qs = qs.filter(user=request.user)
+            serializer = TimeLogSerializer(qs, many=True)
             return Response({'data': serializer.data})
         
         serializer = TimeLogSerializer(data=request.data)
@@ -143,7 +191,13 @@ class TaskViewSet(viewsets.ModelViewSet):
 
 class SubtaskViewSet(viewsets.ModelViewSet):
     serializer_class = SubtaskSerializer
-    permission_classes = [permissions.IsAuthenticated, IsWorkspaceMember]
+    
+    def get_permissions(self):
+        if self.action == 'destroy':
+            return [permissions.IsAuthenticated(), IsWorkspaceAdmin()]
+        if self.action in ['create', 'update', 'partial_update']:
+            return [permissions.IsAuthenticated(), IsWorkspaceDeveloperOrAdmin()]
+        return [permissions.IsAuthenticated(), IsWorkspaceMember()]
     queryset = Subtask.objects.none()
 
     def get_queryset(self):

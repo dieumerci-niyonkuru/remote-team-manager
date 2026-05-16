@@ -33,6 +33,13 @@ class Task(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    @property
+    def progress(self):
+        total = self.subtasks.count()
+        if total == 0: return 0
+        done = self.subtasks.filter(is_completed=True).count()
+        return int((done / total) * 100)
+
 class Subtask(models.Model):
     task = models.ForeignKey('projects.Task', on_delete=models.CASCADE, related_name='subtasks')
     title = models.CharField(max_length=200)

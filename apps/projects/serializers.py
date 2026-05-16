@@ -23,24 +23,28 @@ class SubtaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subtask
         fields = '__all__'
+        read_only_fields = ('task',)
 
 class CommentSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
     class Meta:
         model = Comment
         fields = '__all__'
+        read_only_fields = ('task', 'user')
 
 class SuggestionSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
     class Meta:
         model = Suggestion
         fields = '__all__'
+        read_only_fields = ('task', 'user')
 
 class ReactionSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
     class Meta:
         model = Reaction
-        fields = ('id', 'user', 'emoji', 'created_at')
+        fields = ('id', 'user', 'emoji', 'created_at', 'task')
+        read_only_fields = ('task', 'user')
 
 class TaskSerializer(serializers.ModelSerializer):
     assignee_name = serializers.ReadOnlyField(source='assignee.full_name')

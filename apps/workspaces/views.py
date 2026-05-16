@@ -18,6 +18,8 @@ class WorkspaceViewSet(viewsets.ModelViewSet):
             return [permissions.IsAuthenticated(), HasWorkspaceRole(['owner'])]
         if self.action in ['update', 'partial_update']:
             return [permissions.IsAuthenticated(), HasWorkspaceRole(['owner', 'manager'])]
+        if getattr(self, 'action', None) in ['members', 'add_member', 'invite', 'remove_member'] and self.request.method in ['POST', 'DELETE']:
+            return [permissions.IsAuthenticated(), HasWorkspaceRole(['owner'])]
         return [permissions.IsAuthenticated()]
 
     def get_queryset(self):
@@ -35,12 +37,18 @@ class WorkspaceViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         serializer = self.get_serializer(queryset, many=True)
-        return Response({'data': serializer.data})
+        return Response({
+            'data': serializer.data,
+            'message': 'Workspaces retrieved successfully.'
+        })
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
-        return Response({'data': serializer.data})
+        return Response({
+            'data': serializer.data,
+            'message': 'Workspace retrieved successfully.'
+        })
 
     def perform_create(self, serializer):
         workspace = serializer.save(created_by=self.request.user)
@@ -67,7 +75,9 @@ class WorkspaceViewSet(viewsets.ModelViewSet):
         try:
             from apps.accounts.models import User
             user = User.objects.get(email=email)
-            WorkspaceMember.objects.get_or_create(workspace=workspace, user=user, defaults={'role': role})
+            member, created = WorkspaceMember.objects.get_or_create(workspace=workspace, user=user, defaults={'role': role})
+            if not created:
+                return Response({'error': 'User is already a member.'}, status=status.HTTP_400_BAD_REQUEST)
             return Response({'data': {'email': email, 'role': role}, 'message': 'Member added successfully.'}, status=status.HTTP_201_CREATED)
         except User.DoesNotExist:
             return Response({'error': 'User not found. Please invite them instead.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -108,3 +118,15 @@ class WorkspaceViewSet(viewsets.ModelViewSet):
             return Response({'data': {'workspace_id': workspace.id}, 'message': f'Joined workspace {workspace.name}'})
         except Invite.DoesNotExist:
             return Response({'error': 'Invalid or expired invite'}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['delete'], url_path='members/(?P<user_id>[^/.]+)')
+    def remove_member(self, request, pk=None, user_id=None):
+        workspace = self.get_object()
+        try:
+            member = workspace.workspacemember_set.get(user_id=user_id)
+            if member.role == 'owner':
+                return Response({'error': 'Cannot remove owner.'}, status=status.HTTP_400_BAD_REQUEST)
+            member.delete()
+            return Response({'message': 'Member removed successfully.'}, status=status.HTTP_200_OK)
+        except WorkspaceMember.DoesNotExist:
+            return Response({'error': 'Member not found.'}, status=status.HTTP_404_NOT_FOUND)

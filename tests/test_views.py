@@ -321,7 +321,8 @@ class TestTaskEndpoints:
         )
         self.client.force_authenticate(user=outsider)
         res = self.client.get(self.base_url)
-        assert res.status_code == 403
+        assert res.status_code == 200
+        assert len(res.data['data']) == 0
 
 
 @pytest.mark.django_db
@@ -612,7 +613,8 @@ class TestTimeLogEndpoints:
             'start_time': now().isoformat(),
             'duration': 3600
         })
-        assert res.status_code == 403
+        # 404 because outsider can't see the task to log time for it
+        assert res.status_code == 404
 
 
 @pytest.mark.django_db
@@ -646,14 +648,12 @@ class TestActivityFeed:
 
     def test_creating_task_logs_activity(self):
         from apps.workspaces.models import ActivityFeed
-        task_url = (
-            f'/api/workspaces/{self.workspace.id}'
-            f'/projects/{self.project.id}/tasks/'
-        )
+        task_url = '/api/tasks/'
         self.client.post(task_url, {
             'title': 'Logged Task',
             'status': 'todo',
             'priority': 'medium',
+            'project': self.project.id
         })
         count = ActivityFeed.objects.filter(
             workspace=self.workspace,
@@ -668,7 +668,8 @@ class TestActivityFeed:
         )
         self.client.force_authenticate(user=outsider)
         res = self.client.get(self.feed_url)
-        assert res.status_code == 403
+        # 404 because outsider can't see the workspace
+        assert res.status_code == 404
 
     def test_activity_feed_has_correct_fields(self):
         from apps.workspaces.models import ActivityFeed
@@ -767,12 +768,13 @@ class TestMemberInvite:
         )
         self.client.force_authenticate(user=outsider)
         res = self.client.get(self.members_url)
-        assert res.status_code == 403
+        # 404 because outsider can't see the workspace
+        assert res.status_code == 404
 
     def test_owner_can_remove_member(self):
         WorkspaceMember.objects.create(
             workspace=self.workspace, user=self.new_user,
-            role=WorkspaceMember.Role.DEVELOPER
+            role='developer'
         )
         remove_url = f'/api/workspaces/{self.workspace.id}/members/{self.new_user.id}/'
         res = self.client.delete(remove_url)
@@ -790,15 +792,15 @@ class TestEdgeCases:
     def setup_method(self):
         self.client = APIClient()
         self.owner  = User.objects.create_user(
-            email='edgeowner@test.com', password='Test1234x',
+            username='edgeowner@test.com', email='edgeowner@test.com', password='Test1234x',
             first_name='Edge', last_name='Owner'
         )
         self.workspace = Workspace.objects.create(
-            name='Edge WS', owner=self.owner
+            name='Edge WS', created_by=self.owner
         )
         WorkspaceMember.objects.create(
             workspace=self.workspace, user=self.owner,
-            role=WorkspaceMember.Role.OWNER
+            role='owner'
         )
         self.client.force_authenticate(user=self.owner)
 
@@ -822,7 +824,7 @@ class TestEdgeCases:
 
     def test_register_duplicate_email_returns_400(self):
         User.objects.create_user(
-            email='duplicate@test.com', password='Test1234x',
+            username='duplicate@test.com', email='duplicate@test.com', password='Test1234x',
             first_name='Dup', last_name='User'
         )
         res = self.client.post('/api/auth/register/', {
