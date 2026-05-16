@@ -57,3 +57,16 @@ class LogoutView(generics.GenericAPIView):
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
+
+class ChangePasswordView(generics.UpdateAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def patch(self, request, *args, **kwargs):
+        user = request.user
+        old_password = request.data.get('old_password')
+        new_password = request.data.get('new_password')
+        if not user.check_password(old_password):
+            return Response({'error': 'Incorrect current password'}, status=status.HTTP_400_BAD_REQUEST)
+        user.set_password(new_password)
+        user.save()
+        return Response({'message': 'Password updated successfully'})

@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import { useStore } from '../../store';
-import { useT } from '../../i18n';
+import { getT } from '../../i18n';
 import Avatar from '../common/Avatar';
 import CreateWorkspaceModal from '../workspaces/CreateWorkspaceModal';
 import {
@@ -25,18 +25,19 @@ import {
   Users,
   Mail,
   PieChart,
+  LogOut,
 } from 'lucide-react';
 import ThemeSwitcher from './ThemeSwitcher';
 import { Tooltip } from '../common/Tooltip';
 import { Badge } from '../common/Badge';
 
 export default function Sidebar() {
-  const { theme, setTheme, workspaces, activeWorkspace, setActiveWorkspace, user, status, isSyncing } = useStore();
-  const t = useT('en');
-  const [collapsed, setCollapsed] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [showWorkspaceMenu, setShowWorkspaceMenu] = useState(false);
-  const [showCreateWsModal, setShowCreateWsModal] = useState(false);
+  const { theme, setTheme, workspaces, activeWorkspace, setActiveWorkspace, user, status, isSyncing, logout } = useStore();
+  const t = getT('en');
+  const [collapsed, setCollapsed] = React.useState(false);
+  const [mobileOpen, setMobileOpen] = React.useState(false);
+  const [showWorkspaceMenu, setShowWorkspaceMenu] = React.useState(false);
+  const [showCreateWsModal, setShowCreateWsModal] = React.useState(false);
 
   const userRole = activeWorkspace?.role || 'member';
   const isAdmin = userRole === 'admin' || userRole === 'owner';
@@ -77,6 +78,16 @@ export default function Sidebar() {
   const SidebarContent = () => (
     <div className="flex flex-col h-full bg-[#111e3b] dark:bg-[#060b18] text-gray-300 border-r border-gray-800 transition-all duration-300">
       
+      {/* Brand Logo */}
+      <div className={`px-6 py-8 flex items-center gap-3 ${collapsed ? 'justify-center' : ''}`}>
+        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-600/20">
+          <img src="/logo.png" alt="RemoteTeam" className="w-7 h-7 object-contain" />
+        </div>
+        {!collapsed && (
+          <span className="text-xl font-black text-white tracking-tighter">Remote<span className="text-blue-500">Team</span></span>
+        )}
+      </div>
+
       {/* Workspace Switcher */}
       <div className="px-3 py-4 border-b border-gray-800 relative">
         <button 
@@ -173,10 +184,25 @@ export default function Sidebar() {
                 <p className="text-sm font-bold text-white truncate">{user?.first_name ? `${user.first_name} ${user.last_name || ''}` : user?.username}</p>
                 <p className="text-[10px] text-gray-500 font-bold uppercase truncate">{user?.email}</p>
               </div>
-              <div className="shrink-0">
+              <div className="shrink-0 flex items-center gap-2">
                 <ThemeSwitcher />
+                <button 
+                  onClick={logout}
+                  className="p-2 hover:bg-rose-500/10 text-gray-500 hover:text-rose-500 rounded-xl transition-all"
+                  title="Logout"
+                >
+                  <LogOut size={18} />
+                </button>
               </div>
             </>
+          )}
+          {collapsed && (
+             <button 
+               onClick={logout}
+               className="absolute -top-2 -right-2 w-6 h-6 bg-rose-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+             >
+                <LogOut size={12} />
+             </button>
           )}
           <CreateWorkspaceModal 
             isOpen={showCreateWsModal} 

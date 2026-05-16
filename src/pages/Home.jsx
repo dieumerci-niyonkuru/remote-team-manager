@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
 import { Button } from '../components/common/Button';
@@ -6,7 +6,7 @@ import { Card } from '../components/common/Card';
 import { Check, ChevronRight, Star, ArrowRight, Shield, Zap, Globe, MessageSquare } from 'lucide-react';
 import Dashboard from './Dashboard';
 
-const HERO_IMG = '/saas_hero_dashboard_preview_1778872659955.png';
+const HERO_IMG = '/dashboard-full.png';
 
 const PLANS = [
   {
@@ -50,13 +50,13 @@ export default function Home() {
   }
 
   return (
-    <div className="bg-[#060b18] text-white overflow-x-hidden">
+    <div className="bg-[#060b18] text-white overflow-x-hidden relative min-h-screen">
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center pt-32 pb-20 px-6 overflow-hidden">
         {/* Background Gradients */}
-        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-brand/20 blur-[120px] rounded-full pointer-events-none" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-accent-violet/20 blur-[120px] rounded-full pointer-events-none" />
-        
+        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-brand/10 blur-[150px] rounded-full pointer-events-none" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-accent-violet/10 blur-[150px] rounded-full pointer-events-none" />
+
         <div className="container mx-auto relative z-10 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-[11px] font-black tracking-[0.2em] text-brand mb-10 uppercase animate-in fade-in slide-in-from-top-4 duration-700">
             <span className="w-2 h-2 rounded-full bg-brand animate-pulse" />
@@ -69,7 +69,7 @@ export default function Home() {
           </h1>
 
           <p className="max-w-2xl mx-auto text-lg md:text-xl text-text-secondary font-medium leading-relaxed mb-12 animate-in fade-in slide-in-from-bottom-6 duration-1000 delay-200">
-            RemoteTeam is the unified mission control for elite engineering teams. 
+            RemoteTeam is the unified mission control for elite engineering teams.
             Consolidate your tools, automate your workflows, and build the future.
           </p>
 
@@ -83,35 +83,35 @@ export default function Home() {
           </div>
 
           {/* Dashboard Preview */}
-          <div className="mt-24 relative max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-700">
-             <div className="relative rounded-[40px] border border-white/10 bg-white/5 p-4 backdrop-blur-3xl shadow-2xl overflow-hidden group">
-               <img 
-                 src={HERO_IMG} 
-                 alt="RemoteTeam Dashboard" 
-                 className="w-full rounded-[24px] shadow-2xl transition-transform duration-700 group-hover:scale-[1.01]"
-               />
-               <div className="absolute inset-0 bg-gradient-to-t from-[#060b18] via-transparent to-transparent pointer-events-none" />
-             </div>
-             
-             {/* Floating Elements */}
-             <Card className="absolute -top-10 -left-10 hidden lg:block p-5 animate-bounce-slow">
-                <div className="flex items-center gap-3">
-                   <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500"><Zap size={20} /></div>
-                   <div>
-                      <p className="text-[10px] font-black text-emerald-500 uppercase">Productivity</p>
-                      <p className="text-sm font-black">+42% efficiency</p>
-                   </div>
+          <div className="mt-24 relative max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-12 duration-700">
+            <div className="relative rounded-[40px] border border-white/10 bg-white/5 p-4 backdrop-blur-3xl shadow-2xl overflow-hidden group">
+              <img
+                src={HERO_IMG}
+                alt="RemoteTeam Dashboard"
+                className="w-full rounded-[24px] shadow-2xl transition-transform duration-700 group-hover:scale-[1.01]"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#060b18] via-transparent to-transparent pointer-events-none" />
+            </div>
+
+            {/* Floating Elements */}
+            <Card className="absolute -top-10 -left-10 hidden lg:block p-5 animate-bounce-slow">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500"><Zap size={20} /></div>
+                <div>
+                  <p className="text-[10px] font-black text-emerald-500 uppercase">Productivity</p>
+                  <p className="text-sm font-black">+42% efficiency</p>
                 </div>
-             </Card>
-             <Card className="absolute top-1/2 -right-16 hidden lg:block p-5 animate-bounce-delayed">
-                <div className="flex items-center gap-3">
-                   <div className="w-10 h-10 rounded-full bg-brand/20 flex items-center justify-center text-brand"><MessageSquare size={20} /></div>
-                   <div>
-                      <p className="text-[10px] font-black text-brand uppercase">Sync Status</p>
-                      <p className="text-sm font-black">All teams connected</p>
-                   </div>
+              </div>
+            </Card>
+            <Card className="absolute top-1/2 -right-16 hidden lg:block p-5 animate-bounce-delayed">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-brand/20 flex items-center justify-center text-brand"><MessageSquare size={20} /></div>
+                <div>
+                  <p className="text-[10px] font-black text-brand uppercase">Sync Status</p>
+                  <p className="text-sm font-black">All teams connected</p>
                 </div>
-             </Card>
+              </div>
+            </Card>
           </div>
         </div>
       </section>
@@ -180,7 +180,7 @@ export default function Home() {
                   </div>
                   <p className="text-text-tertiary text-sm mt-4 font-medium">{plan.desc}</p>
                 </div>
-                
+
                 <ul className="space-y-4 mb-12 flex-1">
                   {plan.features.map(f => (
                     <li key={f} className="flex items-center gap-3 text-sm text-text-secondary font-bold">
@@ -214,7 +214,7 @@ export default function Home() {
             ].map((testimonial, i) => (
               <Card key={i} variant="glass" className="p-8">
                 <div className="flex text-yellow-500 mb-6">
-                  {[1,2,3,4,5].map(star => <Star key={star} size={16} fill="currentColor" />)}
+                  {[1, 2, 3, 4, 5].map(star => <Star key={star} size={16} fill="currentColor" />)}
                 </div>
                 <p className="text-lg font-medium leading-relaxed mb-8">"{testimonial.text}"</p>
                 <div>
@@ -231,15 +231,15 @@ export default function Home() {
       <section className="py-32 px-6 bg-[#080d1a] border-t border-white/5">
         <div className="container mx-auto max-w-4xl">
           <div className="text-center mb-20">
-             <h2 className="text-4xl font-black tracking-tight mb-4">Frequently Asked Questions</h2>
+            <h2 className="text-4xl font-black tracking-tight mb-4">Frequently Asked Questions</h2>
           </div>
           <div className="space-y-4">
-             {FAQS.map((faq, i) => (
-               <Card key={i} className="p-6">
-                 <h4 className="text-lg font-black text-white mb-2">{faq.q}</h4>
-                 <p className="text-text-tertiary text-sm leading-relaxed">{faq.a}</p>
-               </Card>
-             ))}
+            {FAQS.map((faq, i) => (
+              <Card key={i} className="p-6">
+                <h4 className="text-lg font-black text-white mb-2">{faq.q}</h4>
+                <p className="text-text-tertiary text-sm leading-relaxed">{faq.a}</p>
+              </Card>
+            ))}
           </div>
         </div>
       </section>
@@ -256,61 +256,7 @@ export default function Home() {
         </Button>
       </section>
 
-      {/* Footer */}
-      <footer className="py-20 px-6 border-t border-white/5">
-        <div className="container mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-20">
-            <div className="col-span-1 md:col-span-1">
-              <Link to="/" className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 rounded-xl bg-brand flex items-center justify-center text-white">
-                  <Zap size={24} />
-                </div>
-                <span className="text-xl font-black tracking-tighter">RemoteTeam</span>
-              </Link>
-              <p className="text-text-tertiary text-sm leading-relaxed max-w-xs">
-                The next-generation Workspace OS for elite engineering teams.
-              </p>
-            </div>
-            <div>
-              <h4 className="text-white font-black mb-6 uppercase text-xs tracking-widest">Product</h4>
-              <ul className="space-y-4 text-sm text-text-tertiary font-bold">
-                <li><Link to="/features" className="hover:text-white transition-colors">Features</Link></li>
-                <li><Link to="/integrations" className="hover:text-white transition-colors">Integrations</Link></li>
-                <li><Link to="/pricing" className="hover:text-white transition-colors">Pricing</Link></li>
-                <li><Link to="/changelog" className="hover:text-white transition-colors">Changelog</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-white font-black mb-6 uppercase text-xs tracking-widest">Resources</h4>
-              <ul className="space-y-4 text-sm text-text-tertiary font-bold">
-                <li><Link to="/docs" className="hover:text-white transition-colors">Documentation</Link></li>
-                <li><Link to="/api" className="hover:text-white transition-colors">API Reference</Link></li>
-                <li><Link to="/blog" className="hover:text-white transition-colors">Blog</Link></li>
-                <li><Link to="/help" className="hover:text-white transition-colors">Help Center</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-white font-black mb-6 uppercase text-xs tracking-widest">Company</h4>
-              <ul className="space-y-4 text-sm text-text-tertiary font-bold">
-                <li><Link to="/about" className="hover:text-white transition-colors">About Us</Link></li>
-                <li><Link to="/careers" className="hover:text-white transition-colors">Careers</Link></li>
-                <li><Link to="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
-                <li><Link to="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
-              </ul>
-            </div>
-          </div>
-          <div className="flex flex-col md:flex-row items-center justify-between pt-12 border-t border-white/5 gap-6">
-            <p className="text-text-tertiary text-[10px] font-black uppercase tracking-widest">
-              © 2026 RemoteTeam Inc. All rights reserved.
-            </p>
-            <div className="flex items-center gap-6">
-              <Link to="#" className="text-text-tertiary hover:text-white transition-colors font-black uppercase text-[10px] tracking-widest">Twitter</Link>
-              <Link to="#" className="text-text-tertiary hover:text-white transition-colors font-black uppercase text-[10px] tracking-widest">GitHub</Link>
-              <Link to="#" className="text-text-tertiary hover:text-white transition-colors font-black uppercase text-[10px] tracking-widest">LinkedIn</Link>
-            </div>
-          </div>
-        </div>
-      </footer>
+      {/* Footer is handled by Layout.jsx */}
 
       <style>{`
         @keyframes bounce-slow {

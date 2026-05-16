@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useStore } from '../../store'
 import { auth } from '../../services/api'
-import { useT } from '../../i18n'
+import { getT } from '../../i18n'
 import toast from 'react-hot-toast'
 import NotificationBadge from './NotificationBadge'
 
@@ -11,20 +11,20 @@ import { Button } from '../common/Button'
 
 export default function Header() {
   const { isAuth, user, logout, theme, setTheme } = useStore()
-  const t = useT('en')
+  const t = getT('en')
   const navigate = useNavigate()
   const { pathname } = useLocation()
-  const [showMenu, setShowMenu] = useState(false)
-  const [scrolled, setScrolled] = useState(false)
-  const [activeDropdown, setActiveDropdown] = useState(null)
+  const [showMenu, setShowMenu] = React.useState(false)
+  const [scrolled, setScrolled] = React.useState(false)
+  const [activeDropdown, setActiveDropdown] = React.useState(null)
 
-  useEffect(() => {
+  React.useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20)
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  useEffect(() => setShowMenu(false), [pathname])
+  React.useEffect(() => setShowMenu(false), [pathname])
 
   const handleLogout = async () => {
     try { await auth.logout(localStorage.getItem('rtm_refresh')) } catch {}
@@ -112,8 +112,8 @@ export default function Header() {
         
         {/* Brand */}
         <Link to="/" style={{ display:'flex', alignItems:'center', gap:12, textDecoration:'none' }}>
-           <div style={{ width:44, height:44, borderRadius:12, background:'linear-gradient(135deg, var(--brand), #8b5cf6)', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', boxShadow:'0 10px 20px -5px rgba(51,102,255,0.4)' }}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+           <div style={{ width:44, height:44, borderRadius:12, background:'linear-gradient(135deg, var(--brand), #8b5cf6)', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', boxShadow:'0 10px 20px -5px rgba(51,102,255,0.4)', overflow:'hidden', padding:8 }}>
+              <img src="/logo.png" alt="RemoteTeam" style={{ width:'100%', height:'100%', objectFit:'contain' }} />
            </div>
            <span className="logo-font" style={{ fontSize:22, letterSpacing:'-0.03em', lineHeight: 1.1 }}>
              RemoteTeam

@@ -6,6 +6,8 @@ class Project(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     workspace = models.ForeignKey(Workspace, on_delete=models.CASCADE, related_name='projects')
+    status = models.CharField(max_length=20, default='active') # active, completed, on_hold
+    project_type = models.CharField(max_length=100, default='Software Development')
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -14,12 +16,14 @@ class Task(models.Model):
     STATUS_CHOICES = (
         ('todo', 'To Do'),
         ('in_progress', 'In Progress'),
+        ('review', 'Review'),
         ('done', 'Done'),
     )
     PRIORITY_CHOICES = (
         ('low', 'Low'),
         ('medium', 'Medium'),
         ('high', 'High'),
+        ('urgent', 'Urgent'),
     )
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)

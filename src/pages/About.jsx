@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '../components/common/Button';
 import { Card } from '../components/common/Card';
@@ -7,9 +7,6 @@ import { Globe, Users, Zap, Shield, Rocket, Target, Heart } from 'lucide-react';
 const HQ_IMG = '/kigali_innovation_city_futuristic_1778873019544.png';
 
 export default function About() {
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
 
   return (
     <div className="bg-[#060b18] text-white min-h-screen pt-32 pb-20 overflow-hidden">

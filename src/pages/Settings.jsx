@@ -20,8 +20,8 @@ import Input from '../components/common/Input';
 
 export default function Settings() {
   const { user, logout } = useStore();
-  const [activeTab, setActiveTab] = useState('profile');
-  const [formData, setFormData] = useState({
+  const [activeTab, setActiveTab] = React.useState('profile');
+  const [formData, setFormData] = React.useState({
     username: user?.username || '',
     email: user?.email || '',
     first_name: user?.first_name || '',

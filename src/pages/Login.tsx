@@ -17,8 +17,8 @@ interface LoginResponse {
 export default function Login() {
   const { setUser, theme } = useStore();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ email: '', password: '' });
-  const [loading, setLoading] = useState(false);
+  const [form, setForm] = React.useState({ email: '', password: '' });
+  const [loading, setLoading] = React.useState(false);
 
   const handleSubmit = async (ev: React.FormEvent) => {
     ev.preventDefault();
@@ -81,13 +81,11 @@ export default function Login() {
             justifyContent: 'center', 
             color: '#fff', 
             margin: '0 auto 24px', 
-            boxShadow: '0 10px 20px rgba(51,102,255,0.3)' 
+            boxShadow: '0 10px 20px rgba(51,102,255,0.3)',
+            overflow: 'hidden',
+            padding: '12px'
           }}>
-             {/* Logo placeholder, replacing Nexus icon with Prophila-like logo */}
-             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-               <path d="M12 2L2 22h20L12 2z"/>
-               <circle cx="12" cy="14" r="3" fill="currentColor"/>
-             </svg>
+             <img src="/logo.png" alt="RemoteTeam" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
           </Link>
           <h2 style={{ fontSize: 'clamp(24px, 4vw, 32px)', fontWeight: 800, color: 'var(--text)', marginBottom: '8px' }}>
             Welcome Back

@@ -1,20 +1,11 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from .models import DirectMessage, FriendRequest, FileAttachment
-from .serializers import DirectMessageSerializer, FriendRequestSerializer, FileAttachmentSerializer
+from .models import FriendRequest, FileAttachment
+from .serializers import FriendRequestSerializer, FileAttachmentSerializer
 from django.db.models import Q
 
-class DirectMessageViewSet(viewsets.ModelViewSet):
-    serializer_class = DirectMessageSerializer
-    permission_classes = [permissions.IsAuthenticated]
-    queryset = DirectMessage.objects.none()
 
-    def get_queryset(self):
-        return DirectMessage.objects.filter(Q(sender=self.request.user) | Q(receiver=self.request.user))
-
-    def perform_create(self, serializer):
-        serializer.save(sender=self.request.user)
 
 class FriendRequestViewSet(viewsets.ModelViewSet):
     serializer_class = FriendRequestSerializer
@@ -49,4 +40,12 @@ class FileAttachmentViewSet(viewsets.ModelViewSet):
         return FileAttachment.objects.filter(uploaded_by=self.request.user)
 
     def perform_create(self, serializer):
-        serializer.save(uploaded_by=self.request.user)
+        file_obj = self.request.FILES.get('file')
+        if file_obj:
+            serializer.save(
+                uploaded_by=self.request.user,
+                filename=file_obj.name,
+                file_size=file_obj.size
+            )
+        else:
+            serializer.save(uploaded_by=self.request.user)

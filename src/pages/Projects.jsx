@@ -10,14 +10,14 @@ import toast from 'react-hot-toast';
 
 export default function Projects() {
   const { activeWorkspace } = useStore();
-  const [projects, setProjects] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState('grid');
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [formData, setFormData] = useState({ name: '', description: '', project_type: 'Software Development' });
-  const [creating, setCreating] = useState(false);
+  const [projects, setProjects] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const [viewMode, setViewMode] = React.useState('grid');
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
+  const [formData, setFormData] = React.useState({ name: '', description: '', project_type: 'Software Development' });
+  const [creating, setCreating] = React.useState(false);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (activeWorkspace) {
       fetchProjects();
     }

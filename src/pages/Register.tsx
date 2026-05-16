@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
 import { auth } from '../services/api';
-import { useT } from '../i18n';
+import { getT } from '../i18n';
 import { Button } from '../components/common/Button';
 import { Input } from '../components/common/Input';
 import { Card } from '../components/common/Card';
@@ -11,9 +11,9 @@ import toast from 'react-hot-toast';
 
 export default function Register() {
   const { setUser, theme, lang } = useStore();
-  const t = useT(lang);
+  const t = getT('en');
   const navigate = useNavigate();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const ROLES = [
     { value: 'viewer', label: t.viewer, desc: t.viewerDesc, icon: 'https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?auto=format&fit=crop&q=80&w=100' },
@@ -22,13 +22,13 @@ export default function Register() {
     { value: 'designer', label: t.designer, desc: t.designerDesc, icon: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&q=80&w=100' },
   ];
 
-  const [form, setForm] = useState({
+  const [form, setForm] = React.useState({
     email: '', first_name: '', last_name: '', password: '', password2: '', role: 'viewer', username: ''
   });
-  const [avatar, setAvatar] = useState<File | null>(null);
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [loading, setLoading] = useState(false);
+  const [avatar, setAvatar] = React.useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = React.useState<string | null>(null);
+  const [errors, setErrors] = React.useState<Record<string, string>>({});
+  const [loading, setLoading] = React.useState(false);
 
   const updateForm = (k: string, v: string) => { 
     setForm(p => ({ ...p, [k]: v })); 
@@ -105,8 +105,8 @@ export default function Register() {
       <div className="w-full max-w-xl relative z-10 animate-in fade-in zoom-in-95 duration-700">
         <Card variant="glass" className="p-12 space-y-10">
           <div className="text-center space-y-4">
-            <Link to="/" className="inline-flex w-16 h-16 rounded-3xl bg-brand items-center justify-center text-white shadow-lg shadow-brand/20 mb-4 hover:scale-110 transition-transform">
-               <Rocket size={32} />
+            <Link to="/" className="inline-flex w-16 h-16 rounded-3xl bg-brand items-center justify-center text-white shadow-lg shadow-brand/20 mb-4 hover:scale-110 transition-transform overflow-hidden p-3">
+               <img src="/logo.png" alt="RemoteTeam" className="w-full h-full object-contain" />
             </Link>
             <h1 className="text-4xl font-black tracking-tight">{t.createAccountTitle}</h1>
             <p className="text-text-secondary font-medium">{t.createAccountDesc}</p>

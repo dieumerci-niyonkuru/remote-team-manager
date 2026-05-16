@@ -23,7 +23,7 @@ class NotificationViewSet(viewsets.GenericViewSet,
         notif = self.get_object()
         notif.unread = False
         notif.save()
-        return Response({'status': 'ok'})
+        return Response({'data': {'id': notif.id}, 'message': 'Notification marked as read'})
 
 class InviteViewSet(viewsets.ModelViewSet):
     serializer_class = InviteSerializer
@@ -36,7 +36,7 @@ class InviteViewSet(viewsets.ModelViewSet):
     def received(self, request):
         invites = Invite.objects.filter(email=request.user.email, accepted=False)
         serializer = self.get_serializer(invites, many=True)
-        return Response(serializer.data)
+        return Response({'data': serializer.data, 'message': 'Received invitations retrieved successfully'})
 
     @action(detail=False, methods=['get'])
     def sent(self, request):
@@ -45,7 +45,7 @@ class InviteViewSet(viewsets.ModelViewSet):
         if workspace_id:
             invites = invites.filter(workspace_id=workspace_id)
         serializer = self.get_serializer(invites, many=True)
-        return Response(serializer.data)
+        return Response({'data': serializer.data, 'message': 'Sent invitations retrieved successfully'})
 
     @action(detail=True, methods=['post'])
     def accept(self, request, pk=None):

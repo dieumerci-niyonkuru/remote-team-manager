@@ -20,6 +20,7 @@ class User(AbstractUser):
     bio = models.TextField(blank=True)
     avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
     phone = models.CharField(max_length=20, blank=True)
+    notification_preferences = models.JSONField(default=dict, blank=True)
     
     # Profile visibility choices
     VISIBILITY_CHOICES: Tuple[Tuple[str, str], ...] = [

@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import React, { useEffect } from 'react'
 import { Outlet } from 'react-router-dom'
 import { useStore } from '../../store'
 import Header from './Header'
@@ -13,16 +13,16 @@ import { ws } from '../../services/api'
 export default function Layout({ showFooter = true }) {
   const { theme, isAuth, setWorkspaces, workspaces, activeWorkspace, setActiveWorkspace } = useStore()
   
-  useEffect(() => {
+  React.useEffect(() => {
     const root = window.document.documentElement;
     root.classList.remove('light', 'dark');
     root.classList.add(theme);
   }, [theme]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (isAuth) {
       ws.list().then(res => {
-        const data = res.data || []
+        const data = res.data.data || res.data || []
         setWorkspaces(data)
         if (data.length > 0 && !activeWorkspace) {
           setActiveWorkspace(data[0])

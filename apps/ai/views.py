@@ -79,4 +79,4 @@ class SuggestTasksView(APIView):
         if task_count:
             tasks = tasks[:task_count]
 
-        return Response({"tasks": tasks, "command_type": "breakdown"})
+        return Response({"data": {"tasks": tasks, "command_type": "breakdown"}, "message": "Intelligence core has generated recommendations."})

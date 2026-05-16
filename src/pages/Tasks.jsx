@@ -64,13 +64,13 @@ const TaskCard = React.memo(({ task, onDragStart, onClick }) => {
 
 export default function Tasks() {
   const { activeWorkspace } = useStore();
-  const [tasks, setTasks] = useState([]);
-  const [projects, setProjects] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [filterProject, setFilterProject] = useState('all');
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [creating, setCreating] = useState(false);
-  const [taskForm, setTaskForm] = useState({ 
+  const [tasks, setTasks] = React.useState([]);
+  const [projects, setProjects] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const [filterProject, setFilterProject] = React.useState('all');
+  const [isCreateModalOpen, setIsCreateModalOpen] = React.useState(false);
+  const [creating, setCreating] = React.useState(false);
+  const [taskForm, setTaskForm] = React.useState({ 
     title: '', 
     description: '', 
     project: '', 
@@ -85,7 +85,7 @@ export default function Tasks() {
     { id: 'done', title: 'Done', color: 'green' },
   ];
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (activeWorkspace) {
       fetchInitialData();
     }
@@ -144,8 +144,8 @@ export default function Tasks() {
     }
   };
 
-  const [draggingTaskId, setDraggingTaskId] = useState(null);
-  const [selectedTask, setSelectedTask] = useState(null);
+  const [draggingTaskId, setDraggingTaskId] = React.useState(null);
+  const [selectedTask, setSelectedTask] = React.useState(null);
 
   const filteredTasks = React.useMemo(() => {
     return filterProject === 'all' 

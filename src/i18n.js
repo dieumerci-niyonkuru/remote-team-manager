@@ -150,4 +150,4 @@ export const T = {
     viewerDesc:'Kureba gusa', developerDesc:'Gukora no kubaka', managerDesc:'Kuyobora itsinda', designerDesc:'Gushushanya',
   },
 }
-export const useT = lang => T[lang] || T.en
+export const getT = lang => T[lang] || T.en

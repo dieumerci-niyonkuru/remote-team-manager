@@ -8,4 +8,5 @@ class TimeLog(models.Model):
     start_time = models.DateTimeField()
     end_time = models.DateTimeField(null=True, blank=True)
     duration = models.PositiveIntegerField(default=0)
+    description = models.TextField(blank=True)
     is_running = models.BooleanField(default=False)

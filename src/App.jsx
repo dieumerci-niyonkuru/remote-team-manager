@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react'
+import React, { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { useStore } from './store'
@@ -7,32 +7,32 @@ import ErrorBoundary from './components/common/ErrorBoundary'
 import PresenceHandler from './components/common/PresenceHandler'
 
 // ⚡ Code-split every page — loads only what user visits
-const Home          = lazy(() => import('./pages/Home'))
-const Login         = lazy(() => import('./pages/Login'))
-const Register      = lazy(() => import('./pages/Register'))
-const Dashboard     = lazy(() => import('./pages/Dashboard'))
-const Projects      = lazy(() => import('./pages/Projects'))
-const WorkspaceDetail = lazy(() => import('./pages/WorkspaceDetail'))
-const Tasks         = lazy(() => import('./pages/Tasks'))
-const Workspaces    = lazy(() => import('./pages/Workspaces'))
-const Team          = lazy(() => import('./pages/Team'))
-const Invitations   = lazy(() => import('./pages/Invitations'))
-const Activity      = lazy(() => import('./pages/Activity'))
-const Chat          = lazy(() => import('./pages/Chat'))
-const Calendar      = lazy(() => import('./pages/Calendar'))
-const HR            = lazy(() => import('./pages/HR'))
-const Files         = lazy(() => import('./pages/Files'))
-const AIAssistant   = lazy(() => import('./pages/AIAssistant'))
-const Automations   = lazy(() => import('./pages/Automations'))
-const Wiki          = lazy(() => import('./pages/Wiki'))
-const Analytics     = lazy(() => import('./pages/Analytics'))
-const Search        = lazy(() => import('./pages/Search'))
-const Integrations  = lazy(() => import('./pages/Integrations'))
-const About         = lazy(() => import('./pages/About'))
-const Settings      = lazy(() => import('./pages/Settings'))
-const Notifications = lazy(() => import('./pages/Notifications'))
-const AuditLogs     = lazy(() => import('./pages/AuditLogs'))
-const Onboarding    = lazy(() => import('./pages/Onboarding'))
+const Home          = React.lazy(() => import('./pages/Home'))
+const Login         = React.lazy(() => import('./pages/Login'))
+const Register      = React.lazy(() => import('./pages/Register'))
+const Dashboard     = React.lazy(() => import('./pages/Dashboard'))
+const Projects      = React.lazy(() => import('./pages/Projects'))
+const WorkspaceDetail = React.lazy(() => import('./pages/WorkspaceDetail'))
+const Tasks         = React.lazy(() => import('./pages/Tasks'))
+const Workspaces    = React.lazy(() => import('./pages/Workspaces'))
+const Team          = React.lazy(() => import('./pages/Team'))
+const Invitations   = React.lazy(() => import('./pages/Invitations'))
+const Activity      = React.lazy(() => import('./pages/Activity'))
+const Chat          = React.lazy(() => import('./pages/Chat'))
+const Calendar      = React.lazy(() => import('./pages/Calendar'))
+const HR            = React.lazy(() => import('./pages/HR'))
+const Files         = React.lazy(() => import('./pages/Files'))
+const AIAssistant   = React.lazy(() => import('./pages/AIAssistant'))
+const Automations   = React.lazy(() => import('./pages/Automations'))
+const Wiki          = React.lazy(() => import('./pages/Wiki'))
+const Analytics     = React.lazy(() => import('./pages/Analytics'))
+const Search        = React.lazy(() => import('./pages/Search'))
+const Integrations  = React.lazy(() => import('./pages/Integrations'))
+const Settings      = React.lazy(() => import('./pages/Settings'))
+const Notifications = React.lazy(() => import('./pages/Notifications'))
+const AuditLogs     = React.lazy(() => import('./pages/AuditLogs'))
+const About         = React.lazy(() => import('./pages/About'))
+const Onboarding    = React.lazy(() => import('./pages/Onboarding'))
 
 const PageLoader = () => (
   <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'60vh', flexDirection:'column', gap:16 }}>
@@ -57,7 +57,7 @@ export default function App() {
       <ErrorBoundary>
         <PresenceHandler>
           <BrowserRouter>
-          <Suspense fallback={<PageLoader />}>
+          <React.Suspense fallback={<div className="min-h-screen bg-[#060b18] flex items-center justify-center"><div className="w-12 h-12 border-4 border-brand border-t-transparent rounded-full animate-spin" /></div>}>
             <Routes>
               <Route element={<Layout />}>
                 <Route path="/" element={<Home />} />
@@ -89,7 +89,7 @@ export default function App() {
               </Route>
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
-          </Suspense>
+          </React.Suspense>
           </BrowserRouter>
         </PresenceHandler>
       </ErrorBoundary>

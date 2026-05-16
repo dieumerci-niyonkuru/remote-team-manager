@@ -11,15 +11,15 @@ import toast from 'react-hot-toast';
 export default function Onboarding() {
   const { user, setActiveWorkspace } = useStore();
   const navigate = useNavigate();
-  const [step, setStep] = useState(1);
-  const [loading, setLoading] = useState(false);
+  const [step, setStep] = React.useState(1);
+  const [loading, setLoading] = React.useState(false);
   
-  const [workspaceData, setWorkspaceData] = useState({
+  const [workspaceData, setWorkspaceData] = React.useState({
     name: '',
     description: '',
   });
   
-  const [invites, setInvites] = useState(['']);
+  const [invites, setInvites] = React.useState(['']);
 
   const handleAddInvite = () => setInvites([...invites, '']);
   const handleInviteChange = (index: number, val: string) => {

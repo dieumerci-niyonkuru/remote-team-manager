@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 /**
  * useWebSocket - A robust hook for managing WebSocket connections with exponential backoff.
@@ -22,12 +22,12 @@ export default function useWebSocket(url, options = {}) {
     initialRetryDelay = 1000 
   } = options;
 
-  const [status, setStatus] = useState('closed'); // 'connecting', 'open', 'closed', 'error'
-  const wsRef = useRef(null);
-  const retryCountRef = useRef(0);
-  const reconnectTimerRef = useRef(null);
+  const [status, setStatus] = React.useState('closed'); // 'connecting', 'open', 'closed', 'error'
+  const wsRef = React.useRef(null);
+  const retryCountRef = React.useRef(0);
+  const reconnectTimerRef = React.useRef(null);
 
-  const connect = useCallback(() => {
+  const connect = React.useCallback(() => {
     if (!url || !enabled) return;
 
     if (wsRef.current) {
@@ -95,7 +95,7 @@ export default function useWebSocket(url, options = {}) {
     }
   }, [url, enabled, onMessage, onOpen, onClose, maxRetries, initialRetryDelay]);
 
-  const send = useCallback((data) => {
+  const send = React.useCallback((data) => {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       const message = typeof data === 'string' ? data : JSON.stringify(data);
       wsRef.current.send(message);
@@ -104,7 +104,7 @@ export default function useWebSocket(url, options = {}) {
     return false;
   }, []);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (enabled) {
       connect();
     }

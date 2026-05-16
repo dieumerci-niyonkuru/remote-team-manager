@@ -19,20 +19,20 @@ import api from '../services/api';
 
 export default function Dashboard() {
   const { user, activeWorkspace } = useStore();
-  const [stats, setStats] = useState({
+  const [stats, setStats] = React.useState({
     projects: 0,
     tasks: 0,
     members: 0,
     activity: 0
   });
-  const [tasksList, setTasksList] = useState([]);
-  const [projectsList, setProjectsList] = useState([]);
-  const [membersList, setMembersList] = useState([]);
-  const [recentTasks, setRecentTasks] = useState([]);
-  const [activeProjects, setActiveProjects] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [tasksList, setTasksList] = React.useState([]);
+  const [projectsList, setProjectsList] = React.useState([]);
+  const [membersList, setMembersList] = React.useState([]);
+  const [recentTasks, setRecentTasks] = React.useState([]);
+  const [activeProjects, setActiveProjects] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (activeWorkspace) {
       fetchDashboardData();
     }

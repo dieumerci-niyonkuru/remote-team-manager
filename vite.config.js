@@ -3,12 +3,17 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   plugins: [react()],
+  resolve: {
+    dedupe: ['react', 'react-dom']
+  },
   server: {
-    port: 5173,
+    port: 5174,
+    strictPort: true,
     proxy: {
       '/api': {
         target: 'https://remote-team-manager-production.up.railway.app',
         changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, '/api')
       }
     }
   }

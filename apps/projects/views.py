@@ -137,23 +137,64 @@ class TaskViewSet(viewsets.ModelViewSet):
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
+        workspace_id = instance.project.workspace.id
+        task_id = instance.id
         instance.delete()
+        self._broadcast_delete(workspace_id, task_id)
         return Response({'message': 'Task deleted successfully.'}, status=status.HTTP_200_OK)
 
     def perform_create(self, serializer):
         task = serializer.save(created_by=self.request.user)
+        self._log_activity(task, 'created')
+        self._broadcast(task, 'created')
+
+    def perform_update(self, serializer):
+        task = serializer.save()
+        self._log_activity(task, 'updated')
+        self._broadcast(task, 'updated')
+
+    def _log_activity(self, task, action):
         try:
             from apps.workspaces.models import ActivityFeed
             ActivityFeed.objects.create(
                 workspace=task.project.workspace,
                 actor=self.request.user,
-                action='created',
+                action=action,
                 object_type='task',
                 object_id=task.id,
                 object_name=task.title
             )
-        except Exception:
-            pass
+        except Exception: pass
+
+    def _broadcast(self, task, action):
+        try:
+            from channels.layers import get_channel_layer
+            from asgiref.sync import async_to_sync
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f'tasks_{task.project.workspace.id}',
+                {
+                    'type': 'task_update',
+                    'action': action,
+                    'task': TaskSerializer(task).data
+                }
+            )
+        except Exception: pass
+
+    def _broadcast_delete(self, workspace_id, task_id):
+        try:
+            from channels.layers import get_channel_layer
+            from asgiref.sync import async_to_sync
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f'tasks_{workspace_id}',
+                {
+                    'type': 'task_update',
+                    'action': 'deleted',
+                    'task_id': task_id
+                }
+            )
+        except Exception: pass
 
     @action(detail=True, methods=['get', 'post'])
     def subtasks(self, request, pk=None):

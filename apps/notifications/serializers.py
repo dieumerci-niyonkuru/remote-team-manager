@@ -9,7 +9,10 @@ class NotificationSerializer(serializers.ModelSerializer):
 
 class InviteSerializer(serializers.ModelSerializer):
     workspace_name = serializers.CharField(source='workspace.name', read_only=True)
-    invited_by_name = serializers.CharField(source='invited_by.get_full_name', read_only=True)
+    invited_by_name = serializers.SerializerMethodField()
+
+    def get_invited_by_name(self, obj):
+        return obj.invited_by.get_full_name() or obj.invited_by.username
     class Meta:
         model = Invite
         fields = '__all__'

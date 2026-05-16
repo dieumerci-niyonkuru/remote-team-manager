@@ -22,7 +22,7 @@ class StartTimerView(APIView):
             return Response({'error': 'You have an active timer on another task. Please stop it first.'}, status=400)
 
         timelog = TimeLog.objects.create(task=task, user=request.user, start_time=now(), is_running=True)
-        return Response({'id': timelog.id, 'start_time': timelog.start_time})
+        return Response({'data': {'id': timelog.id, 'start_time': timelog.start_time}, 'message': 'Timer started'})
 
 class PauseTimerView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -42,7 +42,7 @@ class PauseTimerView(APIView):
         timelog.duration = (timelog.end_time - timelog.start_time).total_seconds()
         timelog.is_running = False
         timelog.save()
-        return Response({'duration': timelog.duration})
+        return Response({'data': {'duration': timelog.duration}, 'message': 'Timer paused'})
 
 class TaskTimeLogsView(APIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -59,4 +59,4 @@ class TaskTimeLogsView(APIView):
                 'start_time': log.start_time,
                 'end_time': log.end_time,
             })
-        return Response(data)
+        return Response({'data': data, 'message': 'Time logs retrieved'})

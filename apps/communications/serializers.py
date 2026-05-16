@@ -1,14 +1,8 @@
 from rest_framework import serializers
-from .models import DirectMessage, FriendRequest, FileAttachment
+from .models import FriendRequest, FileAttachment
 from apps.accounts.serializers import UserSerializer
 
-class DirectMessageSerializer(serializers.ModelSerializer):
-    sender = UserSerializer(read_only=True)
-    receiver = UserSerializer(read_only=True)
-    class Meta:
-        model = DirectMessage
-        fields = '__all__'
-        read_only_fields = ('sender', 'timestamp')
+
 
 class FriendRequestSerializer(serializers.ModelSerializer):
     from_user = UserSerializer(read_only=True)

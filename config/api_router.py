@@ -44,7 +44,7 @@ router.register(r'presence', PresenceViewSet, basename='userpresence')
 
 # Communications
 router.register(r'friend-requests', FriendRequestViewSet, basename='friendrequest')
-router.register(r'file-attachments', FileAttachmentViewSet, basename='fileattachment')
+router.register(r'files', FileAttachmentViewSet, basename='fileattachment')
 
 # OKR
 router.register(r'objectives', ObjectiveViewSet, basename='objective')
