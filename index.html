@@ -13,9 +13,42 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="RemoteTeam" />
+
+    <!-- AUTO SW CLEANUP: runs before any cached JS, cannot be blocked by SW -->
+    <script>
+      (function() {
+        if (!('serviceWorker' in navigator)) return;
+
+        // When a new SW takes over (our self-destruct SW calls skipWaiting),
+        // controllerchange fires on THIS page — auto reload to get fresh files
+        navigator.serviceWorker.addEventListener('controllerchange', function() {
+          console.log('[SW] Controller changed — reloading for fresh assets');
+          window.location.reload();
+        });
+
+        // Force unregister all existing SWs and clear all caches on every load.
+        // Uses a flag so it only force-reloads once per session.
+        navigator.serviceWorker.getRegistrations().then(function(regs) {
+          if (regs.length === 0) return;
+          var promises = regs.map(function(r) { return r.unregister(); });
+          return Promise.all(promises)
+            .then(function() { return caches.keys(); })
+            .then(function(keys) {
+              return Promise.all(keys.map(function(k) { return caches.delete(k); }));
+            })
+            .then(function() {
+              if (!sessionStorage.getItem('sw_cleared')) {
+                sessionStorage.setItem('sw_cleared', '1');
+                window.location.reload();
+              }
+            });
+        });
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
+
