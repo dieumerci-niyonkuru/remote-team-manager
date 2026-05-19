@@ -2,7 +2,7 @@ import axios from 'axios'
 
 const PROD_URL = 'https://remote-team-manager-production.up.railway.app/api'
 const LOCAL_URL = 'http://localhost:8000/api'
-const BASE = '/api'
+const BASE = import.meta.env.PROD ? PROD_URL : '/api'
 
 const api = axios.create({ baseURL: BASE, headers: { 'Content-Type': 'application/json' } })
 
