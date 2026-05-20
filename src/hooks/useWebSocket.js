@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React from 'react';
 
 /**
  * useWebSocket - A robust hook for managing WebSocket connections with exponential backoff.
@@ -27,11 +27,33 @@ export default function useWebSocket(url, options = {}) {
   const retryCountRef = React.useRef(0);
   const reconnectTimerRef = React.useRef(null);
 
+  // Store callbacks in refs to prevent infinite loop of reconnects/re-renders
+  const onMessageRef = React.useRef(onMessage);
+  const onOpenRef = React.useRef(onOpen);
+  const onCloseRef = React.useRef(onClose);
+
+  React.useEffect(() => {
+    onMessageRef.current = onMessage;
+    onOpenRef.current = onOpen;
+    onCloseRef.current = onClose;
+  });
+
   const connect = React.useCallback(() => {
     if (!url || !enabled) return;
 
     if (wsRef.current) {
+      // Clear event listeners before closing to prevent stale triggers
+      wsRef.current.onopen = null;
+      wsRef.current.onmessage = null;
+      wsRef.current.onclose = null;
+      wsRef.current.onerror = null;
       wsRef.current.close();
+      wsRef.current = null;
+    }
+
+    if (reconnectTimerRef.current) {
+      clearTimeout(reconnectTimerRef.current);
+      reconnectTimerRef.current = null;
     }
 
     setStatus('connecting');
@@ -55,26 +77,26 @@ export default function useWebSocket(url, options = {}) {
         console.log(`WebSocket Connected: ${url}`);
         setStatus('open');
         retryCountRef.current = 0;
-        if (onOpen) onOpen(event);
+        if (onOpenRef.current) onOpenRef.current(event);
       };
 
       ws.onmessage = (event) => {
-        if (onMessage) {
+        if (onMessageRef.current) {
           try {
             const data = JSON.parse(event.data);
-            onMessage(data, event);
+            onMessageRef.current(data, event);
           } catch (err) {
-            onMessage(event.data, event);
+            onMessageRef.current(event.data, event);
           }
         }
       };
 
       ws.onclose = (event) => {
         setStatus('closed');
-        if (onClose) onClose(event);
+        if (onCloseRef.current) onCloseRef.current(event);
         
-        // Reconnect logic
-        if (enabled && retryCountRef.current < maxRetries) {
+        // Reconnect logic: only reconnect if this is still the active socket instance
+        if (enabled && wsRef.current === ws && retryCountRef.current < maxRetries) {
           const delay = Math.min(initialRetryDelay * Math.pow(2, retryCountRef.current), 30000);
           console.log(`WebSocket closed. Reconnecting in ${delay}ms... (Attempt ${retryCountRef.current + 1}/${maxRetries})`);
           
@@ -93,7 +115,7 @@ export default function useWebSocket(url, options = {}) {
       console.error('WebSocket connection failed:', err);
       setStatus('error');
     }
-  }, [url, enabled, onMessage, onOpen, onClose, maxRetries, initialRetryDelay]);
+  }, [url, enabled, maxRetries, initialRetryDelay]);
 
   const send = React.useCallback((data) => {
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
@@ -109,8 +131,18 @@ export default function useWebSocket(url, options = {}) {
       connect();
     }
     return () => {
-      if (wsRef.current) wsRef.current.close();
-      if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
+      if (wsRef.current) {
+        wsRef.current.onopen = null;
+        wsRef.current.onmessage = null;
+        wsRef.current.onclose = null;
+        wsRef.current.onerror = null;
+        wsRef.current.close();
+        wsRef.current = null;
+      }
+      if (reconnectTimerRef.current) {
+        clearTimeout(reconnectTimerRef.current);
+        reconnectTimerRef.current = null;
+      }
     };
   }, [enabled, connect]);
 
@@ -120,3 +152,4 @@ export default function useWebSocket(url, options = {}) {
     readyState: wsRef.current ? wsRef.current.readyState : WebSocket.CLOSED
   };
 }
+

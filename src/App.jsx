@@ -86,6 +86,7 @@ export default function App() {
                 <Route path="/notifications" element={<Protected><Notifications /></Protected>} />
                 <Route path="/audit" element={<Protected><AuditLogs /></Protected>} />
                 <Route path="/settings" element={<Protected><Settings /></Protected>} />
+                <Route path="/profile" element={<Protected><Settings /></Protected>} />
               </Route>
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

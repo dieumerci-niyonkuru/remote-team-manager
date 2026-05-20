@@ -34,7 +34,7 @@ export default function FeedbackButton() {
       {/* Floating Button */}
       <button 
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-8 right-8 z-[100] w-14 h-14 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-110 hover:bg-blue-700 transition-all group"
+        className="fixed bottom-8 right-24 z-[100] w-14 h-14 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-110 hover:bg-blue-700 transition-all group"
       >
         <MessageSquare size={24} className="group-hover:rotate-12 transition-transform" />
       </button>
