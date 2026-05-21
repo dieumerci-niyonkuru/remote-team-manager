@@ -1,11 +1,10 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from .models import FriendRequest, FileAttachment
 from .serializers import FriendRequestSerializer, FileAttachmentSerializer
+from .models import FriendRequest, FileAttachment
+from apps.auth.decorators import role_required
 from django.db.models import Q
-
-
 
 class FriendRequestViewSet(viewsets.ModelViewSet):
     serializer_class = FriendRequestSerializer
@@ -15,6 +14,7 @@ class FriendRequestViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         return FriendRequest.objects.filter(Q(from_user=self.request.user) | Q(to_user=self.request.user))
 
+    @role_required('member', 'project_manager', 'admin', 'workspace_owner', 'super_admin')
     def perform_create(self, serializer):
         serializer.save(from_user=self.request.user)
 

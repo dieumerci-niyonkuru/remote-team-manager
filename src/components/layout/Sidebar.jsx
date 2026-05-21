@@ -31,7 +31,7 @@ import ThemeSwitcher from './ThemeSwitcher';
 import { Tooltip } from '../common/Tooltip';
 import { Badge } from '../common/Badge';
 import FocusTrap from '../common/FocusTrap';
-import { useLocation } from 'react-router-dom';
+
 
 export default function Sidebar() {
   const { theme, setTheme, workspaces, activeWorkspace, setActiveWorkspace, user, status, isSyncing, logout } = useStore();

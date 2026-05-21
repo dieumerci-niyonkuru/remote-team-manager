@@ -1,5 +1,5 @@
 import React from 'react';
-import * as tokens from '../../styles/tokens';
+import { radiusClass } from '../../styles/utils';
 
 interface AvatarProps {
   user?: {
@@ -33,24 +33,23 @@ export const Avatar: React.FC<AvatarProps> = ({
 
   return (
     <div 
-      className={`relative flex-shrink-0 rounded-[${tokens.radius.md}px] overflow-visible ${className}`}
+      className={`relative flex-shrink-0 ${radiusClass('md')} overflow-visible ${className}`}
       style={{ width: size, height: size }}
     >
       {user?.avatar ? (
         <img 
           src={user.avatar} 
           alt={user.username || 'User'} 
-          className={`w-full h-full object-cover rounded-[${tokens.radius.md}px] border border-white/10`}
+          className={`w-full h-full object-cover ${radiusClass('md')} border border-white/10`}
         />
       ) : (
         <div 
-          className={`w-full h-full flex items-center justify-center bg-gradient-to-br from-brand to-accent-violet text-white font-black rounded-[${tokens.radius.md}px] border border-white/10 shadow-lg`}
+          className={`w-full h-full flex items-center justify-center bg-gradient-to-br from-brand to-accent-violet text-white font-black ${radiusClass('md')} border border-white/10 shadow-lg`}
           style={{ fontSize }}
         >
           {initials}
         </div>
-      )}
-      
+      )}      
       {status !== 'none' && (
         <span 
           className={`absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-[#0d1425] ${statusColors[status]}`}

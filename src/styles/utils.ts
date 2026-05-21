@@ -38,3 +38,13 @@ export const animationClass = (name: keyof typeof import('./animations').default
 };
 
 export const breakpointClass = (bp: keyof typeof import('./breakpoints').default): string => `max-${bp}`;
+
+// Helper to convert radius token to inline style
+export const radiusStyle = (size: keyof typeof radius): React.CSSProperties => ({
+  borderRadius: `${radius[size]}px`
+});
+
+// Helper to convert shadow token to inline style
+export const shadowStyle = (size: keyof typeof shadow): React.CSSProperties => ({
+  boxShadow: shadow[size]
+});

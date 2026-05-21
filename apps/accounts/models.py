@@ -4,19 +4,15 @@ from django.db import models
 
 class User(AbstractUser):
     ROLE_CHOICES: Tuple[Tuple[str, str], ...] = (
-        ('viewer', 'Viewer'),
-        ('developer', 'Developer'),
-        ('manager', 'Manager'),
-        ('owner', 'Owner'),
-        ('frontend', 'Frontend'),
-        ('backend', 'Backend'),
-        ('devops', 'DevOps'),
-        ('designer', 'Designer'),
-        ('qa', 'QA'),
-        ('product', 'Product'),
-        ('hr', 'HR'),
+        ('super_admin', 'Super Admin'),
+        ('workspace_owner', 'Workspace Owner'),
+        ('admin', 'Admin'),
+        ('project_manager', 'Project Manager'),
+        ('member', 'Member'),
+        ('guest', 'Guest'),
     )
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='viewer')
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='guest')
+
     bio = models.TextField(blank=True)
     avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
     phone = models.CharField(max_length=20, blank=True)

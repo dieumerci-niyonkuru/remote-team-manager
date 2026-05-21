@@ -1,5 +1,5 @@
 import React from 'react';
-  import { radiusStyle, shadowStyle } from '../../styles/utils';
+import { radiusClass, shadowClass } from '../../styles/utils';
   import * as tokens from '../../styles/tokens';
 
 interface LoadingSkeletonProps {
@@ -24,14 +24,14 @@ export const LoadingSkeleton: React.FC<LoadingSkeletonProps> = ({
   };
 
   return (
-    <div className={`bg-gray-200 animate-pulse ${variants[variant]} ${className}`} style={{ width, height, ...radiusStyle('lg') }}>
+    <div className={`bg-gray-200 animate-pulse ${variants[variant]} ${className} ${radiusClass('lg')}`} style={{ width, height }} aria-busy="true" aria-live="polite">
       {children}
     </div>
   );
 };
 
 export const CardSkeleton = () => (
-  <div className={`bg-white/2 border border-white/5 p-6 space-y-4`} style={{ ...radiusStyle('lg') }}>
+  <div className={`bg-white/2 border border-white/5 p-6 space-y-4 ${radiusClass('lg')}`} >
     <div className="flex items-center gap-3">
       <LoadingSkeleton variant="circle" width={40} height={40} />
       <div className="space-y-4 flex-1">

@@ -228,6 +228,22 @@ export default function Footer() {
             </div>
           ))}
         </div>
+{/* Office Location */}
+<div className="mt-12">
+  <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-5">Our Office</h4>
+  <p className="text-gray-400 text-sm mb-4">Kigali, Rwanda</p>
+  <div className="w-full h-64">
+    <iframe
+      src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3980.123456789!2d30.061887!3d-1.944896!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x19d6981900000001%3A0x123456789abcdef!2sKigali%2C%20Rwanda!5e0!3m2!1sen!2sus!4v1600000000000!5m2!1sen!2sus"
+      width="100%"
+      height="100%"
+      style={{border:0}}
+      allowFullScreen=""
+      loading="lazy"
+      referrerPolicy="no-referrer-when-downgrade"
+    ></iframe>
+  </div>
+</div>
       </div>
 
       {/* Bottom Bar */}
@@ -235,9 +251,7 @@ export default function Footer() {
         <div className="container mx-auto px-6 py-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
 
-            <p className="text-xs text-gray-600 font-medium">
-              &copy; {YEAR} RemoteTeam, Inc. All rights reserved. Built with ❤️ for distributed teams worldwide.
-            </p>
+                <p className="text-xs text-gray-600 font-medium">Remote Team Manager</p>
 
             <div className="flex items-center gap-6">
               {['Privacy Policy', 'Terms of Service', 'Cookie Policy', 'Acceptable Use'].map(item => (

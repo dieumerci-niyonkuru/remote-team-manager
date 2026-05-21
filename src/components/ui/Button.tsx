@@ -1,5 +1,4 @@
-import { radiusStyle } from '../../styles/utils';
-import * as tokens from '../../styles/tokens';
+import { radiusClass } from '../../styles/utils';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'outline';
 
@@ -24,9 +23,9 @@ export const Button: React.FC<ButtonProps> = ({
   ...rest
 }) => {
   const base = 'px-4 py-2 focus:outline-none transition-colors disabled:opacity-50 disabled:cursor-not-allowed';
-  const classes = `${base} ${variantClasses[variant]} ${fullWidth ? 'w-full' : ''} ${className}`;
+  const classes = `${base} ${variantClasses[variant]} ${fullWidth ? 'w-full' : ''} ${radiusClass('md')} ${className}`;
   return (
-    <button className={classes} style={radiusStyle('md')} {...rest}>
+    <button className={classes} aria-disabled={rest.disabled} {...rest}>
       {children}
     </button>
   );

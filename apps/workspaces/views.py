@@ -2,7 +2,8 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.utils.timezone import now
-from .models import Workspace, WorkspaceMember, ActivityFeed
+from apps.auth.decorators import role_required
+
 from .serializers import WorkspaceSerializer, WorkspaceMemberSerializer, ActivityFeedSerializer
 from .permissions import IsWorkspaceMember, HasWorkspaceRole
 from apps.notifications.models import Invite
@@ -83,11 +84,13 @@ class WorkspaceViewSet(viewsets.ModelViewSet):
             return Response({'error': 'User not found. Please invite them instead.'}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=['post'])
+    @role_required('owner', 'admin', 'super_admin', 'workspace_owner')
     def add_member(self, request, pk=None):
         # This matches the frontend call in api.js line 49
         return self.members(request, pk)
 
     @action(detail=True, methods=['post'])
+    @role_required('owner', 'admin', 'super_admin', 'workspace_owner')
     def invite(self, request, pk=None):
         workspace = self.get_object()
         email = request.data.get('email')
@@ -120,6 +123,7 @@ class WorkspaceViewSet(viewsets.ModelViewSet):
             return Response({'error': 'Invalid or expired invite'}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=['delete'], url_path='members/(?P<user_id>[^/.]+)')
+    @role_required('owner', 'admin', 'super_admin', 'workspace_owner')
     def remove_member(self, request, pk=None, user_id=None):
         workspace = self.get_object()
         try:

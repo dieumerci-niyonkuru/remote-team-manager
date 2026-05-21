@@ -22,6 +22,14 @@ export const Modal: React.FC<ModalProps> = ({
   size = 'md',
   footer
 }) => {
+  const previouslyFocused = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      previouslyFocused.current = document.activeElement as HTMLElement;
+    }
+  }, [isOpen]);
+
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -33,6 +41,10 @@ export const Modal: React.FC<ModalProps> = ({
     return () => {
       document.body.style.overflow = 'unset';
       window.removeEventListener('keydown', handleEsc);
+      // Restore focus to previously focused element
+      if (previouslyFocused.current) {
+        previouslyFocused.current.focus();
+      }
     };
   }, [isOpen, onClose]);
 

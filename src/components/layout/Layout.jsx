@@ -9,6 +9,7 @@ import FloatingAI from '../FloatingAI'
 import FeedbackButton from '../common/FeedbackButton'
 import ErrorBoundary from '../ErrorBoundary'
 import { ws } from '../../services/api'
+import { a11yStyles } from '../../styles/a11y'
 
 export default function Layout({ showFooter = true }) {
   const { theme, isAuth, setWorkspaces, workspaces, activeWorkspace, setActiveWorkspace } = useStore()
@@ -32,7 +33,10 @@ export default function Layout({ showFooter = true }) {
   }, [isAuth])
 
   return (
-    <div className={`${theme} min-h-screen bg-[var(--bg)] text-[var(--text)] transition-colors duration-500`}>
+    <>
+      <a href="#main-content" className="skip-link">Skip to main content</a>
+      <style dangerouslySetInnerHTML={{ __html: a11yStyles }} />
+      <div id="main-content" className={`${theme} min-h-screen bg-[var(--bg)] text-[var(--text)] transition-colors duration-500`}>
       {isAuth ? (
         // Authenticated Dashboard Layout
         <div className="flex flex-col md:flex-row h-screen overflow-hidden bg-[#0b1429] dark:bg-[#060b18]">
@@ -71,6 +75,6 @@ export default function Layout({ showFooter = true }) {
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(156, 163, 175, 0.3); border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(156, 163, 175, 0.5); }
       `}</style>
-    </div>
+    </div></>
   )
 }

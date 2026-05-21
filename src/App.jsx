@@ -2,9 +2,11 @@ import React, { lazy, Suspense } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { useStore } from './store'
-import Layout from './components/layout/Layout'
-import ErrorBoundary from './components/common/ErrorBoundary'
-import PresenceHandler from './components/common/PresenceHandler'
+import ProtectedRoute from './components/ProtectedRoute';
+import Layout from './components/layout/Layout';
+import ErrorBoundary from './components/common/ErrorBoundary';
+import PresenceHandler from './components/common/PresenceHandler';
+// Note: Settings route moved to the routes section below with proper ProtectedRoute wrapper
 
 // ⚡ Code-split every page — loads only what user visits
 const Home          = React.lazy(() => import('./pages/Home'))
@@ -80,12 +82,12 @@ export default function App() {
                 <Route path="/ai" element={<Protected><AIAssistant /></Protected>} />
                 <Route path="/automations" element={<Protected><Automations /></Protected>} />
                 <Route path="/wiki" element={<Protected><Wiki /></Protected>} />
-                <Route path="/analytics" element={<Protected><Analytics /></Protected>} />
+                <Route path="/analytics" element={<ProtectedRoute requiredRoles={['admin','workspace_owner','super_admin']}><Analytics /></ProtectedRoute>} />
                 <Route path="/search" element={<Protected><Search /></Protected>} />
                 <Route path="/integrations" element={<Protected><Integrations /></Protected>} />
                 <Route path="/notifications" element={<Protected><Notifications /></Protected>} />
-                <Route path="/audit" element={<Protected><AuditLogs /></Protected>} />
-                <Route path="/settings" element={<Protected><Settings /></Protected>} />
+                <Route path="/audit" element={<ProtectedRoute requiredRoles={['admin','workspace_owner','super_admin']}><AuditLogs /></ProtectedRoute>} />
+                <Route path="/settings" element={<ProtectedRoute requiredRoles={['member','project_manager','admin','workspace_owner','super_admin']}><Settings /></ProtectedRoute>} />
                 <Route path="/profile" element={<Protected><Settings /></Protected>} />
               </Route>
               <Route path="*" element={<Navigate to="/" replace />} />

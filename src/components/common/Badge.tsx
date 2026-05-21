@@ -1,5 +1,5 @@
 import React from 'react';
-import * as tokens from '../../styles/tokens';
+import { radiusClass } from '../../styles/utils';
 
 interface BadgeProps {
   children: React.ReactNode;
@@ -24,10 +24,10 @@ export const Badge: React.FC<BadgeProps> = ({ children, variant = 'primary', siz
     md: 'px-3 py-1.5 text-xs',
   };
 
-  const radiusClass = `rounded-[${tokens.radius.full}px]`;
+  const radiusCls = radiusClass('full');
 
   return (
-    <span className={`inline-flex items-center justify-center font-black uppercase tracking-widest ${radiusClass} border ${variants[variant]} ${sizes[size]} ${className}`}>
+    <span className={`inline-flex items-center justify-center font-black uppercase tracking-widest ${radiusCls} border ${variants[variant]} ${sizes[size]} ${className}`}>
       {children}
     </span>
   );
