@@ -57,7 +57,8 @@ class RegisterSerializer(serializers.ModelSerializer):
         return user
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
-    email = serializers.EmailField(required=False)
+    email = serializers.EmailField(required=False, help_text='User email for login (optional, will be used as username if provided)')
+    username = serializers.CharField(required=False, help_text='Username for login (optional)')
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
@@ -65,10 +66,16 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             self.fields[self.username_field].required = False
 
     def validate(self, attrs: Dict[str, Any]) -> Dict[str, Any]:
-        # The frontend sends 'email' instead of 'username'
+        # Support both email and username for authentication
         email = attrs.get('email')
+        username = attrs.get('username')
         if email:
             attrs[self.username_field] = email
+        elif username:
+            attrs[self.username_field] = username
+        else:
+            # If neither provided, let the parent validation raise appropriate error
+            pass
         
         data = super().validate(attrs)
         

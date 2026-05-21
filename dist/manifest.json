@@ -1,0 +1,27 @@
+{
+  "name": "Remote Team Manager",
+  "short_name": "TeamManager",
+  "description": "AI-powered remote collaboration platform for distributed teams",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f1117",
+  "theme_color": "#3366ff",
+  "orientation": "portrait-primary",
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "View your team dashboard",
+      "url": "/dashboard"
+    },
+    {
+      "name": "AI Assistant",
+      "short_name": "AI",
+      "description": "Open AI Productivity Assistant",
+      "url": "/ai"
+    }
+  ],
+  "categories": ["productivity", "business"],
+  "lang": "en",
+  "dir": "ltr"
+}
