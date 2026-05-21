@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import * as tokens from '../../styles/tokens';
 import { ChevronDown } from 'lucide-react';
 
 interface DropdownItem {
@@ -47,7 +48,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full bg-[#0b1429] border border-white/5 rounded-xl px-4 py-3 text-sm text-white flex items-center justify-between transition-all duration-200 outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand/50"
+        className={`w-full bg-[#0b1429] border border-white/5 rounded-[${tokens.radius.md}px] px-${tokens.spacing[4]} py-${tokens.spacing[3]} text-sm text-white flex items-center justify-between transition-all duration-200 outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand/50`}
       >
         <div className="flex items-center gap-3">
           {selectedItem?.icon}
@@ -57,7 +58,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
       </button>
 
       {isOpen && (
-        <div className="absolute top-[calc(100%+8px)] left-0 right-0 bg-[#0d1425] border border-white/10 rounded-2xl shadow-2xl z-[100] p-2 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className={`absolute top-[calc(100%+8px)] left-0 right-0 bg-[#0d1425] border border-white/10 rounded-[${tokens.radius.lg}px] shadow-${tokens.shadow.lg} z-[100] p-${tokens.spacing[2]} animate-in fade-in slide-in-from-top-2 duration-200`}>
           {items.map((item) => (
             <button
               key={item.value}
@@ -65,7 +66,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
                 onChange(item.value);
                 setIsOpen(false);
               }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-colors ${
+              className={`w-full flex items-center gap-3 px-${tokens.spacing[4]} py-${tokens.spacing[3]} rounded-[${tokens.radius.md}px] text-sm transition-colors ${
                 item.value === value 
                   ? 'bg-brand/10 text-brand' 
                   : 'text-text-secondary hover:bg-white/5 hover:text-white'

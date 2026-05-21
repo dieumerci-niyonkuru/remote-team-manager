@@ -13,8 +13,7 @@ import {
 } from 'lucide-react';
 import WorkspaceAnalytics from '../components/dashboard/WorkspaceAnalytics';
 import Avatar from '../components/common/Avatar';
-import { Card } from '../components/common/Card';
-import { Button } from '../components/common/Button';
+import { Card, Button } from '../components/ui';
 import api from '../services/api';
 
 export default function Dashboard() {

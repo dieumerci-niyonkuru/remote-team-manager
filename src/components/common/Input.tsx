@@ -1,4 +1,5 @@
-import React from 'react';
+import { radiusStyle } from '../../styles/utils';
+// import * as tokens from '../../styles/tokens'; // removed unused tokens import
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement | HTMLTextAreaElement> {
   label?: string;
@@ -21,7 +22,7 @@ export const Input: React.FC<InputProps> = ({
   className = '',
   ...props
 }) => {
-  const baseStyles = 'w-full bg-[#0b1429] border border-white/5 rounded-xl px-4 py-3 text-sm text-white placeholder:text-text-tertiary transition-all duration-200 outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand/50';
+  const baseStyles = `w-full bg-[#0b1429] border border-white/5 px-4 py-3 text-sm text-white placeholder:text-text-tertiary transition-all duration-200 outline-none focus:ring-2 focus:ring-brand/40 focus:border-brand/50`;
   const errorStyles = error ? 'border-rose-500/50 focus:ring-rose-500/20' : '';
   const iconPadding = leftIcon ? 'pl-11' : '';
   

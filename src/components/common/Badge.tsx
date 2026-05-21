@@ -1,4 +1,5 @@
 import React from 'react';
+import * as tokens from '../../styles/tokens';
 
 interface BadgeProps {
   children: React.ReactNode;
@@ -23,9 +24,12 @@ export const Badge: React.FC<BadgeProps> = ({ children, variant = 'primary', siz
     md: 'px-3 py-1.5 text-xs',
   };
 
+  const radiusClass = `rounded-[${tokens.radius.full}px]`;
+
   return (
-    <span className={`inline-flex items-center justify-center font-black uppercase tracking-widest rounded-full border ${variants[variant]} ${sizes[size]} ${className}`}>
+    <span className={`inline-flex items-center justify-center font-black uppercase tracking-widest ${radiusClass} border ${variants[variant]} ${sizes[size]} ${className}`}>
       {children}
     </span>
   );
 };
+export default Badge;

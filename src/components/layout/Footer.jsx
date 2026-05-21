@@ -1,4 +1,5 @@
 import React from 'react'
+import * as tokens from '../../styles/tokens'
 import { Link } from 'react-router-dom'
 import {
   Globe,
@@ -112,7 +113,7 @@ export default function Footer() {
       {/* Newsletter Banner */}
       <div className="relative border-b border-white/5">
         <div className="container mx-auto px-6 py-12">
-          <div className="flex flex-col lg:flex-row items-center justify-between gap-8 bg-gradient-to-r from-brand/10 to-accent-violet/10 border border-white/8 rounded-3xl p-8 backdrop-blur-sm">
+          <div className={`flex flex-col lg:flex-row items-center justify-between gap-8 bg-gradient-to-r from-brand/10 to-accent-violet/10 border border-white/8 rounded-[${tokens.radius.lg}px] p-8 backdrop-blur-sm`}>
             <div>
               <h3 className="text-2xl font-black text-white tracking-tight mb-1">
                 Stay ahead of the curve
@@ -123,7 +124,7 @@ export default function Footer() {
             </div>
             <form onSubmit={handleSubscribe} className="flex items-center gap-3 w-full lg:w-auto">
               {subscribed ? (
-                <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-6 py-3 rounded-2xl font-black text-sm">
+                <div className={`flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-6 py-3 rounded-[${tokens.radius.lg}px] font-black text-sm`}>
                   <Zap size={16} />
                   You're subscribed!
                 </div>
@@ -136,12 +137,12 @@ export default function Footer() {
                       value={email}
                       onChange={e => setEmail(e.target.value)}
                       placeholder="your@email.com"
-                      className="w-full bg-white/5 border border-white/10 rounded-2xl pl-11 pr-4 py-3.5 text-sm text-white placeholder-gray-500 outline-none focus:border-brand/50 focus:ring-2 focus:ring-brand/20 transition-all"
+                      className={`w-full bg-white/5 border border-white/10 rounded-[${tokens.radius.lg}px] pl-11 pr-4 py-3.5 text-sm text-white placeholder-gray-500 outline-none focus:border-brand/50 focus:ring-2 focus:ring-brand/20 transition-all`}
                     />
                   </div>
                   <button
                     type="submit"
-                    className="flex items-center gap-2 bg-brand hover:bg-brand/90 text-white font-black px-6 py-3.5 rounded-2xl transition-all duration-200 hover:shadow-lg hover:shadow-brand/25 whitespace-nowrap text-sm"
+                    className={`flex items-center gap-2 bg-brand hover:bg-brand/90 text-white font-black px-6 py-3.5 rounded-[${tokens.radius.lg}px] transition-all duration-200 hover:shadow-lg hover:shadow-brand/25 whitespace-nowrap text-sm`}
                   >
                     Subscribe
                     <ArrowRight size={16} />
@@ -161,7 +162,7 @@ export default function Footer() {
           <div className="lg:col-span-2 space-y-6">
             {/* Logo */}
             <Link to="/" className="inline-flex items-center gap-3 group">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-brand to-accent-violet flex items-center justify-center shadow-lg shadow-brand/30 group-hover:shadow-brand/50 transition-shadow">
+              <div className={`w-10 h-10 rounded-[${tokens.radius.lg}px] bg-gradient-to-br from-brand to-accent-violet flex items-center justify-center group-hover:shadow-brand/50 transition-shadow`} style={{ boxShadow: tokens.shadow.lg }}>
                 <img src="/logo.png" alt="RemoteTeam" className="w-6 h-6 object-contain" onError={e => e.target.style.display='none'} />
                 <Zap size={20} className="text-white absolute" style={{display:'none'}} />
               </div>

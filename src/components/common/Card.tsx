@@ -1,4 +1,4 @@
-import React from 'react';
+import * as tokens from '../../styles/tokens';
 
 export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: 'default' | 'glass' | 'outline' | 'flat';
@@ -18,7 +18,7 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
     },
     ref
   ) => {
-    const baseStyles = 'rounded-2xl transition-all duration-300';
+    const baseStyles = `rounded-[${tokens.radius.md}px] transition-all duration-300`;
     
     const variants = {
       default: 'bg-[#0d1425] border border-gray-800 shadow-sm',

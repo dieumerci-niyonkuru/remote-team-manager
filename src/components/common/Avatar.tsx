@@ -1,4 +1,5 @@
 import React from 'react';
+import * as tokens from '../../styles/tokens';
 
 interface AvatarProps {
   user?: {
@@ -32,18 +33,18 @@ export const Avatar: React.FC<AvatarProps> = ({
 
   return (
     <div 
-      className={`relative flex-shrink-0 rounded-2xl overflow-visible ${className}`}
+      className={`relative flex-shrink-0 rounded-[${tokens.radius.md}px] overflow-visible ${className}`}
       style={{ width: size, height: size }}
     >
       {user?.avatar ? (
         <img 
           src={user.avatar} 
           alt={user.username || 'User'} 
-          className="w-full h-full object-cover rounded-2xl border border-white/10"
+          className={`w-full h-full object-cover rounded-[${tokens.radius.md}px] border border-white/10`}
         />
       ) : (
         <div 
-          className="w-full h-full flex items-center justify-center bg-gradient-to-br from-brand to-accent-violet text-white font-black rounded-2xl border border-white/10 shadow-lg"
+          className={`w-full h-full flex items-center justify-center bg-gradient-to-br from-brand to-accent-violet text-white font-black rounded-[${tokens.radius.md}px] border border-white/10 shadow-lg`}
           style={{ fontSize }}
         >
           {initials}

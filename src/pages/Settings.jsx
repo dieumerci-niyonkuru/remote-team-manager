@@ -15,8 +15,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { auth as api } from '../services/api';
-import Avatar from '../components/common/Avatar';
-import Input from '../components/common/Input';
+import { Avatar, Input, Textarea, Button } from '../components/ui';
 
 export default function Settings() {
   const { user, setUser, logout } = useStore();
@@ -136,7 +135,7 @@ export default function Settings() {
                   <Input label="Last Name" value={formData.last_name} onChange={e => setFormData({ ...formData, last_name: e.target.value })} />
                 </div>
                 <div className="space-y-2">
-                  <Input label="Bio" multiline rows={3} value={formData.bio} onChange={e => setFormData({ ...formData, bio: e.target.value })} />
+                  <Textarea label="Bio" rows={3} value={formData.bio} onChange={e => setFormData({ ...formData, bio: e.target.value })} />
                 </div>
 
                 <div className="pt-6 flex justify-end">

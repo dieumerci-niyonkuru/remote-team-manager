@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import * as tokens from '../../styles/tokens';
 
 interface TooltipProps {
   content: string;
@@ -25,13 +25,13 @@ export const Tooltip: React.FC<TooltipProps> = ({ content, children, position = 
 
   return (
     <div 
-      className="relative flex items-center"
+      className={`relative flex items-center`}
       onMouseEnter={() => setVisible(true)}
       onMouseLeave={() => setVisible(false)}
     >
       {children}
       {visible && (
-        <div className={`absolute z-[1000] px-4 py-2 bg-[#0d1425] border border-brand/20 rounded-xl shadow-2xl animate-in fade-in zoom-in-95 duration-200 pointer-events-none whitespace-nowrap ${positionClasses[position]}`}>
+        <div className={`absolute z-[1000] px-4 py-2 bg-[#0d1425] border border-brand/20 rounded-[${tokens.radius.md}px] shadow-${tokens.shadow.lg} animate-in fade-in zoom-in-95 duration-200 pointer-events-none whitespace-nowrap ${positionClasses[position]}`}>
           <p className="text-[10px] font-black uppercase tracking-widest text-white">{content}</p>
           <div className={`absolute w-2 h-2 border-4 border-transparent ${arrowClasses[position]}`} />
         </div>

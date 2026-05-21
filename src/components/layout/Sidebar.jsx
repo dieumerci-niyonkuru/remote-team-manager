@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import * as tokens from '../../styles/tokens';
+import { NavLink, useLocation } from 'react-router-dom';
 import { useStore } from '../../store';
 import { getT } from '../../i18n';
 import Avatar from '../common/Avatar';
@@ -30,6 +30,8 @@ import {
 import ThemeSwitcher from './ThemeSwitcher';
 import { Tooltip } from '../common/Tooltip';
 import { Badge } from '../common/Badge';
+import FocusTrap from 'focus-trap-react';
+import { useLocation } from 'react-router-dom';
 
 export default function Sidebar() {
   const { theme, setTheme, workspaces, activeWorkspace, setActiveWorkspace, user, status, isSyncing, logout } = useStore();
@@ -38,6 +40,12 @@ export default function Sidebar() {
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [showWorkspaceMenu, setShowWorkspaceMenu] = React.useState(false);
   const [showCreateWsModal, setShowCreateWsModal] = React.useState(false);
+  const location = useLocation();
+
+  // Close mobile drawer on route change
+  React.useEffect(() => {
+    if (mobileOpen) setMobileOpen(false);
+  }, [location.pathname]);
 
   const userRole = activeWorkspace?.role || 'member';
   const isAdmin = userRole === 'admin' || userRole === 'owner';
@@ -80,7 +88,7 @@ export default function Sidebar() {
       
       {/* Brand Logo */}
       <div className={`px-6 py-8 flex items-center gap-3 ${collapsed ? 'justify-center' : ''}`}>
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-600/20">
+        <div className={`w-10 h-10 rounded-[${tokens.radius.lg}px] bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-600/20`}>
           <img src="/logo.png" alt="RemoteTeam" className="w-7 h-7 object-contain" />
         </div>
         {!collapsed && (
@@ -92,9 +100,9 @@ export default function Sidebar() {
       <div className="px-3 py-4 border-b border-gray-800 relative">
         <button 
           onClick={() => setShowWorkspaceMenu(!showWorkspaceMenu)}
-          className={`flex items-center gap-3 w-full p-2 rounded-xl bg-gray-800/50 hover:bg-gray-800 transition-all ${collapsed ? 'justify-center' : ''}`}
+          className={`flex items-center gap-3 w-full p-2 rounded-[${tokens.radius.lg}px] bg-gray-800/50 hover:bg-gray-800 transition-all ${collapsed ? 'justify-center' : ''}`}
         >
-          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white shrink-0 font-bold">
+          <div className={`w-8 h-8 rounded-[${tokens.radius.md}px] bg-blue-600 flex items-center justify-center text-white shrink-0 font-bold`}>
             {activeWorkspace?.name?.charAt(0) || 'W'}
           </div>
           {!collapsed && (
@@ -109,7 +117,7 @@ export default function Sidebar() {
         </button>
 
         {showWorkspaceMenu && !collapsed && (
-          <div className="absolute top-full left-3 right-3 mt-2 bg-gray-900 border border-gray-800 rounded-xl shadow-2xl z-50 overflow-hidden py-1 animate-in fade-in slide-in-from-top-2">
+          <div className={`absolute top-full left-3 right-3 mt-2 bg-gray-900 border border-gray-800 rounded-[${tokens.radius.lg}px] shadow-${tokens.shadow.lg} z-50 overflow-hidden py-1 animate-in fade-in slide-in-from-top-2`}>
             {workspaces.map(ws => (
               <button
                 key={ws.id}
@@ -245,14 +253,19 @@ export default function Sidebar() {
 
       {/* Sidebar Container */}
       <aside 
-        className={`fixed md:sticky top-0 left-0 h-screen z-[100] transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1) shadow-2xl md:shadow-none
+        className={`fixed md:sticky top-0 left-0 h-screen z-[100] transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1) shadow-${tokens.shadow.lg} md:shadow-none
           ${collapsed ? 'w-[80px]' : 'w-72'} 
           ${mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
         `}
       >
         <div className="relative h-full">
-           <SidebarContent />
-           
+          {mobileOpen ? (
+            <FocusTrap>
+              <SidebarContent />
+            </FocusTrap>
+          ) : (
+            <SidebarContent />
+          )}
            {/* Mobile Close Button (Inside) */}
            <button 
              onClick={() => setMobileOpen(false)}
@@ -275,7 +288,7 @@ function NavGroup({ links, collapsed }) {
           key={link.to}
           to={link.to}
           className={({ isActive }) => `
-            flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group relative
+            flex items-center gap-3 px-3 py-2.5 rounded-[${tokens.radius.lg}px] transition-all duration-200 group relative
             ${isActive ? 'bg-blue-600/10 text-white font-bold' : 'text-gray-400 hover:bg-gray-800/50 hover:text-gray-100'}
             ${collapsed ? 'justify-center' : ''}
           `}
