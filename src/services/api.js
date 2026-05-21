@@ -1,50 +1,53 @@
-import axios from 'axios'
+import axios from 'axios';
 
-const PROD_URL = 'https://remote-team-manager-production.up.railway.app/api'
-const LOCAL_URL = 'http://localhost:8000/api'
-const BASE = import.meta.env.PROD ? PROD_URL : '/api'
+const PROD_URL = 'https://remote-team-manager-production.up.railway.app/api';
+const LOCAL_URL = 'http://localhost:8000/api';
+const BASE = import.meta.env.PROD ? PROD_URL : '/api';
 
-const api = axios.create({ baseURL: BASE, headers: { 'Content-Type': 'application/json' } })
+const api = axios.create({ baseURL: BASE, headers: { 'Content-Type': 'application/json' } });
 
 api.interceptors.request.use(cfg => {
-  const t = localStorage.getItem('rtm_access')
-  if (t) cfg.headers.Authorization = `Bearer ${t}`
-  return cfg
-})
+  const t = localStorage.getItem('rtm_access');
+  if (t) cfg.headers.Authorization = `Bearer ${t}`;
+  return cfg;
+});
 
-api.interceptors.response.use(r => {
-  if (r.data && typeof r.data === 'object' && 'data' in r.data) {
-    r.data = r.data.data;
-  }
-  return r;
-}, err => Promise.reject(err));
+api.interceptors.response.use(
+  r => {
+    if (r.data && typeof r.data === 'object' && 'data' in r.data) {
+      r.data = r.data.data;
+    }
+    return r;
+  },
+  err => Promise.reject(err)
+);
 
 api.interceptors.response.use(r => r, async err => {
   if (err.response?.status === 401 && !err.config._retry) {
-    err.config._retry = true
-    const r = localStorage.getItem('rtm_refresh')
-    if (r) {
+    err.config._retry = true;
+    const refresh = localStorage.getItem('rtm_refresh');
+    if (refresh) {
       try {
-        const { data } = await axios.post(`${BASE}/auth/token/refresh/`, { refresh: r })
-        localStorage.setItem('rtm_access', data.access)
-        err.config.headers.Authorization = `Bearer ${data.access}`
-        return api(err.config)
-      } catch { localStorage.clear(); window.location.href = '/login' }
+        const { data } = await axios.post(`${BASE}/auth/token/refresh/`, { refresh });
+        localStorage.setItem('rtm_access', data.access);
+        err.config.headers.Authorization = `Bearer ${data.access}`;
+        return api(err.config);
+      } catch {
+        localStorage.clear();
+        window.location.href = '/login';
+      }
     }
   }
-  return Promise.reject(err)
-})
+  return Promise.reject(err);
+});
 
 export const auth = {
-  register: d => {
-    if (d instanceof FormData) return api.post('/auth/register/', d, { headers: { 'Content-Type': 'multipart/form-data' } })
-    return api.post('/auth/register/', d)
-  },
+  register: d => (d instanceof FormData ? api.post('/auth/register/', d, { headers: { 'Content-Type': 'multipart/form-data' } }) : api.post('/auth/register/', d)),
   login: d => api.post('/auth/login/', d),
   me: () => api.get('/auth/me/'),
   updateProfile: d => api.patch('/auth/me/', d),
   logout: r => api.post('/auth/logout/', { refresh: r }),
-}
+};
 
 export const ws = {
   list: () => api.get('/workspaces/'),
@@ -53,17 +56,17 @@ export const ws = {
   update: (id, d) => api.patch(`/workspaces/${id}/`, d),
   delete: id => api.delete(`/workspaces/${id}/`),
   members: id => api.get(`/workspaces/${id}/members/`),
-  invite: (id, d) => api.post(`/workspaces/${id}/add_member/`, d), // Changed to add_member based on backend
+  invite: (id, d) => api.post(`/workspaces/${id}/add_member/`, d),
   removeMember: (id, uid) => api.delete(`/workspaces/${id}/members/${uid}/`),
   activity: id => api.get(`/workspaces/${id}/activity/`),
-}
+};
 
 export const proj = {
   list: wid => api.get('/projects/', { params: { workspace: wid } }),
   create: (wid, d) => api.post('/projects/', { ...d, workspace: wid }),
   update: (wid, id, d) => api.patch(`/projects/${id}/`, d),
   delete: (wid, id) => api.delete(`/projects/${id}/`),
-}
+};
 
 export const task = {
   list: (wid, pid, p) => api.get('/tasks/', { params: { ...p, project: pid } }),
@@ -74,7 +77,7 @@ export const task = {
   addSubtask: (wid, pid, id, d) => api.post(`/tasks/${id}/add_subtask/`, d),
   updateSubtask: (wid, pid, tid, id, d) => api.patch(`/tasks/${tid}/subtasks/${id}/`, d),
   logTime: (wid, pid, id, d) => api.post(`/tasks/${id}/timelogs/`, d),
-}
+};
 
 export const chat = {
   channels: () => api.get('/channels/'),
@@ -88,13 +91,13 @@ export const chat = {
   deleteMessage: id => api.delete(`/messages/${id}/`),
   pinMessage: id => api.post(`/messages/${id}/pin/`),
   markRead: channelId => api.post(`/channels/${channelId}/read/`),
-}
+};
 
 export const timer = {
   start: task_id => api.post('/timelogs/start/', { task_id }),
   pause: task_id => api.post('/timelogs/pause/', { task_id }),
   logs: () => api.get('/timelogs/logs/'),
-}
+};
 
 export const hr = {
   employees: () => api.get('/employee-profiles/'),
@@ -102,40 +105,53 @@ export const hr = {
   jobs: () => api.get('/job-postings/'),
   createJob: d => api.post('/job-postings/', d),
   payroll: () => api.get('/payroll/'),
-}
+};
 
 export const files = {
   list: params => api.get('/file-attachments/', { params }),
   upload: d => api.post('/file-attachments/', d, { headers: { 'Content-Type': 'multipart/form-data' } }),
-}
+};
 
 export const ai = {
   suggestTasks: prompt => api.post('/ai-suggestions/', { prompt }),
-}
+};
 
 export const automation = {
   list: () => api.get('/automation-rules/'),
   create: d => api.post('/automation-rules/', d),
   delete: id => api.delete(`/automation-rules/${id}/`),
-}
+};
 
 export const integrations = {
   list: wid => api.get('/integrations/', { params: { workspace: wid } }),
   connect: d => api.post('/integrations/', d),
   update: (id, d) => api.patch(`/integrations/${id}/`, d),
   delete: id => api.delete(`/integrations/${id}/`),
-}
+};
 
 export const wiki = {
-  list: (q) => api.get('/wiki-articles/', { params: q ? { q } : {} }),
-  get: (id) => api.get(`/wiki-articles/${id}/`),
+  list: q => api.get('/wiki-articles/', { params: q ? { q } : {} }),
+  get: id => api.get(`/wiki-articles/${id}/`),
   create: d => api.post('/wiki-articles/', d),
   update: (id, d) => api.patch(`/wiki-articles/${id}/`, d),
   delete: id => api.delete(`/wiki-articles/${id}/`),
-}
+  revisions: articleId => api.get(`/wiki-articles/${articleId}/revisions/`),
+  restore: (articleId, revisionId) => api.post(`/wiki-articles/${articleId}/revisions/${revisionId}/restore/`),
+};
 
 export const search = {
-  global: (q) => api.get('/search/', { params: { q } }),
-}
+  global: q => api.get('/search/', { params: { q } }),
+};
 
-export default api
+export const unwrapData = res => {
+  if (!res) return [];
+  const d = res.data;
+  if (d && typeof d === 'object') {
+    if ('data' in d) return d.data;
+    if ('results' in d) return d.results;
+    return d;
+  }
+  return [];
+};
+
+export default api;

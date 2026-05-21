@@ -58,7 +58,7 @@ export default function Sidebar() {
   ] : [];
 
   const commLinks = [
-    { to: '/channels', label: t.channels, icon: <Hash size={20} /> },
+    { to: '/chat', label: t.channels, icon: <Hash size={20} /> },
     { to: '/chat', label: t.directMessages, icon: <MessageSquare size={20} /> },
     { to: '/calendar', label: t.calendar, icon: <Calendar size={20} /> },
   ];

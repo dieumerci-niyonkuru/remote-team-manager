@@ -6,7 +6,9 @@ import {
   Paperclip, Send, Smile, Plus, MessageCircle, X,
   ChevronDown, UserPlus, Info
 } from 'lucide-react';
-import Avatar from '../components/common/Avatar';
+import { unwrapData } from '../services/api';
+// add topMessageRef for scrolling to the top of messages if needed
+const topMessageRef = useRef(null);
 import CreateChannelModal from '../components/chat/CreateChannelModal';
 import api from '../services/api';
 import { Button } from '../components/common/Button';
@@ -26,29 +28,62 @@ export default function Chat() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
 
+  // Load main channel or DM messages
   const loadMessages = async (tabId, pageNum = 1) => {
     if (!tabId) return;
     try {
       const res = await chat.messages({ channel: tabId, page: pageNum });
-      const history = res.data?.data || res.data?.results || res.data || [];
-      // Assuming backend returns history from oldest to newest, or newest to oldest. 
-      // Typically history comes newest to oldest. We want them oldest to newest in UI.
+      const history = unwrapData(res);
       const formatted = Array.isArray(history) ? history.reverse() : [];
-      
       if (pageNum === 1) {
         setMessages(formatted);
         setTimeout(() => scrollRef.current?.scrollIntoView({ behavior: 'auto' }), 100);
       } else {
         setMessages(prev => [...formatted, ...prev]);
       }
-      
       setHasMore(res.data?.next !== null);
       setPage(pageNum);
     } catch (err) {
       console.warn('Failed to load chat history:', err);
     }
   };
-  
+
+  // Load thread messages when a thread is selected
+  const loadThreadMessages = async (threadId) => {
+    if (!threadId) return;
+    try {
+      const res = await chat.messages({ thread: threadId, page: 1 });
+      const history = unwrapData(res);
+      const formatted = Array.isArray(history) ? history.reverse() : [];
+      setMessages(formatted);
+      setTimeout(() => threadScrollRef.current?.scrollIntoView({ behavior: 'auto' }), 100);
+    } catch (err) {
+      console.warn('Failed to load thread messages:', err);
+    }
+  };
+
+  // Autosave draft input to localStorage
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (activeTab) localStorage.setItem(`draft_${activeTab}`, input);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [input, activeTab]);
+
+  // Restore draft when switching channels
+  useEffect(() => {
+    if (activeTab) {
+      const saved = localStorage.getItem(`draft_${activeTab}`);
+      if (saved) setInput(saved);
+    }
+  }, [activeTab]);
+
+  // Load thread when activeThread changes
+  useEffect(() => {
+    if (activeThread) {
+      loadThreadMessages(activeThread.id);
+    }
+  }, [activeThread]);  
   const [input, setInput] = useState('');
   const [activeThread, setActiveThread] = useState(null);
   const [editingMessage, setEditingMessage] = useState(null);
@@ -62,6 +97,7 @@ export default function Chat() {
   const threadScrollRef = useRef(null);
   const observerRef = useRef(null);
   const typingTimeoutRef = useRef(null);
+  const topMessageRef = useRef(null);
   
   // Load Channels & DMs when activeWorkspace changes
   useEffect(() => {

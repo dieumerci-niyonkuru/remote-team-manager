@@ -29,7 +29,7 @@ export default function Calendar() {
   const loadWorkspaceTasks = async () => {
     try {
       const res = await api.get(`/tasks/?workspace=${activeWorkspace.id}`);
-      setTasks(res.data);
+      setTasks(unwrapData(res));
     } catch (e) { 
       console.error('Failed to load tasks:', e);
     } finally { 

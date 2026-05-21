@@ -19,7 +19,7 @@ import Avatar from '../components/common/Avatar';
 import Input from '../components/common/Input';
 
 export default function Settings() {
-  const { user, logout } = useStore();
+  const { user, setUser, logout } = useStore();
   const [activeTab, setActiveTab] = React.useState('profile');
   const [formData, setFormData] = React.useState({
     username: user?.username || '',
@@ -29,10 +29,25 @@ export default function Settings() {
     bio: user?.bio || '',
   });
 
+  // Sync form data when the user object updates (e.g., after profile fetch)
+  React.useEffect(() => {
+    setFormData({
+      username: user?.username || '',
+      email: user?.email || '',
+      first_name: user?.first_name || '',
+      last_name: user?.last_name || '',
+      bio: user?.bio || '',
+    });
+  }, [user]);
+
   const handleSave = async () => {
     try {
-      await api.updateProfile(formData);
-      toast.success('Profile saved! Please refresh to see changes.');
+      const response = await api.updateProfile(formData);
+      // Update global store with the refreshed user data if returned
+      if (response?.data?.user) {
+        setUser(response.data.user);
+      }
+      toast.success('Profile saved!');
     } catch (e) {
       toast.error('Failed to save profile');
     }
