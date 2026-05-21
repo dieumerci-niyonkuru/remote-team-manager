@@ -26,7 +26,8 @@ export default function WorkspaceDetail() {
   const fetchProjects = async () => {
     try {
       const res = await api.get(`/projects/?workspace=${id}`);
-      setProjects(res.data);
+      const data = res.data?.data || res.data || [];
+      setProjects(data);
     } catch (err) {
       console.error('Failed to fetch projects:', err);
     }
@@ -36,12 +37,14 @@ export default function WorkspaceDetail() {
     try {
       const [wsRes, membersRes] = await Promise.all([
         api.get(`/workspaces/${id}/`),
-        api.get(`/workspaces/${id}/members/`) // Need to implement this endpoint or use action
+        api.get(`/workspaces/${id}/members/`)
       ]);
-      setWorkspace(wsRes.data);
-      setMembers(membersRes.data);
-      if (activeWorkspace?.id !== wsRes.data.id) {
-        setActiveWorkspace(wsRes.data);
+      const wsData = wsRes.data?.data || wsRes.data;
+      const memData = membersRes.data?.data || membersRes.data || [];
+      setWorkspace(wsData);
+      setMembers(memData);
+      if (activeWorkspace?.id !== wsData.id) {
+        setActiveWorkspace(wsData);
       }
     } catch (err) {
       console.error('Failed to fetch workspace:', err);
@@ -144,28 +147,32 @@ export default function WorkspaceDetail() {
                   <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">{members.length} Total</span>
                </div>
                <div className="divide-y divide-gray-800">
-                 {members.map(member => (
-                    <div key={member.id} className="p-5 flex items-center justify-between hover:bg-white/5 transition-colors group">
-                      <div className="flex items-center gap-4">
-                        <Avatar user={member.user} size={40} className="border-2 border-gray-800" />
-                        <div>
-                          <p className="text-sm font-bold text-white">
-                            {member.user?.first_name ? `${member.user.first_name} ${member.user.last_name || ''}` : member.user?.username}
-                          </p>
-                          <p className="text-xs text-gray-500">{member.user?.email}</p>
+                  {members && members.length > 0 ? (
+                    members.map(member => (
+                      <div key={member.id} className="p-5 flex items-center justify-between hover:bg-white/5 transition-colors group">
+                        <div className="flex items-center gap-4">
+                          <Avatar user={member.user} size={40} className="border-2 border-gray-800" />
+                          <div>
+                            <p className="text-sm font-bold text-white">
+                              {member.user?.first_name ? `${member.user.first_name} ${member.user.last_name || ''}` : member.user?.username}
+                            </p>
+                            <p className="text-xs text-gray-500">{member.user?.email}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-6">
+                          <div className="flex items-center gap-2 px-3 py-1 rounded-lg bg-gray-900 border border-gray-800">
+                            <Shield size={14} className="text-blue-500" />
+                            <span className="text-[10px] font-black uppercase text-gray-400">{member.role}</span>
+                          </div>
+                          <button className="text-gray-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all">
+                            <Trash2 size={18} />
+                          </button>
                         </div>
                       </div>
-                     <div className="flex items-center gap-6">
-                       <div className="flex items-center gap-2 px-3 py-1 rounded-lg bg-gray-900 border border-gray-800">
-                         <Shield size={14} className="text-blue-500" />
-                         <span className="text-[10px] font-black uppercase text-gray-400">{member.role}</span>
-                       </div>
-                       <button className="text-gray-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all">
-                         <Trash2 size={18} />
-                       </button>
-                     </div>
-                   </div>
-                 ))}
+                    ))
+                  ) : (
+                    <p className="p-5 text-gray-500">No members found.</p>
+                  )}
                </div>
             </div>
           )}

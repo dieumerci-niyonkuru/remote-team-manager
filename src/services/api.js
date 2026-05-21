@@ -12,6 +12,13 @@ api.interceptors.request.use(cfg => {
   return cfg
 })
 
+api.interceptors.response.use(r => {
+  if (r.data && typeof r.data === 'object' && 'data' in r.data) {
+    r.data = r.data.data;
+  }
+  return r;
+}, err => Promise.reject(err));
+
 api.interceptors.response.use(r => r, async err => {
   if (err.response?.status === 401 && !err.config._retry) {
     err.config._retry = true

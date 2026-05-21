@@ -22,8 +22,9 @@ export default function Workspaces() {
   const fetchWorkspaces = async () => {
     try {
       const res = await api.get('/workspaces/');
-      setWorkspaces(res.data);
-      setGlobalWorkspaces(res.data);
+      const data = Array.isArray(res.data?.data) ? res.data.data : (Array.isArray(res.data) ? res.data : []);
+      setWorkspaces(data);
+      setGlobalWorkspaces(data);
     } catch (err) {
       console.error('Failed to fetch workspaces:', err);
     } finally {
@@ -37,7 +38,10 @@ export default function Workspaces() {
     setCreating(true);
     try {
       const res = await api.post('/workspaces/', formData);
-      setWorkspaces([res.data, ...workspaces]);
+      const newWs = res.data?.data || res.data;
+      const updated = [newWs, ...workspaces];
+      setWorkspaces(updated);
+      setGlobalWorkspaces(updated);
       setIsModalOpen(false);
       setFormData({ name: '', description: '' });
       toast.success('Workspace created successfully! 🚀');
