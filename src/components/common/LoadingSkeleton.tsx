@@ -7,6 +7,7 @@ interface LoadingSkeletonProps {
   width?: string | number;
   height?: string | number;
   className?: string;
+  children?: React.ReactNode;
 }
 
 export const LoadingSkeleton: React.FC<LoadingSkeletonProps> = ({
@@ -47,7 +48,7 @@ export const CardSkeleton = () => (
 );
 
 export const TableSkeleton = () => (
-  <div className={`space-y-4`}>>
+  <div className="space-y-4">
     {[1, 2, 3, 4, 5].map((i) => (
       <div key={i} className="flex items-center justify-between p-4 bg-white/2 border border-white/5 rounded-2xl">
         <div className="flex items-center gap-4">

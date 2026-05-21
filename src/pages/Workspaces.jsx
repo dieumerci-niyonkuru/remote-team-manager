@@ -5,6 +5,7 @@ import { Briefcase, Plus, Search, MapPin, Calendar, Users, ChevronRight, Globe }
 import api from '../services/api';
 import Modal from '../components/common/Modal';
 import toast from 'react-hot-toast';
+import * as tokens from '../styles/tokens';
 
 export default function Workspaces() {
   const navigate = useNavigate();

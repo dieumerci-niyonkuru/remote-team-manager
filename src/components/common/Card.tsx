@@ -1,4 +1,5 @@
-import * as tokens from '../../styles/tokens';
+import React from 'react';
+import { radiusStyle } from '../../styles/utils';
 
 export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   variant?: 'default' | 'glass' | 'outline' | 'flat';
@@ -14,11 +15,12 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
       padding = 'md',
       hover = false,
       children,
+      style,
       ...props
     },
     ref
   ) => {
-    const baseStyles = `rounded-[${tokens.radius.md}px] transition-all duration-300`;
+    const baseStyles = `transition-all duration-300`;
     
     const variants = {
       default: 'bg-[#0d1425] border border-gray-800 shadow-sm',
@@ -47,7 +49,7 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
     ].filter(Boolean).join(' ');
 
     return (
-      <div ref={ref} className={combinedClasses} {...props}>
+      <div ref={ref} className={combinedClasses} style={{ ...radiusStyle('md'), ...style }} {...props}>
         {children}
       </div>
     );

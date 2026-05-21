@@ -1,4 +1,4 @@
-import React, { ReactNode, useState, useRef, useEffect } from 'react';
+import React, { ReactNode, useState, useRef, useEffect, useId } from 'react';
 
 type Position = 'top' | 'right' | 'bottom' | 'left';
 
@@ -16,7 +16,8 @@ export const Tooltip: React.FC<TooltipProps> = ({
   className = '',
 }) => {
   const [visible, setVisible] = useState(false);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const tooltipId = useId();
 
   const show = () => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -33,11 +34,21 @@ export const Tooltip: React.FC<TooltipProps> = ({
     left: 'right-full mr-2 top-1/2 -translate-y-1/2',
   };
 
+  const trigger = React.isValidElement(children)
+    ? React.cloneElement(children as React.ReactElement<any>, {
+        'aria-describedby': visible ? tooltipId : undefined,
+        onFocus: show,
+        onBlur: hide,
+      })
+    : children;
+
   return (
     <div className="relative inline-block" onMouseEnter={show} onMouseLeave={hide}>
-      {children}
+      {trigger}
       {visible && (
         <div
+          id={tooltipId}
+          role="tooltip"
           className={`absolute z-10 px-3 py-2 text-sm text-white bg-gray-800 rounded ${positionClasses[position]} ${className}`}
         >
           {content}

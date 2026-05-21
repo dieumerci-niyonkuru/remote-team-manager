@@ -1,4 +1,5 @@
-import * as tokens from '../../styles/tokens';
+import React, { useState, useId } from 'react';
+import { radiusStyle, shadowStyle } from '../../styles/utils';
 
 interface TooltipProps {
   content: string;
@@ -8,6 +9,7 @@ interface TooltipProps {
 
 export const Tooltip: React.FC<TooltipProps> = ({ content, children, position = 'top' }) => {
   const [visible, setVisible] = useState(false);
+  const tooltipId = useId();
 
   const positionClasses = {
     top: 'bottom-full left-1/2 -translate-x-1/2 mb-3',
@@ -23,15 +25,28 @@ export const Tooltip: React.FC<TooltipProps> = ({ content, children, position = 
     right: 'right-full top-1/2 -translate-y-1/2 -mr-1 border-r-brand/20',
   };
 
+  const trigger = React.isValidElement(children)
+    ? React.cloneElement(children as React.ReactElement<any>, {
+        'aria-describedby': visible ? tooltipId : undefined,
+      })
+    : children;
+
   return (
     <div 
-      className={`relative flex items-center`}
+      className="relative flex items-center"
       onMouseEnter={() => setVisible(true)}
       onMouseLeave={() => setVisible(false)}
+      onFocus={() => setVisible(true)}
+      onBlur={() => setVisible(false)}
     >
-      {children}
+      {trigger}
       {visible && (
-        <div className={`absolute z-[1000] px-4 py-2 bg-[#0d1425] border border-brand/20 rounded-[${tokens.radius.md}px] shadow-${tokens.shadow.lg} animate-in fade-in zoom-in-95 duration-200 pointer-events-none whitespace-nowrap ${positionClasses[position]}`}>
+        <div 
+          id={tooltipId}
+          role="tooltip"
+          className={`absolute z-[1000] px-4 py-2 bg-[#0d1425] border border-brand/20 animate-in fade-in zoom-in-95 duration-200 pointer-events-none whitespace-nowrap ${positionClasses[position]}`}
+          style={{ ...radiusStyle('md'), ...shadowStyle('lg') }}
+        >
           <p className="text-[10px] font-black uppercase tracking-widest text-white">{content}</p>
           <div className={`absolute w-2 h-2 border-4 border-transparent ${arrowClasses[position]}`} />
         </div>
@@ -39,3 +54,5 @@ export const Tooltip: React.FC<TooltipProps> = ({ content, children, position = 
     </div>
   );
 };
+
+export default Tooltip;

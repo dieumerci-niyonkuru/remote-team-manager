@@ -35,7 +35,7 @@ export default function CreateWorkspaceModal({ isOpen, onClose, onCreated }) {
     <Modal isOpen={isOpen} onClose={onClose} title="Create New Workspace">
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="flex justify-center mb-8">
-           <div className={`w-20 h-20 rounded-[${tokens.radius.lg}px] bg-blue-600/10 border-2 border-blue-600/20 flex items-center justify-center text-blue-500`}>
+           <div className="w-20 h-20 rounded-xl bg-blue-600/10 border-2 border-blue-600/20 flex items-center justify-center text-blue-500">
               <Briefcase size={40} />
            </div>
         </div>
@@ -47,7 +47,7 @@ export default function CreateWorkspaceModal({ isOpen, onClose, onCreated }) {
             value={form.name}
             onChange={e => setForm({...form, name: e.target.value})}
             placeholder="e.g. Acme Corp"
-            className={`w-full bg-[#060b18] border border-gray-800 rounded-[${tokens.radius.lg}px] px-4 py-3.5 text-white outline-none focus:border-blue-500 transition-all font-medium`}
+            className="w-full bg-[#060b18] border border-gray-800 rounded-xl px-4 py-3.5 text-white outline-none focus:border-blue-500 transition-all font-medium"
           />
         </div>
 
@@ -58,11 +58,11 @@ export default function CreateWorkspaceModal({ isOpen, onClose, onCreated }) {
             value={form.description}
             onChange={e => setForm({...form, description: e.target.value})}
             placeholder="Briefly describe your workspace..."
-            className={`w-full bg-[#060b18] border border-gray-800 rounded-[${tokens.radius.lg}px] px-4 py-3.5 text-white outline-none focus:border-blue-500 transition-all resize-none font-medium`}
+            className="w-full bg-[#060b18] border border-gray-800 rounded-xl px-4 py-3.5 text-white outline-none focus:border-blue-500 transition-all resize-none font-medium"
           />
         </div>
 
-        <div className={`p-4 rounded-[${tokens.radius.lg}px] bg-amber-500/5 border border-amber-500/20`}>
+        <div className="p-4 rounded-xl bg-amber-500/5 border border-amber-500/20">
            <p className="text-[11px] text-amber-500 font-bold uppercase mb-1">Important</p>
            <p className="text-xs text-amber-200/60 leading-relaxed">You will be automatically assigned as the <strong>Owner</strong> of this workspace and can invite team members later.</p>
         </div>
@@ -70,7 +70,7 @@ export default function CreateWorkspaceModal({ isOpen, onClose, onCreated }) {
         <button 
           type="submit"
           disabled={loading}
-          className={`w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-[${tokens.radius.lg}px] shadow-xl shadow-blue-600/20 transition-all disabled:opacity-50`}
+          className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-xl shadow-xl shadow-blue-600/20 transition-all disabled:opacity-50"
         >
           {loading ? 'Initializing Workspace...' : 'Launch Workspace'}
         </button>

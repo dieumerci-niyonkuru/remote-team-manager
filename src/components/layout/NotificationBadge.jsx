@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Bell } from 'lucide-react';
 import * as tokens from '../../styles/tokens';
 import api from '../../services/api';
+import { useStore } from '../../store';
 
 export default function NotificationBadge() {
   const { user } = useStore();
@@ -36,7 +37,10 @@ export default function NotificationBadge() {
   }, [user]);
 
   return (
-    <div className={`relative cursor-pointer hover:scale-110 transition-transform p-2 bg-gray-800/40 rounded-[${tokens.radius.md}px] border border-gray-800`}>
+    <div 
+      className="relative cursor-pointer hover:scale-110 transition-transform p-2 bg-gray-800/40 border border-gray-800"
+      style={{ borderRadius: tokens.radius.md }}
+    >
       <Bell size={20} className="text-gray-400" />
       {unreadCount > 0 && (
         <span className="absolute -top-1 -right-1 w-5 h-5 bg-rose-600 text-white text-[10px] font-black flex items-center justify-center rounded-full border-2 border-[#0a0f1d] shadow-lg shadow-rose-600/20">

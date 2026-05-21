@@ -1,7 +1,9 @@
+import React, { useEffect } from 'react';
 import { useA11yId } from '../../styles/a11y';
+import { radiusStyle, shadowStyle } from '../../styles/utils';
 import { X } from 'lucide-react';
 import { Button } from './Button';
-import FocusTrap from 'focus-trap-react';
+import FocusTrap from './FocusTrap';
 
 interface ModalProps {
   isOpen: boolean;
@@ -51,7 +53,7 @@ export const Modal: React.FC<ModalProps> = ({
       />
       
       <FocusTrap>
-        <div className={`w-full ${sizes[size]} bg-[#0d1425] border border-white/10 rounded-[${tokens.radius.lg}px] overflow-hidden shadow-${tokens.shadow.md} relative z-10 animate-in zoom-in-95 slide-in-from-bottom-4 duration-300`}>
+        <div className={`w-full ${sizes[size]} bg-[#0d1425] border border-white/10 overflow-hidden relative z-10 animate-in zoom-in-95 slide-in-from-bottom-4 duration-300`} style={{ ...radiusStyle('lg'), ...shadowStyle('md') }}>
           {/* Header */}
           <div className="px-8 py-6 border-b border-white/5 flex items-center justify-between">
             <div>
