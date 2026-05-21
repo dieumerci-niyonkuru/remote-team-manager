@@ -24,12 +24,15 @@ export default function Login() {
     ev.preventDefault();
     setLoading(true);
     try {
-      const response = await auth.login(form);
-      const data: LoginResponse = response.data;
-      localStorage.setItem('rtm_access', data.data.access);
-      localStorage.setItem('rtm_refresh', data.data.refresh);
-      setUser(data.data.user);
-      toast.success(data.message || 'Login successful!');
+      const payload = { username: form.email, password: form.password };
+      console.log('Login payload:', payload);
+      const response = await auth.login(payload);
+      console.log('Login response:', response);
+      const result = response.data; // already unwrapped by interceptor
+      localStorage.setItem('rtm_access', result.access);
+      localStorage.setItem('rtm_refresh', result.refresh);
+      setUser(result.user);
+      toast.success('Login successful!');
       navigate('/dashboard');
     } catch (err: any) {
       const data = err.response?.data;

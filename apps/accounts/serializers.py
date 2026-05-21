@@ -56,6 +56,10 @@ class RegisterSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(**validated_data)
         return user
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     email = serializers.EmailField(required=False, help_text='User email for login (optional, will be used as username if provided)')
     username = serializers.CharField(required=False, help_text='Username for login (optional)')
@@ -66,6 +70,8 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             self.fields[self.username_field].required = False
 
     def validate(self, attrs: Dict[str, Any]) -> Dict[str, Any]:
+        # Log incoming attrs for debugging
+        logger.debug('CustomTokenObtainPairSerializer.validate called with attrs: %s', attrs)
         # Support both email and username for authentication
         email = attrs.get('email')
         username = attrs.get('username')

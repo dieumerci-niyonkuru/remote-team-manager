@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card } from '../components/common/Card';
 import { Button } from '../components/common/Button';
+import { ResponsiveContainer, AreaChart, XAxis, YAxis, Tooltip, Area, PieChart, Pie, Cell } from 'recharts';
 import { Activity, TrendingUp, Users, Target, Download, Calendar, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 
 export default function Analytics() {
@@ -9,6 +10,28 @@ export default function Analytics() {
     { label: "Task Completion Rate", value: "84.2%", change: "+5.1%", positive: true, icon: <Target size={20} /> },
     { label: "Average Velocity", value: "42 pts/sprint", change: "-2.3%", positive: false, icon: <Activity size={20} /> },
     { label: "Revenue Impact", value: "$124,500", change: "+18.2%", positive: true, icon: <TrendingUp size={20} /> }
+  ];
+
+  // Sample data for charts
+  const velocityData = [
+    { name: 'Jan', val: 40 },
+    { name: 'Feb', val: 55 },
+    { name: 'Mar', val: 30 },
+    { name: 'Apr', val: 80 },
+    { name: 'May', val: 65 },
+    { name: 'Jun', val: 45 },
+    { name: 'Jul', val: 90 },
+    { name: 'Aug', val: 75 },
+    { name: 'Sep', val: 50 },
+    { name: 'Oct', val: 85 },
+    { name: 'Nov', val: 60 },
+    { name: 'Dec', val: 95 },
+  ];
+
+  const taskData = [
+    { name: 'Completed', value: 55, color: '#10B981' },
+    { name: 'In Progress', value: 25, color: '#3B82F6' },
+    { name: 'Blocked', value: 20, color: '#EF4444' },
   ];
 
   return (
@@ -67,34 +90,35 @@ export default function Analytics() {
               </select>
             </div>
             
-            <div className="h-64 flex items-end justify-between gap-2 border-b border-gray-800 pb-4">
-              {[40, 55, 30, 80, 65, 45, 90, 75, 50, 85, 60, 95].map((val, i) => (
-                <div key={i} className="w-full bg-indigo-600/20 hover:bg-indigo-600/40 rounded-t-sm transition-all relative group" style={{ height: `${val}%` }}>
-                  <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-white text-black text-[10px] font-black px-2 py-1 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity">
-                    {val} pts
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="flex justify-between mt-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-              <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span>
-              <span>Jul</span><span>Aug</span><span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={velocityData}>
+                  <defs>
+                    <linearGradient id="colorVal" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <XAxis dataKey="name" stroke="#4b5563" fontSize={12} tickLine={false} axisLine={false} />
+                  <YAxis stroke="#4b5563" fontSize={12} tickLine={false} axisLine={false} />
+                  <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px' }} />
+                  <Area type="monotone" dataKey="val" stroke="#6366f1" strokeWidth={3} fillOpacity={1} fill="url(#colorVal)" />
+                </AreaChart>
+              </ResponsiveContainer>
             </div>
           </Card>
 
           {/* Secondary Chart */}
           <Card variant="glass" className="p-8 border-gray-800/50 flex flex-col">
             <h3 className="text-lg font-black text-white mb-8">Task Distribution</h3>
-            <div className="flex-1 flex items-center justify-center relative">
-               <div className="w-48 h-48 rounded-full border-[16px] border-gray-800 relative flex items-center justify-center">
-                 <div className="absolute inset-[-16px] rounded-full border-[16px] border-indigo-500" style={{ clipPath: 'polygon(50% 50%, 50% 0, 100% 0, 100% 50%)' }} />
-                 <div className="absolute inset-[-16px] rounded-full border-[16px] border-emerald-500" style={{ clipPath: 'polygon(50% 50%, 100% 50%, 100% 100%, 0 100%, 0 70%)' }} />
-                 <div className="absolute inset-[-16px] rounded-full border-[16px] border-rose-500" style={{ clipPath: 'polygon(50% 50%, 0 70%, 0 0, 50% 0)' }} />
-                 <div className="text-center">
-                   <div className="text-3xl font-black text-white">412</div>
-                   <div className="text-[10px] font-bold text-gray-500 uppercase">Total Tasks</div>
-                 </div>
-               </div>
+            <div className="h-48">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={taskData} innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
+                    {taskData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}
+                  </Pie>
+                </PieChart>
+              </ResponsiveContainer>
             </div>
             <div className="mt-8 space-y-3">
                <div className="flex items-center justify-between text-sm font-bold">

@@ -7,8 +7,6 @@ import {
   ChevronDown, UserPlus, Info
 } from 'lucide-react';
 import { unwrapData } from '../services/api';
-// add topMessageRef for scrolling to the top of messages if needed
-const topMessageRef = useRef(null);
 import CreateChannelModal from '../components/chat/CreateChannelModal';
 import api from '../services/api';
 import { Button } from '../components/common/Button';

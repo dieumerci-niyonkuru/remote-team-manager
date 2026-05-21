@@ -1,3 +1,6 @@
+// NOTE: useStore is a unified React hook. It should ONLY be imported and called
+// inside React components or other custom hooks. Importing it in plain JS modules
+// (e.g., services, utilities) will cause "Invalid hook call" errors.
 import { useAuthStore } from './authStore';
 import { useWorkspaceStore } from './workspaceStore';
 import { useUIStore } from './uiStore';
