@@ -3,12 +3,29 @@ from pathlib import Path
 from decouple import config
 from datetime import timedelta
 import dj_database_url
+import sys
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = config('SECRET_KEY', default='django-insecure-9!@#$%^&*()_+abcdefghijklmnopqrstuvwxyz123456')
+# =========================
+# CORE SETTINGS
+# =========================
+
+SECRET_KEY = config(
+    'SECRET_KEY',
+    default='django-insecure-9!@#$%^&*()_+abcdefghijklmnopqrstuvwxyz123456'
+)
+
 DEBUG = config('DEBUG', default=True, cast=bool)
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,testserver,remote-team-manager-production.up.railway.app').split(',')
+
+ALLOWED_HOSTS = config(
+    'ALLOWED_HOSTS',
+    default='localhost,127.0.0.1,testserver,remote-team-manager-production.up.railway.app'
+).split(',')
+
+# =========================
+# INSTALLED APPS
+# =========================
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -17,9 +34,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # third-party
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
+    'channels',
+
+    # local apps
     'apps.accounts',
     'apps.workspaces',
     'apps.projects',
@@ -35,23 +57,33 @@ INSTALLED_APPS = [
     'apps.integrations',
     'apps.timetracking',
     'apps.feedback',
-    "channels",
 ]
+
+# =========================
+# MIDDLEWARE
+# =========================
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+
     'apps.auth.middleware.RoleMiddleware',
+
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
+
+# =========================
+# TEMPLATES
+# =========================
 
 TEMPLATES = [
     {
@@ -70,10 +102,18 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'config.wsgi.application'
+ASGI_APPLICATION = 'config.asgi.application'
+
+# =========================
+# DATABASE
+# =========================
 
 DATABASE_URL = config('DATABASE_URL', default=None)
+
 if DATABASE_URL:
-    DATABASES = {'default': dj_database_url.parse(DATABASE_URL)}
+    DATABASES = {
+        'default': dj_database_url.parse(DATABASE_URL)
+    }
 else:
     DATABASES = {
         'default': {
@@ -82,6 +122,12 @@ else:
         }
     }
 
+# =========================
+# AUTH
+# =========================
+
+AUTH_USER_MODEL = 'accounts.User'
+
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
@@ -89,25 +135,38 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
+# =========================
+# INTERNATIONALIZATION
+# =========================
+
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
+# =========================
+# STATIC / MEDIA
+# =========================
+
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
 MEDIA_URL = '/media/'
+
 if DATABASE_URL:
     MEDIA_ROOT = config('MEDIA_ROOT', default='/tmp/media')
 else:
     MEDIA_ROOT = config('MEDIA_ROOT', default=BASE_DIR / 'media')
 
+# =========================
+# TEST MODE
+# =========================
 
-
-AUTH_USER_MODEL = 'accounts.User'
-
-import sys
 TESTING = 'pytest' in sys.modules or (len(sys.argv) > 1 and sys.argv[1] == 'test')
+
+# =========================
+# DRF CONFIG
+# =========================
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -132,26 +191,46 @@ REST_FRAMEWORK = {
     }
 }
 
+# =========================
+# JWT
+# =========================
+
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
 }
 
-_cors_env = config('CORS_ALLOWED_ORIGINS', default='http://localhost:3000,http://localhost:5173,http://localhost:5174,https://nexus-teams.netlify.app,https://remote-teams-co.netlify.app')
+# =========================
+# CORS
+# =========================
+
+_cors_env = config(
+    'CORS_ALLOWED_ORIGINS',
+    default='http://localhost:3000,http://localhost:5173,http://localhost:5174,https://nexus-teams.netlify.app,https://remote-teams-co.netlify.app'
+)
+
 CORS_ALLOWED_ORIGINS = [origin.strip() for origin in _cors_env.split(',')]
+
 if 'https://remote-teams-co.netlify.app' not in CORS_ALLOWED_ORIGINS:
     CORS_ALLOWED_ORIGINS.append('https://remote-teams-co.netlify.app')
+
 CORS_ALLOW_CREDENTIALS = True
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+# =========================
+# CHANNEL LAYERS (REDIS)
+# =========================
+
 CHANNEL_LAYERS = {
     "default": {
-        "BACKEND": "channels.layers.InMemoryChannelLayer",
-    }
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
 }
 
+# =========================
+# DEFAULT AUTO FIELD
+# =========================
 
-
-
-
-
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
