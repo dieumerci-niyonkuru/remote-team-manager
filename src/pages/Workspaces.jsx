@@ -66,7 +66,7 @@ export default function Workspaces() {
         </div>
         <button 
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-[${tokens.radius.lg}px] font-bold transition-all shadow-lg shadow-blue-600/20 active:scale-95"
+          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-2xl font-bold transition-all shadow-lg shadow-blue-600/20 active:scale-95"
         >
           <Plus size={20} />
           Create Workspace
@@ -78,8 +78,8 @@ export default function Workspaces() {
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
         </div>
       ) : workspaces.length === 0 ? (
-        <div className="bg-gray-800/30 border border-dashed border-gray-700 rounded-[${tokens.radius.custom40}px] p-16 text-center">
-           <div className="w-20 h-20 bg-gray-800 rounded-[${tokens.radius.custom32}px] flex items-center justify-center mx-auto mb-6 shadow-2xl">
+        <div className="bg-gray-800/30 border border-dashed border-gray-700 rounded-[40px] p-16 text-center">
+           <div className="w-20 h-20 bg-gray-800 rounded-[32px] flex items-center justify-center mx-auto mb-6 shadow-2xl">
              <Briefcase className="text-gray-500" size={40} />
            </div>
            <h3 className="text-2xl font-black text-white mb-2">No workspaces found</h3>
@@ -139,7 +139,7 @@ function WorkspaceCard({ workspace, onClick }) {
   return (
     <div 
       onClick={onClick}
-      className="bg-gray-800/40 border border-gray-800 rounded-[${tokens.radius.custom32}px] p-8 transition-all hover:border-blue-500/50 hover:translate-y-[-6px] hover:shadow-2xl hover:shadow-blue-600/10 cursor-pointer group"
+      className="bg-gray-800/40 border border-gray-800 rounded-[32px] p-8 transition-all hover:border-blue-500/50 hover:translate-y-[-6px] hover:shadow-2xl hover:shadow-blue-600/10 cursor-pointer group"
     >
        <div className="flex items-start justify-between mb-8">
           <div className="w-16 h-16 rounded-3xl bg-blue-600 flex items-center justify-center text-white text-2xl font-black shadow-2xl shadow-blue-600/20 group-hover:scale-110 transition-transform">

@@ -5,7 +5,7 @@ import { colors } from './colors';
 import { typography } from './typography';
 import { breakpoints } from './breakpoints';
 import { zindex } from './zindex';
-import { animation } from './animations';
+import { animations } from './animations';
 
 export const theme = {
   spacing,
@@ -15,7 +15,7 @@ export const theme = {
   typography,
   breakpoints,
   zindex,
-  animation,
+  animations,
 };
 
 export type Theme = typeof theme;

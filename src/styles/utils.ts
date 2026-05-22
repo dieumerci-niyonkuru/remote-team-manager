@@ -32,12 +32,12 @@ export const shadowClass = (size: keyof typeof shadow): string => {
 
 export const zIndexClass = (z: number): string => `z-[${z}]`;
 
-export const animationClass = (name: keyof typeof import('./animations').default): string => {
+export const animationClass = (name: keyof typeof import('./animations').animations): string => {
   // Placeholder – map animation names to Tailwind utilities if needed
   return '';
 };
 
-export const breakpointClass = (bp: keyof typeof import('./breakpoints').default): string => `max-${bp}`;
+export const breakpointClass = (bp: keyof typeof import('./breakpoints').breakpoints): string => `max-${bp}`;
 
 // Helper to convert radius token to inline style
 export const radiusStyle = (size: keyof typeof radius): React.CSSProperties => ({
