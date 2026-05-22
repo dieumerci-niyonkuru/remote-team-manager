@@ -144,21 +144,14 @@ if 'https://remote-teams-co.netlify.app' not in CORS_ALLOWED_ORIGINS:
 CORS_ALLOW_CREDENTIALS = True
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
 CHANNEL_LAYERS = {
-    'default': {
-    },
-}
-if config('REDIS_URL', default=None):
-    CHANNEL_LAYERS['default'] = {
-        'CONFIG': {"hosts": [config('REDIS_URL')]},
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
     }
+}
 
-# Celery Configuration
-CELERY_BROKER_URL = config('REDIS_URL', default='redis://localhost:6379/0')
-CELERY_RESULT_BACKEND = config('REDIS_URL', default='redis://localhost:6379/0')
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TIMEZONE = TIME_ZONE
-ASGI_APPLICATION = 'config.asgi.application'
+
+
+
+
+

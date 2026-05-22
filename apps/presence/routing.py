@@ -1,6 +1,6 @@
-from django.urls import path
-from .consumers import PresenceConsumer
+from django.urls import re_path
+from . import consumers
 
 websocket_urlpatterns = [
-    path("ws/presence/", PresenceConsumer.as_asgi()),
+    re_path(r'ws/presence/$', consumers.PresenceConsumer.as_asgi()),
 ]
