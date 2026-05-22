@@ -69,3 +69,6 @@ npm-debug.log*
 
 # Local Netlify folder
 .netlify
+__pycache__/
+*.pyc
+.env
