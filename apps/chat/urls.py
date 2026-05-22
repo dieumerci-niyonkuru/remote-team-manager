@@ -1,8 +1,7 @@
-from rest_framework.routers import DefaultRouter
-from .views import ChannelViewSet, MessageViewSet, DirectMessageViewSet
+from django.urls import path
+from .views import ChatRoomListCreateView, MessageListCreateView
 
-router = DefaultRouter()
-router.register(r'channels', ChannelViewSet, basename='channel')
-router.register(r'messages', MessageViewSet, basename='message')
-router.register(r'direct-messages', DirectMessageViewSet, basename='directmessage')
-urlpatterns = router.urls
+urlpatterns = [
+    path('rooms/', ChatRoomListCreateView.as_view()),
+    path('messages/', MessageListCreateView.as_view()),
+]

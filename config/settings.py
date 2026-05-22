@@ -28,6 +28,7 @@ ALLOWED_HOSTS = config(
 # =========================
 
 INSTALLED_APPS = [
+    # Django core
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -148,21 +149,11 @@ USE_TZ = True
 # STATIC / MEDIA
 # =========================
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 MEDIA_URL = '/media/'
-
-if DATABASE_URL:
-    MEDIA_ROOT = config('MEDIA_ROOT', default='/tmp/media')
-else:
-    MEDIA_ROOT = config('MEDIA_ROOT', default=BASE_DIR / 'media')
-
-# =========================
-# TEST MODE
-# =========================
-
-TESTING = 'pytest' in sys.modules or (len(sys.argv) > 1 and sys.argv[1] == 'test')
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # =========================
 # DRF CONFIG
@@ -177,7 +168,7 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
-    ) if TESTING else (
+    ) if ('pytest' in sys.modules or (len(sys.argv) > 1 and sys.argv[1] == 'test')) else (
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',
     ),
@@ -204,27 +195,27 @@ SIMPLE_JWT = {
 # CORS
 # =========================
 
-_cors_env = config(
-    'CORS_ALLOWED_ORIGINS',
-    default='http://localhost:3000,http://localhost:5173,http://localhost:5174,https://nexus-teams.netlify.app,https://remote-teams-co.netlify.app'
-)
-
-CORS_ALLOWED_ORIGINS = [origin.strip() for origin in _cors_env.split(',')]
-
-if 'https://remote-teams-co.netlify.app' not in CORS_ALLOWED_ORIGINS:
-    CORS_ALLOWED_ORIGINS.append('https://remote-teams-co.netlify.app')
+CORS_ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in config(
+        'CORS_ALLOWED_ORIGINS',
+        default='http://localhost:3000,http://localhost:5173,http://localhost:5174'
+    ).split(',')
+]
 
 CORS_ALLOW_CREDENTIALS = True
 
 # =========================
-# CHANNEL LAYERS (REDIS)
+# CHANNEL LAYERS (FIXED)
 # =========================
 
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [("127.0.0.1", 6379)],
+            "hosts": [
+                ("127.0.0.1", 6379)
+            ],
         },
     },
 }
