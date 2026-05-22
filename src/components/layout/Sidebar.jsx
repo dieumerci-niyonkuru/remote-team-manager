@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import * as tokens from '../../styles/tokens';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useStore } from '../../store';
@@ -37,14 +37,14 @@ import FocusTrap from '../common/FocusTrap';
 export default function Sidebar() {
   const { theme, setTheme, workspaces, activeWorkspace, setActiveWorkspace, user, status, isSyncing, logout } = useStore();
   const t = getT('en');
-  const [collapsed, setCollapsed] = React.useState(false);
-  const [mobileOpen, setMobileOpen] = React.useState(false);
-  const [showWorkspaceMenu, setShowWorkspaceMenu] = React.useState(false);
-  const [showCreateWsModal, setShowCreateWsModal] = React.useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [showWorkspaceMenu, setShowWorkspaceMenu] = useState(false);
+  const [showCreateWsModal, setShowCreateWsModal] = useState(false);
   const location = useLocation();
 
   // Close mobile drawer on route change
-  React.useEffect(() => {
+  useEffect(() => {
     if (mobileOpen) setMobileOpen(false);
   }, [location.pathname]);
 

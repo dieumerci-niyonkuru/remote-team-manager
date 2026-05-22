@@ -1,3 +1,4 @@
+from apps.accounts.constants.roles import ROLES
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from typing import Tuple

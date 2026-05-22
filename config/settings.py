@@ -20,7 +20,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
-    'channels',
     'apps.accounts',
     'apps.workspaces',
     'apps.projects',
@@ -36,6 +35,7 @@ INSTALLED_APPS = [
     'apps.integrations',
     'apps.timetracking',
     'apps.feedback',
+    "channels",
 ]
 
 MIDDLEWARE = [
@@ -70,7 +70,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'config.wsgi.application'
-ASGI_APPLICATION = 'config.asgi.application'
 
 DATABASE_URL = config('DATABASE_URL', default=None)
 if DATABASE_URL:
@@ -148,12 +147,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CHANNEL_LAYERS = {
     'default': {
-        'BACKEND': 'channels.layers.InMemoryChannelLayer',
     },
 }
 if config('REDIS_URL', default=None):
     CHANNEL_LAYERS['default'] = {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {"hosts": [config('REDIS_URL')]},
     }
 
@@ -164,3 +161,4 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = TIME_ZONE
+ASGI_APPLICATION = 'config.asgi.application'
