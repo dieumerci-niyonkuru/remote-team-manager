@@ -137,6 +137,15 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # =========================
+# CUSTOM AUTHENTICATION BACKEND (allow login with email or username)
+# =========================
+
+AUTHENTICATION_BACKENDS = [
+    'apps.accounts.backends.EmailOrUsernameBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+# =========================
 # INTERNATIONALIZATION
 # =========================
 
