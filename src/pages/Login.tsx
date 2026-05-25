@@ -33,10 +33,15 @@ export default function Login() {
       toast.success('Welcome back! 👋');
       navigate('/dashboard');
     } catch (err: any) {
+      if (!err.response) {
+        toast.error('Cannot connect to the server. Make sure the backend is running.');
+        return;
+      }
       const data = err.response?.data;
       let msg = 'Invalid email or password.';
       if (data?.message) msg = data.message;
       else if (data?.detail) msg = data.detail;
+      else if (data?.non_field_errors?.[0]) msg = data.non_field_errors[0];
       toast.error(msg);
     } finally {
       setLoading(false);

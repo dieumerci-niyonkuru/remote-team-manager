@@ -18,11 +18,12 @@ export default function Register() {
   const navigate = useNavigate();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
+  // Role values must match User.ROLE_CHOICES in apps/accounts/models.py
   const ROLES = [
-    { value: 'viewer', label: t.viewer, desc: t.viewerDesc, color: '#6366f1' },
     { value: 'developer', label: t.developer, desc: t.developerDesc, color: '#3366ff' },
-    { value: 'manager', label: t.manager, desc: t.managerDesc, color: '#10b981' },
+    { value: 'project_manager', label: t.manager, desc: t.managerDesc, color: '#10b981' },
     { value: 'designer', label: t.designer, desc: t.designerDesc, color: '#f59e0b' },
+    { value: 'member', label: t.viewer || 'Member', desc: t.viewerDesc, color: '#6366f1' },
   ];
 
   const [form, setForm] = React.useState({
@@ -84,13 +85,26 @@ export default function Register() {
         navigate('/login');
       }
     } catch (err: any) {
+      if (!err.response) {
+        // Network error — backend unreachable
+        toast.error('Cannot connect to the server. Make sure the backend is running.');
+        return;
+      }
       const errData = err.response?.data;
-      let msg = 'Unable to register. Please check your details.';
+      let msg = 'Registration failed. Please check your details.';
       if (errData) {
-        if (errData.message) msg = errData.message;
-        else if (typeof errData === 'object') {
-          const apiErrors = Object.values(errData).flat();
-          if (apiErrors.length > 0) msg = String(apiErrors[0]);
+        if (errData.message) {
+          msg = errData.message;
+        } else if (typeof errData === 'object') {
+          // DRF field errors: { field: ["msg"] } or { field: "msg" }
+          const entries = Object.entries(errData);
+          if (entries.length > 0) {
+            const [field, val] = entries[0];
+            const text = Array.isArray(val) ? val[0] : val;
+            // Show field name only for non-technical fields
+            const skipField = ['non_field_errors', 'detail'];
+            msg = skipField.includes(field) ? String(text) : `${field}: ${text}`;
+          }
         }
       }
       toast.error(msg);
@@ -246,7 +260,10 @@ export default function Register() {
                         onFocus={() => setFocused(field)} onBlur={() => setFocused(null)}
                         placeholder={ph} style={inputStyle(field)} />
                     </div>
-                    {errors[field] && <p style={{ fontSize: 11, color: '#ef4444', marginTop: 4 }}>{errors[field]}</p>}
+                    {errors[field]
+                      ? <p style={{ fontSize: 11, color: '#ef4444', marginTop: 4 }}>{errors[field]}</p>
+                      : field === 'password' && <p style={{ fontSize: 10, color: 'var(--text3)', marginTop: 4 }}>Min 8 chars, not all numbers, not a common word</p>
+                    }
                   </div>
                 ))}
               </div>
