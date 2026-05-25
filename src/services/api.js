@@ -90,7 +90,9 @@ export const chat = {
   channels: () => api.get('/channels/'),
   createChannel: d => api.post('/channels/', d),
   joinChannel: id => api.post(`/channels/${id}/join/`),
+  leaveChannel: id => api.post(`/channels/${id}/leave/`),
   messages: params => api.get('/messages/', { params }),
+  sendMessage: d => api.post('/messages/', d),
   dms: () => api.get('/direct-messages/'),
   createDm: d => api.post('/direct-messages/', d),
   addReaction: (id, emoji) => api.post(`/messages/${id}/react/`, { emoji }),
@@ -98,6 +100,10 @@ export const chat = {
   deleteMessage: id => api.delete(`/messages/${id}/`),
   pinMessage: id => api.post(`/messages/${id}/pin/`),
   markRead: channelId => api.post(`/channels/${channelId}/read/`),
+  pinnedMessages: channelId => api.get(`/channels/${channelId}/pinned/`),
+  searchMessages: (channelId, q) => api.get(`/channels/${channelId}/search/`, { params: { q } }),
+  thread: msgId => api.get(`/messages/${msgId}/thread/`),
+  uploadFile: d => api.post('/file-attachments/', d, { headers: { 'Content-Type': 'multipart/form-data' } }),
 };
 
 export const timer = {

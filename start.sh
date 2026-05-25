@@ -1,22 +1,27 @@
 #!/bin/bash
 set -e
-echo "=== RemoteTeam Server Boot ==="
+echo "=== RemoteTeam Enterprise Boot ==="
 
-# Ensure staticfiles directory exists (required by WhiteNoise)
+# Environment validation
+if [ -z "$SECRET_KEY" ] || [ "$SECRET_KEY" = "django-insecure-9!@#\$%^&*()_+abcdefghijklmnopqrstuvwxyz123456" ]; then
+  echo "WARNING: Using default insecure SECRET_KEY. Set SECRET_KEY in production!"
+fi
+
+# Ensure staticfiles directory (required by WhiteNoise)
 mkdir -p staticfiles
 
-# Wait for database
+# Wait for database (PostgreSQL readiness)
 echo "Waiting for database..."
-for i in {1..30}; do
+for i in $(seq 1 30); do
   python manage.py check --database default >/dev/null 2>&1 && break
-  echo "Database not ready - sleeping 1s (attempt $i/30)"
-  sleep 1
+  echo "  Database not ready — attempt $i/30, retrying in 2s..."
+  sleep 2
 done
 
-# ── Pre-migrate: fix broken chat migration state ─────────────────────────────
-# If chat.0002 has never successfully applied, the DB may have stale/missing
-# tables from previous failed attempts. Nuke them so 0001 + 0002 run cleanly.
-echo "Checking chat migration state..."
+# Pre-migrate: clean up any stale chat tables from the old 2-migration approach.
+# Since we replaced the broken migration 0002 with a clean 0001 (single migration),
+# we must ensure no leftover tables/migration records block the fresh run.
+echo "Checking chat migration state for clean slate..."
 python - <<'PYEOF'
 import os, sys
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
@@ -24,55 +29,65 @@ import django
 django.setup()
 from django.db import connection
 
-OLD_TABLES = [
-    'chat_messagereaction', 'chat_message', 'chat_channelmembership',
+STALE_TABLES = [
+    'chat_messagereaction', 'chat_channelmembership',
     'chat_channel_members', 'chat_channel',
     'chat_directmessage_participants', 'chat_directmessage',
-    'chat_chatroom_participants', 'chat_chatroom',
 ]
 
 with connection.cursor() as c:
-    # Check whether chat.0002 has already been recorded as applied
     try:
-        c.execute(
-            "SELECT 1 FROM django_migrations "
-            "WHERE app='chat' AND name LIKE '0002%' LIMIT 1"
-        )
-        already_done = c.fetchone() is not None
+        c.execute("SELECT name FROM django_migrations WHERE app='chat'")
+        applied = [r[0] for r in c.fetchall()]
     except Exception as e:
-        print(f"[pre-migrate] Could not query django_migrations: {e}")
-        already_done = False
-
-    if already_done:
-        print("[pre-migrate] chat.0002 already applied — nothing to do.")
+        print(f"[pre-migrate] Could not query migrations: {e}")
         sys.exit(0)
 
-    print("[pre-migrate] chat.0002 not yet applied — dropping stale tables...")
-    for tbl in OLD_TABLES:
+    # If the old migration 0002 was recorded but our new 0001 covers everything,
+    # clear stale records so Django can re-run cleanly.
+    if any('0002' in m for m in applied):
+        print("[pre-migrate] Old migration records found — clearing for clean 0001 run...")
+        for tbl in STALE_TABLES:
+            try:
+                c.execute(f'DROP TABLE IF EXISTS "{tbl}" CASCADE')
+                print(f"  dropped stale table: {tbl}")
+            except Exception as e:
+                print(f"  [warn] {tbl}: {e}")
         try:
-            c.execute(f'DROP TABLE IF EXISTS "{tbl}" CASCADE')
-            print(f"  dropped {tbl}")
+            c.execute("DELETE FROM django_migrations WHERE app='chat'")
+            print("[pre-migrate] Chat migration records cleared.")
         except Exception as e:
-            print(f"  [warn] could not drop {tbl}: {e}")
-
-    try:
-        c.execute("DELETE FROM django_migrations WHERE app='chat'")
-        print("[pre-migrate] chat migration records cleared.")
-    except Exception as e:
-        print(f"[pre-migrate] [warn] could not clear migration records: {e}")
-
-    print("[pre-migrate] Done — chat will migrate from scratch.")
+            print(f"[pre-migrate] [warn] {e}")
+    else:
+        print("[pre-migrate] Chat migration state is clean.")
 PYEOF
 
-# Run migrations
-echo "Running migrations..."
-python manage.py migrate --noinput
+# Validate Django configuration
+echo "Validating Django config..."
+python manage.py check --deploy 2>&1 | grep -E '(ERROR|CRITICAL)' || echo "  Config OK (warnings are non-fatal)"
 
-# Collect static files (non-fatal — app still works without them)
+# Run migrations with verbose output for debugging
+echo "Running migrations..."
+python manage.py migrate --noinput --verbosity=1
+
+# Verify critical tables exist
+echo "Verifying schema..."
+python manage.py shell -c "
+from django.db import connection
+tables = connection.introspection.table_names()
+required = ['chat_chatroom', 'chat_message', 'accounts_user', 'workspaces_workspace', 'notifications_notification']
+missing = [t for t in required if t not in tables]
+if missing:
+    print(f'ERROR: Missing tables: {missing}')
+    exit(1)
+print(f'Schema OK — {len(tables)} tables')
+"
+
+# Collect static files
 echo "Collecting static files..."
 python manage.py collectstatic --noinput --clear 2>&1 || echo "WARNING: collectstatic failed (non-fatal)"
 
-# Start server with daphne (supports HTTP + WebSocket)
+# Start server
 PORT="${PORT:-8080}"
-echo "Starting Daphne on port $PORT..."
+echo "Starting Daphne on 0.0.0.0:$PORT..."
 exec daphne -b 0.0.0.0 -p "$PORT" config.asgi:application
