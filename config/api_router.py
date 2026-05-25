@@ -1,8 +1,8 @@
 from django.urls import path, include
 
 urlpatterns = [
-    # Chat
-    path('chat/', include('apps.chat.urls')),
+    # Chat: channels, direct-messages, messages (also legacy /rooms/)
+    path('', include('apps.chat.urls')),
     # Workspaces, Projects, Subtasks
     path('', include('apps.workspaces.urls')),
     path('', include('apps.projects.urls')),
@@ -10,11 +10,11 @@ urlpatterns = [
     path('', include('apps.notifications.urls')),
     # HR (employee profiles, jobs, payroll)
     path('', include('apps.hr.urls')),
-    # Time Tracking
+    # Time Tracking  — /api/timelogs/start|pause|logs/
     path('timelogs/', include('apps.timetracking.urls')),
-    # Wiki articles + revisions
+    # Wiki articles + revisions — /api/wiki-articles/
     path('wiki-', include('apps.wiki.urls')),
-    # Automation rules
+    # Automation rules — /api/automation-rules/
     path('automation-', include('apps.automation.urls')),
     # OKR (objectives, key results)
     path('', include('apps.okr.urls')),

@@ -141,3 +141,49 @@ class WorkspaceViewSet(viewsets.ModelViewSet):
             return Response({'message': 'Member removed successfully.'}, status=status.HTTP_200_OK)
         except WorkspaceMember.DoesNotExist:
             return Response({'error': 'Member not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+
+# ─── Global Search ──────────────────────────────────────────────────────────
+
+from rest_framework.views import APIView
+
+class GlobalSearchView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        q = request.query_params.get('q', '').strip()
+        if not q:
+            return Response({'data': {'tasks': [], 'projects': [], 'members': []}})
+
+        from apps.projects.models import Task, Project
+        from apps.accounts.models import User
+        from apps.projects.serializers import TaskSerializer, ProjectSerializer
+        from apps.accounts.serializers import UserSerializer
+
+        user_workspaces = request.user.workspaces.all()
+
+        tasks = Task.objects.filter(
+            project__workspace__in=user_workspaces
+        ).filter(
+            models.Q(title__icontains=q) | models.Q(description__icontains=q)
+        )[:10]
+
+        projects = Project.objects.filter(
+            workspace__in=user_workspaces
+        ).filter(
+            models.Q(name__icontains=q) | models.Q(description__icontains=q)
+        )[:10]
+
+        members = User.objects.filter(
+            workspacemember__workspace__in=user_workspaces
+        ).filter(
+            models.Q(username__icontains=q) | models.Q(first_name__icontains=q) | models.Q(email__icontains=q)
+        ).distinct()[:10]
+
+        return Response({
+            'data': {
+                'tasks': TaskSerializer(tasks, many=True, context={'request': request}).data,
+                'projects': ProjectSerializer(projects, many=True, context={'request': request}).data,
+                'members': [{'id': m.id, 'username': m.username, 'email': m.email} for m in members],
+            }
+        })

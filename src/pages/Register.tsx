@@ -10,8 +10,8 @@ import { Rocket, Mail, Lock, User as UserIcon, Shield, ArrowRight } from 'lucide
 import toast from 'react-hot-toast';
 
 export default function Register() {
-  const { setUser, theme, lang } = useStore();
-  const t = getT('en');
+  const { setUser, theme, lang = 'en' } = useStore();
+  const t = getT(lang || 'en');
   const navigate = useNavigate();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 

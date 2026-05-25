@@ -1,40 +1,41 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import { useStore } from '../store'
 import { useNavigate } from 'react-router-dom'
 import api from '../services/api'
 import toast from 'react-hot-toast'
+import { Search as SearchIcon, FileText, FolderKanban, Users, X, Loader } from 'lucide-react'
 
 export default function Search() {
   const { theme } = useStore()
   const navigate = useNavigate()
   const [query, setQuery] = useState('')
-  const [results, setResults] = useState({ tasks: [], projects: [], wikis: [] })
+  const [results, setResults] = useState({ tasks: [], projects: [], members: [], wikis: [] })
   const [loading, setLoading] = useState(false)
   const [searched, setSearched] = useState(false)
   const debounceRef = useRef(null)
 
-  const doSearch = async (q) => {
-    if (!q.trim()) { setResults({ tasks: [], projects: [], wikis: [] }); setSearched(false); return }
+  const doSearch = useCallback(async (q) => {
+    if (!q.trim()) { setResults({ tasks: [], projects: [], members: [], wikis: [] }); setSearched(false); return }
     setLoading(true)
     setSearched(true)
     try {
-      // Search across tasks, projects, and wiki articles in parallel
-      const [taskRes, projRes, wikiRes] = await Promise.all([
-        api.get('/tasks/', { params: { search: q } }).catch(() => ({ data: [] })),
-        api.get('/projects/', { params: { search: q } }).catch(() => ({ data: [] })),
-        api.get('/wiki/articles/', { params: { q } }).catch(() => ({ data: [] })),
+      const [globalRes, wikiRes] = await Promise.all([
+        api.get('/search/', { params: { q } }).catch(() => ({ data: {} })),
+        api.get('/wiki-articles/', { params: { q } }).catch(() => ({ data: [] })),
       ])
+      const g = globalRes.data?.data || {}
       setResults({
-        tasks: Array.isArray(taskRes.data) ? taskRes.data : (taskRes.data?.data || []),
-        projects: Array.isArray(projRes.data) ? projRes.data : (projRes.data?.data || []),
-        wikis: Array.isArray(wikiRes.data) ? wikiRes.data : [],
+        tasks:    Array.isArray(g.tasks)    ? g.tasks    : [],
+        projects: Array.isArray(g.projects) ? g.projects : [],
+        members:  Array.isArray(g.members)  ? g.members  : [],
+        wikis:    Array.isArray(wikiRes.data) ? wikiRes.data : (wikiRes.data?.data || []),
       })
     } catch {
       toast.error('Search failed')
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
   const handleChange = (e) => {
     const q = e.target.value
@@ -43,112 +44,130 @@ export default function Search() {
     debounceRef.current = setTimeout(() => doSearch(q), 400)
   }
 
-  const totalResults = results.tasks.length + results.projects.length + results.wikis.length
+  const totalResults = results.tasks.length + results.projects.length + results.members.length + results.wikis.length
+
+  const Section = ({ icon, label, items, renderItem }) => items.length === 0 ? null : (
+    <div style={{ marginBottom: 32 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, padding: '0 4px' }}>
+        <span style={{ color: 'var(--brand)' }}>{icon}</span>
+        <span style={{ fontSize: 11, fontWeight: 900, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+          {label} ({items.length})
+        </span>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {items.map(renderItem)}
+      </div>
+    </div>
+  )
 
   return (
-    <div className={theme} style={{ background: 'var(--bg)', minHeight: 'calc(100vh - 64px)', padding: '48px 24px' }}>
+    <div style={{ background: 'var(--bg)', minHeight: '100%', padding: '40px 24px' }}>
       <div style={{ maxWidth: 720, margin: '0 auto' }}>
-        {/* Search bar */}
+
+        {/* Header */}
         <div style={{ marginBottom: 32, textAlign: 'center' }}>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(22px,3vw,36px)', fontWeight: 800, color: 'var(--text)', marginBottom: 8 }}>🔍 Global Search</h1>
-          <p style={{ color: 'var(--text2)', marginBottom: 24 }}>Search across tasks, projects, and knowledge base articles.</p>
-          <div style={{ position: 'relative' }}>
-            <input
-              className="input"
-              autoFocus
-              style={{ width: '100%', padding: '16px 24px', fontSize: 18, borderRadius: 16, paddingLeft: 56 }}
-              placeholder="Search anything..."
-              value={query}
-              onChange={handleChange}
-            />
-            <span style={{ position: 'absolute', left: 18, top: '50%', transform: 'translateY(-50%)', fontSize: 20 }}>🔍</span>
-          </div>
-          {searched && !loading && (
-            <div style={{ fontSize: 13, color: 'var(--text3)', marginTop: 10 }}>
-              {totalResults} result{totalResults !== 1 ? 's' : ''} for "{query}"
-            </div>
+          <h1 style={{ fontSize: 'clamp(22px,3vw,34px)', fontWeight: 900, color: 'var(--text)', marginBottom: 8, letterSpacing: '-0.03em' }}>
+            Global Search
+          </h1>
+          <p style={{ color: 'var(--text3)', fontSize: 14 }}>Search across tasks, projects, members, and knowledge base.</p>
+        </div>
+
+        {/* Search bar */}
+        <div style={{ position: 'relative', marginBottom: 32 }}>
+          <SearchIcon size={18} style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: 'var(--text3)' }} />
+          <input
+            autoFocus
+            value={query}
+            onChange={handleChange}
+            placeholder="Search anything..."
+            style={{
+              width: '100%', padding: '16px 48px 16px 48px',
+              fontSize: 16, borderRadius: 14, background: 'var(--bg3)',
+              border: '1px solid var(--border)', color: 'var(--text)',
+              outline: 'none', transition: '0.2s', fontFamily: 'var(--font-body)',
+              boxSizing: 'border-box'
+            }}
+            onFocus={e => e.target.style.borderColor = 'var(--brand)'}
+            onBlur={e => e.target.style.borderColor = 'var(--border)'}
+          />
+          {loading && <Loader size={16} style={{ position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)', color: 'var(--text3)', animation: 'spin 0.8s linear infinite' }} />}
+          {query && !loading && (
+            <button onClick={() => { setQuery(''); setResults({ tasks: [], projects: [], members: [], wikis: [] }); setSearched(false); }}
+              style={{ position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer', padding: 4 }}>
+              <X size={16} />
+            </button>
           )}
         </div>
 
-        {loading && (
-          <div style={{ textAlign: 'center', padding: 48 }}>
-            <div className="spinner" style={{ width: 36, height: 36, border: '3px solid var(--border)', borderTop: '3px solid var(--brand)', margin: '0 auto' }} />
-            <div style={{ marginTop: 16, color: 'var(--text2)', fontSize: 14 }}>Searching...</div>
-          </div>
-        )}
+        {/* Results */}
+        {searched && !loading && (
+          <div>
+            {totalResults === 0 ? (
+              <div style={{ textAlign: 'center', padding: 60, color: 'var(--text3)' }}>
+                <SearchIcon size={48} style={{ margin: '0 auto 16px', opacity: 0.3, display: 'block' }} />
+                <p style={{ fontWeight: 700 }}>No results for "{query}"</p>
+                <p style={{ fontSize: 13, marginTop: 6 }}>Try a different search term.</p>
+              </div>
+            ) : (
+              <>
+                <p style={{ fontSize: 12, color: 'var(--text3)', marginBottom: 24, fontWeight: 700 }}>
+                  {totalResults} result{totalResults !== 1 ? 's' : ''} for "{query}"
+                </p>
 
-        {!loading && searched && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
-            {/* Tasks */}
-            {results.tasks.length > 0 && (
-              <div>
-                <h3 style={{ fontWeight: 700, color: 'var(--text2)', fontSize: 12, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>📋 Tasks ({results.tasks.length})</h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {results.tasks.map(t => (
-                    <div key={t.id} className="card card-hover" style={{ padding: '14px 20px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div>
-                        <div style={{ fontWeight: 600, color: 'var(--text)', fontSize: 14 }}>{t.title}</div>
-                        {t.description && <div style={{ color: 'var(--text3)', fontSize: 12, marginTop: 2 }}>{t.description.slice(0, 80)}...</div>}
-                      </div>
-                      <span className={`badge ${t.status === 'done' ? 'badge-green' : t.status === 'in_progress' ? 'badge-yellow' : 'badge-gray'}`}>{t.status}</span>
+                <Section icon={<FileText size={14} />} label="Tasks" items={results.tasks}
+                  renderItem={t => (
+                    <div key={t.id} onClick={() => navigate('/tasks')}
+                      style={{ padding: '12px 16px', borderRadius: 10, background: 'var(--bg-card)', border: '1px solid var(--border)', cursor: 'pointer', transition: '0.2s' }}
+                      onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--brand)'}
+                      onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
+                    >
+                      <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', margin: 0 }}>{t.title}</p>
+                      {t.status && <span style={{ fontSize: 11, color: 'var(--text3)', marginTop: 4, display: 'block' }}>{t.status}</span>}
                     </div>
-                  ))}
-                </div>
-              </div>
-            )}
+                  )}
+                />
 
-            {/* Projects */}
-            {results.projects.length > 0 && (
-              <div>
-                <h3 style={{ fontWeight: 700, color: 'var(--text2)', fontSize: 12, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>📁 Projects ({results.projects.length})</h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {results.projects.map(p => (
-                    <div key={p.id} className="card card-hover" style={{ padding: '14px 20px', cursor: 'pointer' }}>
-                      <div style={{ fontWeight: 600, color: 'var(--text)', fontSize: 14 }}>{p.name}</div>
-                      {p.description && <div style={{ color: 'var(--text3)', fontSize: 12, marginTop: 2 }}>{p.description.slice(0, 80)}</div>}
+                <Section icon={<FolderKanban size={14} />} label="Projects" items={results.projects}
+                  renderItem={p => (
+                    <div key={p.id} onClick={() => navigate('/projects')}
+                      style={{ padding: '12px 16px', borderRadius: 10, background: 'var(--bg-card)', border: '1px solid var(--border)', cursor: 'pointer', transition: '0.2s' }}
+                      onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--brand)'}
+                      onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
+                    >
+                      <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', margin: 0 }}>{p.name}</p>
                     </div>
-                  ))}
-                </div>
-              </div>
-            )}
+                  )}
+                />
 
-            {/* Wiki Articles */}
-            {results.wikis.length > 0 && (
-              <div>
-                <h3 style={{ fontWeight: 700, color: 'var(--text2)', fontSize: 12, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>📚 Knowledge Base ({results.wikis.length})</h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  {results.wikis.map(a => (
-                    <div key={a.id} onClick={() => navigate('/wiki')} className="card card-hover" style={{ padding: '14px 20px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div>
-                        <div style={{ fontWeight: 600, color: 'var(--text)', fontSize: 14 }}>{a.title}</div>
-                        {a.content && <div style={{ color: 'var(--text3)', fontSize: 12, marginTop: 2 }}>{a.content.slice(0, 80)}...</div>}
-                      </div>
-                      {a.category && <span className="badge badge-gray">{a.category}</span>}
+                <Section icon={<Users size={14} />} label="Members" items={results.members}
+                  renderItem={m => (
+                    <div key={m.id} style={{ padding: '12px 16px', borderRadius: 10, background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
+                      <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', margin: 0 }}>{m.username}</p>
+                      <span style={{ fontSize: 12, color: 'var(--text3)' }}>{m.email}</span>
                     </div>
-                  ))}
-                </div>
-              </div>
-            )}
+                  )}
+                />
 
-            {totalResults === 0 && (
-              <div className="card empty-state">
-                <div className="empty-icon">🔍</div>
-                <div className="empty-title">No results found</div>
-                <div className="empty-desc">Try searching for tasks, project names, or wiki articles.</div>
-              </div>
+                <Section icon={<FileText size={14} />} label="Knowledge Base" items={results.wikis}
+                  renderItem={w => (
+                    <div key={w.id} onClick={() => navigate('/wiki')}
+                      style={{ padding: '12px 16px', borderRadius: 10, background: 'var(--bg-card)', border: '1px solid var(--border)', cursor: 'pointer', transition: '0.2s' }}
+                      onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--brand)'}
+                      onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
+                    >
+                      <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', margin: 0 }}>{w.title}</p>
+                    </div>
+                  )}
+                />
+              </>
             )}
           </div>
         )}
 
-        {!searched && !loading && (
-          <div style={{ textAlign: 'center', padding: '48px 0' }}>
-            <div style={{ display: 'flex', justifyContent: 'center', gap: 24, flexWrap: 'wrap', color: 'var(--text2)', fontSize: 14 }}>
-              {['📋 Tasks', '📁 Projects', '📚 Wiki Articles'].map(s => (
-                <div key={s} className="card" style={{ padding: '12px 20px', cursor: 'pointer' }} onClick={() => { setQuery(s.replace(/^.*? /, '')); doSearch(s.replace(/^.*? /, '')) }}>
-                  {s}
-                </div>
-              ))}
-            </div>
+        {!searched && (
+          <div style={{ textAlign: 'center', color: 'var(--text3)', marginTop: 60 }}>
+            <SearchIcon size={40} style={{ margin: '0 auto 12px', opacity: 0.2, display: 'block' }} />
+            <p style={{ fontSize: 14 }}>Start typing to search across your workspace.</p>
           </div>
         )}
       </div>
