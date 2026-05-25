@@ -24,4 +24,6 @@ urlpatterns = [
     path('', include('apps.integrations.urls')),
     # Feedback
     path('', include('apps.feedback.urls')),
+    # File attachments & friend requests
+    path('', include('apps.communications.urls')),
 ]

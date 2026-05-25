@@ -1,8 +1,7 @@
 from rest_framework.routers import DefaultRouter
-from .views import DirectMessageViewSet, FriendRequestViewSet, FileAttachmentViewSet
+from .views import FriendRequestViewSet, FileAttachmentViewSet
 
 router = DefaultRouter()
-router.register(r'direct-messages', DirectMessageViewSet)
-router.register(r'friend-requests', FriendRequestViewSet)
-router.register(r'file-attachments', FileAttachmentViewSet)
+router.register(r'friend-requests', FriendRequestViewSet, basename='friendrequest')
+router.register(r'file-attachments', FileAttachmentViewSet, basename='fileattachment')
 urlpatterns = router.urls
