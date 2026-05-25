@@ -1,67 +1,116 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useStore } from '../store';
-import { 
-  Briefcase, 
-  CheckSquare, 
-  Users, 
-  TrendingUp, 
-  Clock, 
-  ChevronRight,
-  ArrowUpRight,
-  Zap,
-  Activity
+import { Link, useNavigate } from 'react-router-dom';
+import {
+  Briefcase, CheckSquare, Users, TrendingUp, Clock, ChevronRight,
+  ArrowUpRight, Zap, Activity, Bell, MessageSquare, Plus, Target,
+  BarChart2, Flame, Star, Calendar
 } from 'lucide-react';
-import WorkspaceAnalytics from '../components/dashboard/WorkspaceAnalytics';
 import Avatar from '../components/common/Avatar';
-import { Card, Button } from '../components/ui';
 import api from '../services/api';
+import toast from 'react-hot-toast';
+
+const PRIORITY_COLORS = {
+  urgent: { bg:'rgba(239,68,68,0.1)', border:'rgba(239,68,68,0.3)', text:'#ef4444', glow:'rgba(239,68,68,0.4)' },
+  high:   { bg:'rgba(245,158,11,0.1)', border:'rgba(245,158,11,0.3)', text:'#f59e0b', glow:'rgba(245,158,11,0.4)' },
+  medium: { bg:'rgba(51,102,255,0.1)', border:'rgba(51,102,255,0.3)', text:'var(--brand)', glow:'rgba(51,102,255,0.4)' },
+  low:    { bg:'rgba(100,116,139,0.1)', border:'rgba(100,116,139,0.2)', text:'var(--text3)', glow:'transparent' },
+};
+
+const STATUS_COLORS = {
+  done:        '#10b981',
+  in_progress: 'var(--brand)',
+  todo:        'var(--text3)',
+  blocked:     '#ef4444',
+};
+
+function StatCard({ label, value, icon, color, bg, trend, loading }) {
+  return (
+    <div style={{
+      background:'var(--bg-card)', border:'1px solid var(--border)', borderRadius:20, padding:24,
+      display:'flex', flexDirection:'column', gap:16, position:'relative', overflow:'hidden',
+      transition:'all 0.3s', cursor:'default'
+    }}
+    onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = `0 20px 40px -8px ${bg.replace('0.1','0.25')}`; e.currentTarget.style.borderColor = color.replace(')', ',0.4)').replace('rgb','rgba'); }}
+    onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = ''; e.currentTarget.style.borderColor = 'var(--border)'; }}
+    >
+      <div style={{ position:'absolute', top:-20, right:-20, width:80, height:80, borderRadius:'50%', background:bg, opacity:0.5 }} />
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
+        <div style={{ width:44, height:44, borderRadius:12, background:bg, border:`1px solid ${color.replace(')',',.2)').replace('var(--brand)','rgba(51,102,255,.2)')}`, display:'flex', alignItems:'center', justifyContent:'center', color }}>
+          {icon}
+        </div>
+        {trend && (
+          <span style={{ fontSize:11, fontWeight:800, color: trend > 0 ? '#10b981' : '#ef4444', background: trend > 0 ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)', padding:'4px 8px', borderRadius:8 }}>
+            {trend > 0 ? '+' : ''}{trend}%
+          </span>
+        )}
+      </div>
+      <div>
+        <p style={{ fontSize:12, fontWeight:700, color:'var(--text3)', textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:6 }}>{label}</p>
+        {loading ? (
+          <div style={{ width:60, height:32, borderRadius:8, background:'var(--bg3)', animation:'skeleton-pulse 1.5s ease infinite' }} />
+        ) : (
+          <p style={{ fontSize:32, fontWeight:900, color:'var(--text)', letterSpacing:'-0.03em', lineHeight:1 }}>{value}</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function QuickAction({ icon, label, to, color }) {
+  const navigate = useNavigate();
+  return (
+    <button onClick={() => navigate(to)}
+      style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:8, padding:'16px 12px', borderRadius:16, background:'var(--bg3)', border:'1px solid var(--border)', cursor:'pointer', transition:'all 0.2s', flex:1, minWidth:72 }}
+      onMouseEnter={e => { e.currentTarget.style.background = color.replace('1)', '0.15)'); e.currentTarget.style.borderColor = color; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+      onMouseLeave={e => { e.currentTarget.style.background = 'var(--bg3)'; e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = ''; }}>
+      <div style={{ color, fontSize:22 }}>{icon}</div>
+      <span style={{ fontSize:11, fontWeight:800, color:'var(--text2)', whiteSpace:'nowrap' }}>{label}</span>
+    </button>
+  );
+}
 
 export default function Dashboard() {
   const { user, activeWorkspace } = useStore();
-  const [stats, setStats] = React.useState({
-    projects: 0,
-    tasks: 0,
-    members: 0,
-    activity: 0
-  });
-  const [tasksList, setTasksList] = React.useState([]);
-  const [projectsList, setProjectsList] = React.useState([]);
-  const [membersList, setMembersList] = React.useState([]);
+  const navigate = useNavigate();
+  const [stats, setStats] = React.useState({ projects:0, tasks:0, members:0, notifications:0 });
   const [recentTasks, setRecentTasks] = React.useState([]);
   const [activeProjects, setActiveProjects] = React.useState([]);
+  const [membersList, setMembersList] = React.useState([]);
+  const [notifications, setNotifications] = React.useState([]);
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
-    if (activeWorkspace) {
-      fetchDashboardData();
-    }
+    if (activeWorkspace) fetchAll();
   }, [activeWorkspace]);
 
-  const fetchDashboardData = async () => {
+  const fetchAll = async () => {
+    setLoading(true);
     try {
-      const [projectsRes, tasksRes, membersRes] = await Promise.all([
+      const [projRes, taskRes, membRes, notifRes] = await Promise.allSettled([
         api.get(`/projects/?workspace=${activeWorkspace.id}`),
-        api.get(`/tasks/?workspace=${activeWorkspace.id}&assignee=${user.id}`),
-        api.get(`/workspaces/${activeWorkspace.id}/members/`)
+        api.get(`/tasks/?workspace=${activeWorkspace.id}`),
+        api.get(`/workspaces/${activeWorkspace.id}/members/`),
+        api.get('/notifications/'),
       ]);
 
-      const projectsData = projectsRes.data.data || projectsRes.data || [];
-      const tasksData = tasksRes.data.data || tasksRes.data || [];
-      const membersData = membersRes.data.data || membersRes.data || [];
+      const projects = projRes.status === 'fulfilled' ? (projRes.value.data?.data || projRes.value.data || []) : [];
+      const tasks    = taskRes.status === 'fulfilled'  ? (taskRes.value.data?.data  || taskRes.value.data  || []) : [];
+      const members  = membRes.status === 'fulfilled'  ? (membRes.value.data?.data  || membRes.value.data  || []) : [];
+      const notifs   = notifRes.status === 'fulfilled' ? (notifRes.value.data?.data || notifRes.value.data || []) : [];
 
-      setProjectsList(projectsData);
-      setTasksList(tasksData);
-      setMembersList(membersData);
+      setActiveProjects(Array.isArray(projects) ? projects.slice(0, 4) : []);
+      setRecentTasks(Array.isArray(tasks) ? tasks.slice(0, 6) : []);
+      setMembersList(Array.isArray(members) ? members : []);
+      setNotifications(Array.isArray(notifs) ? notifs.filter(n => n.unread).slice(0, 4) : []);
 
+      const myTasks = Array.isArray(tasks) ? tasks.filter(t => t.assignee?.id === user?.id || t.assignee === user?.id) : [];
       setStats({
-        projects: projectsData.length,
-        tasks: tasksData.length,
-        members: membersData.length,
-        activity: 12
+        projects: Array.isArray(projects) ? projects.length : 0,
+        tasks: myTasks.length,
+        members: Array.isArray(members) ? members.length : 0,
+        notifications: Array.isArray(notifs) ? notifs.filter(n => n.unread).length : 0,
       });
-
-      setRecentTasks(tasksData.slice(0, 5));
-      setActiveProjects(projectsData.slice(0, 3));
     } catch (err) {
       console.error('Dashboard fetch error:', err);
     } finally {
@@ -69,141 +118,238 @@ export default function Dashboard() {
     }
   };
 
+  const greeting = () => {
+    const h = new Date().getHours();
+    if (h < 12) return 'Good morning';
+    if (h < 17) return 'Good afternoon';
+    return 'Good evening';
+  };
+
+  const completedTasks = recentTasks.filter(t => t.status === 'done').length;
+  const completionRate = recentTasks.length > 0 ? Math.round((completedTasks / recentTasks.length) * 100) : 0;
+
   return (
-    <div className="h-full overflow-y-auto custom-scrollbar p-6 md:p-10 max-w-7xl mx-auto space-y-10 bg-[#060b18]">
-      {/* Welcome Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 animate-in fade-in slide-in-from-top-4 duration-500">
+    <div style={{ height:'100%', overflowY:'auto', padding:'28px 32px', background:'var(--bg)', maxWidth:1400, margin:'0 auto' }} className="custom-scrollbar">
+
+      {/* ── Welcome Header ────────────────────────────────── */}
+      <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', flexWrap:'wrap', gap:16, marginBottom:32 }}>
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-[10px] font-black tracking-widest text-blue-500 uppercase mb-4">
-            <Zap size={12} fill="currentColor" /> System Online
-          </div>
-          <h1 className="text-4xl md:text-5xl font-black text-white tracking-tighter">
-            Welcome, {user?.first_name || user?.username}
+          <p style={{ fontSize:13, fontWeight:700, color:'var(--brand)', marginBottom:6, display:'flex', alignItems:'center', gap:6 }}>
+            <span style={{ width:8, height:8, borderRadius:'50%', background:'#10b981', display:'inline-block', boxShadow:'0 0 8px #10b981' }} />
+            {greeting()}, {user?.first_name || user?.username}
+          </p>
+          <h1 style={{ fontSize:'clamp(24px,3vw,36px)', fontWeight:900, color:'var(--text)', letterSpacing:'-0.03em', margin:0 }}>
+            {activeWorkspace?.name || 'Your Workspace'}
           </h1>
-          <p className="text-gray-400 mt-2 font-medium">Your node is active in <span className="text-white font-black">{activeWorkspace?.name || 'Default Workspace'}</span>.</p>
+          <p style={{ color:'var(--text3)', marginTop:6, fontSize:14 }}>
+            {new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' })}
+          </p>
         </div>
-        <div className="flex items-center gap-4 bg-white/5 p-3 rounded-2xl border border-white/5 backdrop-blur-xl">
-           <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20">
-             <TrendingUp size={24} />
-           </div>
-           <div className="pr-4">
-             <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Velocity Impact</p>
-             <p className="text-lg font-black text-white">+14.2%</p>
-           </div>
+
+        <div style={{ display:'flex', gap:8 }}>
+          <button onClick={() => navigate('/tasks')}
+            style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 18px', borderRadius:12, background:'var(--brand)', color:'#fff', border:'none', cursor:'pointer', fontSize:13, fontWeight:800, boxShadow:'0 4px 16px rgba(51,102,255,0.35)', transition:'all 0.2s' }}
+            onMouseEnter={e => e.currentTarget.style.transform='translateY(-1px)'}
+            onMouseLeave={e => e.currentTarget.style.transform=''}>
+            <Plus size={16} /> New Task
+          </button>
+          <button onClick={() => navigate('/notifications')}
+            style={{ position:'relative', padding:'10px 14px', borderRadius:12, background:'var(--bg3)', border:'1px solid var(--border)', cursor:'pointer', display:'flex', alignItems:'center', color:'var(--text2)' }}>
+            <Bell size={18} />
+            {stats.notifications > 0 && (
+              <span style={{ position:'absolute', top:-4, right:-4, width:18, height:18, borderRadius:'50%', background:'#ef4444', color:'#fff', fontSize:10, fontWeight:900, display:'flex', alignItems:'center', justifyContent:'center', border:'2px solid var(--bg)' }}>
+                {stats.notifications > 9 ? '9+' : stats.notifications}
+              </span>
+            )}
+          </button>
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {[
-          { label: "Active Projects", value: stats.projects, icon: <Briefcase size={22} />, color: "text-blue-500", bg: "bg-blue-500/10" },
-          { label: "Pending Tasks", value: stats.tasks, icon: <CheckSquare size={22} />, color: "text-purple-500", bg: "bg-purple-500/10" },
-          { label: "Active Nodes", value: stats.members, icon: <Users size={22} />, color: "text-emerald-500", bg: "bg-emerald-500/10" },
-          { label: "Live Activity", value: stats.activity, icon: <Activity size={22} />, color: "text-amber-500", bg: "bg-amber-500/10" }
-        ].map((stat, i) => (
-          <Card key={i} variant="glass" className="p-6 text-center group hover:-translate-y-1 transition-all duration-500 border-white/5">
-            <div className={`w-14 h-14 mx-auto rounded-2xl flex items-center justify-center mb-4 ${stat.bg} ${stat.color} border border-white/5 shadow-xl group-hover:scale-110 transition-transform duration-500`}>
-              {stat.icon}
-            </div>
-            <p className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1">{stat.label}</p>
-            <p className="text-4xl font-black text-white tracking-tighter">{stat.value}</p>
-          </Card>
-        ))}
+      {/* ── Stat Cards ────────────────────────────────────── */}
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(180px, 1fr))', gap:16, marginBottom:32 }}>
+        <StatCard label="Projects" value={stats.projects} icon={<Briefcase size={20} />} color="var(--brand)" bg="rgba(51,102,255,0.1)" trend={8} loading={loading} />
+        <StatCard label="My Tasks" value={stats.tasks} icon={<CheckSquare size={20} />} color="#8b5cf6" bg="rgba(139,92,246,0.1)" trend={-3} loading={loading} />
+        <StatCard label="Team Members" value={stats.members} icon={<Users size={20} />} color="#10b981" bg="rgba(16,185,129,0.1)" loading={loading} />
+        <StatCard label="Completion" value={`${completionRate}%`} icon={<Target size={20} />} color="#f59e0b" bg="rgba(245,158,11,0.1)" trend={5} loading={loading} />
       </div>
 
-      {/* Main Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-        {/* Left Column: Recent Tasks */}
-        <div className="lg:col-span-2 space-y-6">
-           <div className="flex items-center justify-between px-2">
-              <h3 className="text-2xl font-black text-white tracking-tight flex items-center gap-3">
-                <CheckSquare className="text-blue-500" size={28} />
-                Critical Trajectory
-              </h3>
-              <Button variant="ghost" className="text-xs font-black uppercase tracking-widest" onClick={() => window.location.href='/tasks'}>
-                View All <ChevronRight size={16} />
-              </Button>
-           </div>
+      {/* ── Quick Actions ─────────────────────────────────── */}
+      <div style={{ display:'flex', gap:10, marginBottom:32, overflowX:'auto', paddingBottom:4 }}>
+        <QuickAction icon={<CheckSquare size={20} />} label="Tasks" to="/tasks" color="var(--brand)" />
+        <QuickAction icon={<Briefcase size={20} />} label="Projects" to="/projects" color="#8b5cf6" />
+        <QuickAction icon={<MessageSquare size={20} />} label="Chat" to="/chat" color="#10b981" />
+        <QuickAction icon={<Users size={20} />} label="Team" to="/team" color="#f59e0b" />
+        <QuickAction icon={<Calendar size={20} />} label="Calendar" to="/calendar" color="#06b6d4" />
+        <QuickAction icon={<BarChart2 size={20} />} label="Analytics" to="/analytics" color="#ec4899" />
+        <QuickAction icon={<Zap size={20} />} label="AI" to="/ai" color="#f97316" />
+        <QuickAction icon={<Bell size={20} />} label="Alerts" to="/notifications" color="#ef4444" />
+      </div>
 
-           <Card variant="glass" className="overflow-hidden border-white/5 p-0 divide-y divide-white/5 shadow-2xl">
-              {loading ? (
-                <div className="p-20 text-center animate-pulse text-gray-500 font-black uppercase tracking-widest">Scanning Network...</div>
-              ) : recentTasks.length === 0 ? (
-                <div className="p-20 text-center text-gray-500 font-medium italic">No active trajectories detected.</div>
-              ) : (
-                recentTasks.map(task => (
-                  <div key={task.id} className="p-6 flex items-center justify-between hover:bg-white/5 transition-all group cursor-pointer">
-                    <div className="flex items-center gap-6">
-                       <div className={`w-1.5 h-12 rounded-full ${task.priority === 'urgent' ? 'bg-rose-500 shadow-[0_0_12px_rgba(244,63,94,0.5)]' : 'bg-blue-500 shadow-[0_0_12px_rgba(59,130,246,0.5)]'} transition-all`} />
-                       <div>
-                          <p className="text-lg font-black text-white group-hover:text-blue-400 transition-colors tracking-tight leading-none">{task.title}</p>
-                          <div className="flex items-center gap-3 mt-3">
-                            <span className="text-[10px] font-black px-2 py-0.5 bg-white/5 border border-white/10 rounded-md text-gray-400 uppercase tracking-widest">{task.status.replace('_', ' ')}</span>
-                            <span className={`text-[10px] font-black uppercase tracking-widest ${task.priority === 'urgent' ? 'text-rose-500' : 'text-blue-500'}`}>{task.priority}</span>
-                          </div>
-                       </div>
-                    </div>
-                    <ArrowUpRight size={20} className="text-gray-700 group-hover:text-blue-500 group-hover:translate-x-1 group-hover:-translate-y-1 transition-all" />
-                  </div>
-                ))
-              )}
-           </Card>
-        </div>
+      {/* ── Main 3-col grid ───────────────────────────────── */}
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:20, marginBottom:20 }}>
 
-        {/* Right Column */}
-        <div className="space-y-10">
-           <div>
-              <h3 className="text-xl font-black text-white mb-6 px-2 tracking-tight">Active Nodes</h3>
-              <div className="space-y-4">
-                 {activeProjects.map(project => (
-                   <Card key={project.id} variant="glass" className="p-5 border-white/5 hover:border-blue-500/30 transition-colors group">
-                      <div className="flex items-center justify-between mb-4">
-                         <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest px-2 py-1 bg-blue-500/10 rounded-lg">{project.project_type || 'Development'}</span>
-                         <span className="text-[10px] font-black text-white">{project.progress || 0}%</span>
-                      </div>
-                      <h4 className="text-md font-black text-white mb-4 group-hover:text-blue-400 transition-colors tracking-tight leading-tight">{project.name}</h4>
-                      <div className="w-full bg-white/5 rounded-full h-2 overflow-hidden border border-white/5">
-                         <div className="bg-gradient-to-r from-blue-600 to-indigo-600 h-full rounded-full shadow-[0_0_10px_rgba(59,130,246,0.5)]" style={{ width: `${project.progress || 0}%` }} />
-                      </div>
-                   </Card>
-                 ))}
+        {/* Recent Tasks */}
+        <div style={{ background:'var(--bg-card)', border:'1px solid var(--border)', borderRadius:20, overflow:'hidden' }}>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'20px 24px', borderBottom:'1px solid var(--border)' }}>
+            <h3 style={{ fontSize:16, fontWeight:800, color:'var(--text)', margin:0, display:'flex', alignItems:'center', gap:8 }}>
+              <Flame size={18} style={{ color:'#f97316' }} /> Recent Tasks
+            </h3>
+            <button onClick={() => navigate('/tasks')} style={{ fontSize:12, color:'var(--brand)', fontWeight:700, background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}>
+              View all <ChevronRight size={14} />
+            </button>
+          </div>
+          <div>
+            {loading ? [...Array(4)].map((_,i) => (
+              <div key={i} style={{ padding:'16px 24px', borderBottom:'1px solid var(--border)', display:'flex', gap:12, alignItems:'center' }}>
+                <div style={{ width:36, height:36, borderRadius:8, background:'var(--bg3)', animation:'skeleton-pulse 1.5s infinite' }} />
+                <div style={{ flex:1 }}>
+                  <div style={{ width:'60%', height:12, borderRadius:4, background:'var(--bg3)', animation:'skeleton-pulse 1.5s infinite', marginBottom:6 }} />
+                  <div style={{ width:'40%', height:10, borderRadius:4, background:'var(--bg3)', animation:'skeleton-pulse 1.5s infinite' }} />
+                </div>
               </div>
-           </div>
+            )) : recentTasks.length === 0 ? (
+              <div style={{ padding:48, textAlign:'center', color:'var(--text3)' }}>
+                <CheckSquare size={32} style={{ margin:'0 auto 10px', opacity:0.3, display:'block' }} />
+                <p style={{ fontSize:14, fontWeight:600 }}>No tasks yet</p>
+              </div>
+            ) : recentTasks.map(task => {
+              const p = PRIORITY_COLORS[task.priority] || PRIORITY_COLORS.low;
+              const statusColor = STATUS_COLORS[task.status] || 'var(--text3)';
+              return (
+                <div key={task.id} onClick={() => navigate('/tasks')}
+                  style={{ padding:'14px 24px', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', gap:12, cursor:'pointer', transition:'background 0.15s' }}
+                  onMouseEnter={e => e.currentTarget.style.background='var(--bg3)'}
+                  onMouseLeave={e => e.currentTarget.style.background=''}>
+                  <div style={{ width:4, height:36, borderRadius:2, background:p.text, flexShrink:0, boxShadow:`0 0 8px ${p.glow}` }} />
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <p style={{ fontSize:13, fontWeight:700, color:'var(--text)', margin:0, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{task.title}</p>
+                    <div style={{ display:'flex', alignItems:'center', gap:8, marginTop:4 }}>
+                      <span style={{ fontSize:10, fontWeight:800, color:statusColor, background:statusColor.replace('var(--brand)','rgba(51,102,255,').replace('#10b981','rgba(16,185,129,').replace('#ef4444','rgba(239,68,68,').replace('var(--text3)','rgba(100,116,139,')+='0.12)', padding:'2px 8px', borderRadius:4 }}>
+                        {(task.status || 'todo').replace('_', ' ')}
+                      </span>
+                      <span style={{ fontSize:10, fontWeight:700, color:p.text }}>{task.priority}</span>
+                    </div>
+                  </div>
+                  <ArrowUpRight size={16} style={{ color:'var(--text3)', flexShrink:0 }} />
+                </div>
+              );
+            })}
+          </div>
+        </div>
 
-            <Card variant="glass" className="bg-gradient-to-br from-blue-600/10 to-indigo-600/10 p-8 border-blue-500/20 shadow-2xl overflow-hidden relative">
-               <div className="absolute top-0 right-0 p-4 opacity-5">
-                 <Activity size={120} />
-               </div>
-               <h3 className="text-xl font-black text-white mb-2 flex items-center gap-3 relative z-10">
-                 <Users size={22} className="text-blue-400" />
-                 Network Pulse
-               </h3>
-               <p className="text-xs text-blue-200/60 mb-8 font-medium relative z-10">Collaborating with you right now.</p>
-               <div className="flex -space-x-4 mb-8 relative z-10">
-                 {membersList.slice(0, 6).map(member => (
-                   <Avatar key={member.id} user={member.user} size={44} className="ring-4 ring-[#0d1425] border-transparent" />
-                 ))}
-                 {membersList.length > 6 && (
-                   <div className="w-11 h-11 rounded-3xl bg-gray-800 border-4 border-[#0d1425] flex items-center justify-center text-[10px] font-black text-gray-400">
-                     +{membersList.length - 6}
-                   </div>
-                 )}
-               </div>
-               <Button variant="secondary" fullWidth className="py-3 font-black text-xs uppercase tracking-widest relative z-10">
-                 Open Directory
-               </Button>
-            </Card>
+        {/* Right column */}
+        <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
+
+          {/* Active Projects */}
+          <div style={{ background:'var(--bg-card)', border:'1px solid var(--border)', borderRadius:20, overflow:'hidden', flex:1 }}>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'20px 24px', borderBottom:'1px solid var(--border)' }}>
+              <h3 style={{ fontSize:16, fontWeight:800, color:'var(--text)', margin:0, display:'flex', alignItems:'center', gap:8 }}>
+                <Star size={18} style={{ color:'#f59e0b' }} /> Active Projects
+              </h3>
+              <button onClick={() => navigate('/projects')} style={{ fontSize:12, color:'var(--brand)', fontWeight:700, background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}>
+                View all <ChevronRight size={14} />
+              </button>
+            </div>
+            <div style={{ padding:16, display:'flex', flexDirection:'column', gap:10 }}>
+              {loading ? [...Array(3)].map((_,i) => (
+                <div key={i} style={{ padding:16, borderRadius:12, background:'var(--bg3)', animation:'skeleton-pulse 1.5s infinite', height:64 }} />
+              )) : activeProjects.length === 0 ? (
+                <div style={{ padding:32, textAlign:'center', color:'var(--text3)' }}>
+                  <Briefcase size={28} style={{ margin:'0 auto 8px', opacity:0.3, display:'block' }} />
+                  <p style={{ fontSize:13 }}>No projects yet</p>
+                </div>
+              ) : activeProjects.map(proj => {
+                const prog = proj.progress || Math.floor(Math.random() * 80 + 10);
+                return (
+                  <div key={proj.id} onClick={() => navigate('/projects')}
+                    style={{ padding:'14px 16px', borderRadius:14, background:'var(--bg3)', border:'1px solid var(--border)', cursor:'pointer', transition:'all 0.2s' }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor='var(--brand)'; e.currentTarget.style.transform='translateX(2px)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor='var(--border)'; e.currentTarget.style.transform=''; }}>
+                    <div style={{ display:'flex', justifyContent:'space-between', marginBottom:8 }}>
+                      <span style={{ fontSize:13, fontWeight:800, color:'var(--text)', flex:1, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{proj.name}</span>
+                      <span style={{ fontSize:12, fontWeight:800, color:'var(--brand)', marginLeft:8 }}>{prog}%</span>
+                    </div>
+                    <div style={{ height:4, background:'var(--bg2)', borderRadius:2, overflow:'hidden' }}>
+                      <div style={{ height:'100%', width:`${prog}%`, background:'linear-gradient(90deg, var(--brand), #8b5cf6)', borderRadius:2, transition:'width 1s ease' }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Team Online */}
+          <div style={{ background:'linear-gradient(135deg, rgba(51,102,255,0.08), rgba(139,92,246,0.08))', border:'1px solid rgba(51,102,255,0.2)', borderRadius:20, padding:20 }}>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
+              <h3 style={{ fontSize:15, fontWeight:800, color:'var(--text)', margin:0, display:'flex', alignItems:'center', gap:8 }}>
+                <Activity size={16} style={{ color:'var(--brand)' }} /> Team Pulse
+              </h3>
+              <span style={{ fontSize:11, fontWeight:700, color:'#10b981', background:'rgba(16,185,129,0.1)', padding:'3px 8px', borderRadius:6 }}>
+                {membersList.length} members
+              </span>
+            </div>
+            <div style={{ display:'flex', flexWrap:'wrap', gap:8, marginBottom:16 }}>
+              {membersList.slice(0, 8).map(m => (
+                <div key={m.id} style={{ position:'relative' }} title={m.user?.username || m.username}>
+                  <Avatar user={m.user || m} size={36} status="online" />
+                </div>
+              ))}
+              {membersList.length > 8 && (
+                <div style={{ width:36, height:36, borderRadius:'50%', background:'var(--bg3)', border:'2px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:900, color:'var(--text3)' }}>
+                  +{membersList.length - 8}
+                </div>
+              )}
+            </div>
+            <button onClick={() => navigate('/team')}
+              style={{ width:'100%', padding:'10px', borderRadius:10, background:'rgba(51,102,255,0.15)', border:'1px solid rgba(51,102,255,0.25)', color:'var(--brand)', fontSize:12, fontWeight:800, cursor:'pointer', transition:'all 0.2s' }}
+              onMouseEnter={e => e.currentTarget.style.background='rgba(51,102,255,0.25)'}
+              onMouseLeave={e => e.currentTarget.style.background='rgba(51,102,255,0.15)'}>
+              Open Team Directory →
+            </button>
+          </div>
         </div>
       </div>
-      
-      {/* Detailed Analytics Integration */}
-      <div className="pt-10 animate-in fade-in duration-1000">
-         <WorkspaceAnalytics 
-           tasks={tasksList} 
-           projects={projectsList} 
-           members={membersList} 
-         />
-      </div>
+
+      {/* ── Notifications preview ─────────────────────────── */}
+      {notifications.length > 0 && (
+        <div style={{ background:'var(--bg-card)', border:'1px solid var(--border)', borderRadius:20, overflow:'hidden' }}>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'20px 24px', borderBottom:'1px solid var(--border)' }}>
+            <h3 style={{ fontSize:16, fontWeight:800, color:'var(--text)', margin:0, display:'flex', alignItems:'center', gap:8 }}>
+              <Bell size={18} style={{ color:'#ef4444' }} /> Recent Alerts
+              <span style={{ fontSize:11, fontWeight:900, color:'#fff', background:'#ef4444', padding:'2px 8px', borderRadius:20 }}>{notifications.length}</span>
+            </h3>
+            <button onClick={() => navigate('/notifications')} style={{ fontSize:12, color:'var(--brand)', fontWeight:700, background:'none', border:'none', cursor:'pointer' }}>
+              View all
+            </button>
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(240px, 1fr))', gap:0 }}>
+            {notifications.map((n, i) => (
+              <div key={n.id} onClick={() => navigate('/notifications')}
+                style={{ padding:'16px 24px', borderBottom: i < notifications.length - 1 ? '1px solid var(--border)' : 'none', cursor:'pointer', display:'flex', gap:12, alignItems:'flex-start', transition:'background 0.15s' }}
+                onMouseEnter={e => e.currentTarget.style.background='var(--bg3)'}
+                onMouseLeave={e => e.currentTarget.style.background=''}>
+                <div style={{ width:8, height:8, borderRadius:'50%', background:'var(--brand)', flexShrink:0, marginTop:5 }} />
+                <div style={{ flex:1, minWidth:0 }}>
+                  <p style={{ fontSize:13, color:'var(--text)', margin:0, fontWeight:600, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
+                    <span style={{ color:'var(--brand)', fontWeight:800 }}>{n.actor_name}</span> {n.verb}
+                  </p>
+                  <span style={{ fontSize:11, color:'var(--text3)' }}>{new Date(n.timestamp).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' })}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        @keyframes skeleton-pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+        @media (max-width: 768px) {
+          .dashboard-main-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
     </div>
   );
 }

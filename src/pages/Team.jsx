@@ -1,39 +1,42 @@
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../store';
-import { Users, Mail, Shield, Search, Filter, MoreHorizontal, UserPlus, Zap } from 'lucide-react';
+import { Users, Mail, Shield, Search, MoreHorizontal, UserPlus, MessageSquare, Crown, Star, ChevronDown } from 'lucide-react';
 import api from '../services/api';
-import Modal from '../components/common/Modal';
-import { Button } from '../components/common/Button';
-import { Input } from '../components/common/Input';
-import { Card } from '../components/common/Card';
-import Avatar from '../components/common/Avatar';
 import toast from 'react-hot-toast';
+import Avatar from '../components/common/Avatar';
+import UserProfileCard from '../components/common/UserProfileCard';
+import { useNavigate } from 'react-router-dom';
+
+const ROLE_META = {
+  owner:     { color:'#f59e0b', bg:'rgba(245,158,11,0.12)', icon:<Crown size={12} /> },
+  admin:     { color:'#ef4444', bg:'rgba(239,68,68,0.12)',  icon:<Shield size={12} /> },
+  manager:   { color:'#8b5cf6', bg:'rgba(139,92,246,0.12)', icon:<Star size={12} /> },
+  developer: { color:'var(--brand)', bg:'rgba(51,102,255,0.12)', icon:null },
+  designer:  { color:'#ec4899', bg:'rgba(236,72,153,0.12)', icon:null },
+  viewer:    { color:'var(--text3)', bg:'rgba(100,116,139,0.1)', icon:null },
+  member:    { color:'#10b981', bg:'rgba(16,185,129,0.12)', icon:null },
+};
 
 export default function Team() {
-  const { activeWorkspace } = useStore();
+  const { activeWorkspace, user: me } = useStore();
+  const navigate = useNavigate();
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const [showInvite, setShowInvite] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState('member');
   const [sending, setSending] = useState(false);
+  const [profileCard, setProfileCard] = useState(null); // { user, role, anchor }
+  const [roleFilter, setRoleFilter] = useState('all');
 
-  useEffect(() => {
-    if (activeWorkspace) {
-      fetchMembers();
-    }
-  }, [activeWorkspace]);
+  useEffect(() => { if (activeWorkspace) fetchMembers(); }, [activeWorkspace]);
 
   const fetchMembers = async () => {
     try {
       const { data } = await api.get(`/workspaces/${activeWorkspace.id}/members/`);
-      setMembers(data.data || data);
-    } catch (err) {
-      console.error('Failed to fetch team members:', err);
-    } finally {
-      setLoading(false);
-    }
+      setMembers(data?.data || data || []);
+    } catch { } finally { setLoading(false); }
   };
 
   const handleInvite = async (e) => {
@@ -41,153 +44,168 @@ export default function Team() {
     if (!inviteEmail.trim()) return;
     setSending(true);
     try {
-      await api.post(`/workspaces/${activeWorkspace.id}/invite/`, { 
-        email: inviteEmail, 
-        role: inviteRole 
-      });
+      await api.post(`/workspaces/${activeWorkspace.id}/invite/`, { email: inviteEmail, role: inviteRole });
       toast.success(`Invite sent to ${inviteEmail}! 📧`);
-      setIsModalOpen(false);
+      setShowInvite(false);
       setInviteEmail('');
     } catch (err) {
-      toast.error('Failed to send invite.');
-    } finally {
-      setSending(false);
-    }
+      toast.error(err.response?.data?.error || 'Failed to send invite.');
+    } finally { setSending(false); }
   };
 
-  const filteredMembers = members.filter(m => 
-    m.user?.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    m.user?.email?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const handleDM = async (memberId) => {
+    try {
+      const res = await api.post('/direct-messages/', { user_id: memberId });
+      navigate('/chat');
+      toast.success('Opening conversation...');
+    } catch { navigate('/chat'); }
+  };
+
+  const roles = ['all', ...new Set(members.map(m => m.role).filter(Boolean))];
+
+  const filtered = members.filter(m => {
+    const u = m.user || m;
+    const matchSearch = !search ||
+      u.username?.toLowerCase().includes(search.toLowerCase()) ||
+      u.email?.toLowerCase().includes(search.toLowerCase()) ||
+      `${u.first_name} ${u.last_name}`.toLowerCase().includes(search.toLowerCase());
+    const matchRole = roleFilter === 'all' || m.role === roleFilter;
+    return matchSearch && matchRole;
+  });
 
   return (
-    <div className="h-full overflow-y-auto custom-scrollbar p-6 md:p-10 max-w-7xl mx-auto bg-[#060b18]">
+    <div style={{ height:'100%', overflowY:'auto', padding:'32px', background:'var(--bg)' }} className="custom-scrollbar">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12 animate-in fade-in slide-in-from-top-4 duration-500">
+      <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', gap:16, marginBottom:32, flexWrap:'wrap' }}>
         <div>
-          <h1 className="text-4xl font-black text-white tracking-tighter flex items-center gap-4">
-            <Users className="text-blue-500" size={36} />
-            Network Nodes
+          <h1 style={{ fontSize:28, fontWeight:900, color:'var(--text)', margin:0, display:'flex', alignItems:'center', gap:10 }}>
+            <Users style={{ color:'var(--brand)' }} size={28} /> Team Members
           </h1>
-          <p className="text-gray-400 mt-2 font-medium">Manage node privileges and synchronization in {activeWorkspace?.name}</p>
+          <p style={{ color:'var(--text3)', marginTop:6, fontSize:14 }}>
+            {members.length} member{members.length !== 1 ? 's' : ''} in {activeWorkspace?.name}
+          </p>
         </div>
-        <Button 
-          onClick={() => setIsModalOpen(true)}
-          variant="primary"
-          className="px-8 py-3 font-black text-sm uppercase tracking-widest"
-          leftIcon={<UserPlus size={18} />}
-        >
-          Authorize New Node
-        </Button>
+        <button onClick={() => setShowInvite(!showInvite)}
+          style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 20px', borderRadius:12, background:'var(--brand)', color:'#fff', border:'none', cursor:'pointer', fontSize:13, fontWeight:800, boxShadow:'0 4px 16px rgba(51,102,255,0.35)', transition:'all 0.2s' }}
+          onMouseEnter={e => e.currentTarget.style.transform='translateY(-1px)'}
+          onMouseLeave={e => e.currentTarget.style.transform=''}>
+          <UserPlus size={16} /> Invite Member
+        </button>
       </div>
 
-      {/* Search Bar */}
-      <Card variant="glass" className="mb-10 p-2 border-white/5 shadow-2xl">
-        <div className="relative">
-          <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-500" size={20} />
-          <input 
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Scan for username or neural ID (email)..."
-            className="w-full bg-transparent border-none rounded-2xl pl-16 pr-6 py-4 text-sm text-white outline-none focus:ring-0 placeholder:text-gray-600 font-medium"
-          />
-        </div>
-      </Card>
-
-      {/* Members Grid */}
-      {loading ? (
-        <div className="flex flex-col items-center justify-center h-96 animate-pulse">
-          <div className="w-16 h-16 rounded-3xl border-2 border-blue-500/20 border-t-blue-500 animate-spin mb-4" />
-          <p className="text-gray-500 font-black uppercase tracking-widest text-[10px]">Scanning Active Nodes...</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredMembers.map(member => (
-            <MemberCard key={member.id} member={member} />
-          ))}
+      {/* Invite Form */}
+      {showInvite && (
+        <div style={{ background:'var(--bg-card)', border:'1px solid var(--brand)', borderRadius:20, padding:24, marginBottom:24 }}>
+          <h3 style={{ fontSize:16, fontWeight:800, color:'var(--text)', marginBottom:16 }}>Invite to {activeWorkspace?.name}</h3>
+          <form onSubmit={handleInvite} style={{ display:'flex', gap:12, flexWrap:'wrap' }}>
+            <input type="email" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)}
+              placeholder="colleague@company.com" required
+              style={{ flex:1, minWidth:200, padding:'12px 16px', borderRadius:10, background:'var(--bg3)', border:'1px solid var(--border)', color:'var(--text)', fontSize:14, outline:'none', fontFamily:'var(--font-body)' }} />
+            <select value={inviteRole} onChange={e => setInviteRole(e.target.value)}
+              style={{ padding:'12px 16px', borderRadius:10, background:'var(--bg3)', border:'1px solid var(--border)', color:'var(--text)', fontSize:14, outline:'none', cursor:'pointer' }}>
+              {['member','developer','designer','manager','viewer'].map(r => (
+                <option key={r} value={r}>{r.charAt(0).toUpperCase()+r.slice(1)}</option>
+              ))}
+            </select>
+            <button type="submit" disabled={sending}
+              style={{ padding:'12px 24px', borderRadius:10, background:'var(--brand)', color:'#fff', border:'none', cursor:'pointer', fontSize:13, fontWeight:800, opacity: sending ? 0.7 : 1 }}>
+              {sending ? 'Sending...' : 'Send Invite'}
+            </button>
+            <button type="button" onClick={() => setShowInvite(false)}
+              style={{ padding:'12px 16px', borderRadius:10, background:'var(--bg3)', color:'var(--text)', border:'1px solid var(--border)', cursor:'pointer', fontSize:13 }}>
+              Cancel
+            </button>
+          </form>
         </div>
       )}
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Authorize Node Invitation">
-        <form onSubmit={handleInvite} className="space-y-8 py-4">
-          <Input 
-            label="Neural ID (Email Address)"
-            required
-            type="email" 
-            value={inviteEmail}
-            onChange={v => setInviteEmail(v)}
-            placeholder="collaborator@network.com"
-          />
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Privilege Level</label>
-            <select 
-              value={inviteRole}
-              onChange={e => setInviteRole(e.target.value)}
-              className="w-full bg-[#0b1429] border border-white/5 rounded-2xl px-5 py-4 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500/40 appearance-none font-medium"
-            >
-              <option value="member">Standard Member</option>
-              <option value="admin">Admin Controller</option>
-            </select>
-          </div>
-          <Button 
-            disabled={sending}
-            type="submit" 
-            fullWidth
-            className="py-4 font-black"
-            loading={sending}
-            rightIcon={<Mail size={18} />}
-          >
-            Transmit Invitation
-          </Button>
-        </form>
-      </Modal>
+      {/* Filters */}
+      <div style={{ display:'flex', gap:12, marginBottom:24, flexWrap:'wrap', alignItems:'center' }}>
+        <div style={{ position:'relative', flex:1, minWidth:200 }}>
+          <Search size={16} style={{ position:'absolute', left:14, top:'50%', transform:'translateY(-50%)', color:'var(--text3)' }} />
+          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search members..."
+            style={{ width:'100%', padding:'10px 14px 10px 40px', borderRadius:10, background:'var(--bg3)', border:'1px solid var(--border)', color:'var(--text)', fontSize:14, outline:'none', boxSizing:'border-box', fontFamily:'var(--font-body)' }} />
+        </div>
+        <div style={{ display:'flex', gap:6 }}>
+          {roles.map(r => (
+            <button key={r} onClick={() => setRoleFilter(r)}
+              style={{ padding:'8px 14px', borderRadius:8, fontSize:12, fontWeight:700, border:'none', cursor:'pointer', transition:'all 0.2s',
+                background: roleFilter === r ? 'var(--brand)' : 'var(--bg3)',
+                color: roleFilter === r ? '#fff' : 'var(--text3)' }}>
+              {r === 'all' ? 'All' : r.charAt(0).toUpperCase()+r.slice(1)}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Members Grid */}
+      {loading ? (
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(280px, 1fr))', gap:16 }}>
+          {[...Array(6)].map((_,i) => (
+            <div key={i} style={{ background:'var(--bg-card)', borderRadius:16, padding:24, border:'1px solid var(--border)', height:140, animation:'skeleton-pulse 1.5s infinite' }} />
+          ))}
+        </div>
+      ) : filtered.length === 0 ? (
+        <div style={{ textAlign:'center', padding:80, color:'var(--text3)' }}>
+          <Users size={48} style={{ margin:'0 auto 12px', opacity:0.2, display:'block' }} />
+          <p style={{ fontWeight:700 }}>No members found</p>
+        </div>
+      ) : (
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(280px, 1fr))', gap:16 }}>
+          {filtered.map(m => {
+            const u = m.user || m;
+            const role = m.role || 'member';
+            const meta = ROLE_META[role] || ROLE_META.member;
+            const displayName = u.first_name ? `${u.first_name} ${u.last_name || ''}`.trim() : u.username;
+            const isMe = u.id === me?.id;
+
+            return (
+              <div key={m.id || u.id}
+                style={{ background:'var(--bg-card)', border:'1px solid var(--border)', borderRadius:20, padding:20, transition:'all 0.2s', position:'relative', overflow:'hidden' }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor='var(--brand)'; e.currentTarget.style.transform='translateY(-2px)'; e.currentTarget.style.boxShadow='0 12px 32px rgba(51,102,255,0.12)'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor='var(--border)'; e.currentTarget.style.transform=''; e.currentTarget.style.boxShadow=''; }}>
+
+                {isMe && <div style={{ position:'absolute', top:12, right:12, fontSize:10, fontWeight:800, color:'var(--brand)', background:'var(--brand-bg)', padding:'2px 8px', borderRadius:6 }}>You</div>}
+
+                <div style={{ display:'flex', alignItems:'flex-start', gap:14, marginBottom:16 }}>
+                  <Avatar user={u} size={52} status="online" />
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <p style={{ fontSize:15, fontWeight:800, color:'var(--text)', margin:0, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{displayName}</p>
+                    <p style={{ fontSize:12, color:'var(--text3)', margin:'2px 0 0' }}>@{u.username}</p>
+                    <div style={{ marginTop:6 }}>
+                      <span style={{ fontSize:11, fontWeight:800, padding:'3px 10px', borderRadius:20, background:meta.bg, color:meta.color, display:'inline-flex', alignItems:'center', gap:4 }}>
+                        {meta.icon} {role.charAt(0).toUpperCase()+role.slice(1)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {u.bio && <p style={{ fontSize:12, color:'var(--text3)', margin:'0 0 14px', lineHeight:1.5, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{u.bio}</p>}
+
+                {u.email && (
+                  <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:14 }}>
+                    <Mail size={12} style={{ color:'var(--text3)' }} />
+                    <span style={{ fontSize:12, color:'var(--text3)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{u.email}</span>
+                  </div>
+                )}
+
+                {!isMe && (
+                  <button onClick={() => handleDM(u.id)}
+                    style={{ width:'100%', padding:'9px', borderRadius:10, background:'var(--brand-bg)', border:'1px solid rgba(51,102,255,0.25)', color:'var(--brand)', fontSize:12, fontWeight:800, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', gap:6, transition:'all 0.2s' }}
+                    onMouseEnter={e => e.currentTarget.style.background='var(--brand)' || (e.currentTarget.style.color='#fff')}
+                    onMouseLeave={e => { e.currentTarget.style.background='var(--brand-bg)'; e.currentTarget.style.color='var(--brand)'; }}>
+                    <MessageSquare size={13} /> Message
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <style>{`
+        @keyframes skeleton-pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+      `}</style>
     </div>
-  );
-}
-
-function MemberCard({ member }) {
-  const getRoleStyle = (role) => {
-    switch (role) {
-      case 'owner': return 'text-purple-500 bg-purple-500/10 border-purple-500/20 shadow-[0_0_10px_rgba(168,85,247,0.2)]';
-      case 'admin': return 'text-blue-500 bg-blue-500/10 border-blue-500/20 shadow-[0_0_10px_rgba(59,130,246,0.2)]';
-      default: return 'text-gray-400 bg-white/5 border-white/10';
-    }
-  };
-
-  return (
-    <Card 
-      variant="glass" 
-      className="p-8 border-white/5 hover:border-blue-500/30 hover:-translate-y-2 transition-all duration-500 group relative overflow-hidden shadow-2xl"
-    >
-       <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover:opacity-[0.08] group-hover:rotate-12 transition-all duration-1000">
-         <Shield size={120} />
-       </div>
-
-       <div className="flex items-start justify-between mb-8 relative z-10">
-          <Avatar user={member.user} size={64} className="shadow-2xl ring-4 ring-[#0d1425] border-transparent group-hover:scale-110 transition-transform duration-500" />
-          <button className="p-2 hover:bg-white/5 rounded-xl text-gray-700 hover:text-white transition-colors">
-             <MoreHorizontal size={24} />
-          </button>
-       </div>
-
-       <div className="mb-8 relative z-10">
-          <h3 className="text-xl font-black text-white group-hover:text-blue-400 transition-colors tracking-tighter leading-none mb-3">{member.user?.username}</h3>
-          <p className="text-sm text-gray-500 flex items-center gap-2 font-medium">
-             <Mail size={14} className="text-blue-500" />
-             {member.user?.email}
-          </p>
-       </div>
-
-       <div className="flex items-center justify-between pt-6 border-t border-white/5 relative z-10">
-          <span className={`text-[10px] font-black uppercase px-3 py-1.5 rounded-lg border ${getRoleStyle(member.role)} tracking-widest`}>
-             {member.role}
-          </span>
-          <div className="flex items-center gap-2 text-emerald-500 text-[10px] font-black uppercase tracking-widest">
-             <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)] animate-pulse" />
-             Active Pulse
-          </div>
-       </div>
-    </Card>
   );
 }
