@@ -8,5 +8,5 @@ class Presence(models.Model):
     status = models.CharField(max_length=20, default='offline')  # online, offline, away
 
     def is_online(self):
-        from django.utils.timezone import timedelta
-        return (now() - self.last_activity).seconds < 300  # 5 minutes threshold
+        from datetime import timedelta
+        return (now() - self.last_activity) < timedelta(seconds=300)

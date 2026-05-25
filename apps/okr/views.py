@@ -19,4 +19,8 @@ class KeyResultViewSet(viewsets.ModelViewSet):
     queryset = KeyResult.objects.none()
 
     def get_queryset(self):
-        return KeyResult.objects.filter(objective__workspace__members=self.request.user)
+        qs = KeyResult.objects.filter(objective__workspace__members=self.request.user)
+        objective_id = self.request.query_params.get('objective')
+        if objective_id:
+            qs = qs.filter(objective_id=objective_id)
+        return qs

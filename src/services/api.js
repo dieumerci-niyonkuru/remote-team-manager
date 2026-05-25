@@ -53,7 +53,7 @@ export const auth = {
     ? api.patch('/auth/me/', d, { headers: { 'Content-Type': 'multipart/form-data' } })
     : api.patch('/auth/me/', d)),
   logout: r => api.post('/auth/logout/', { refresh: r }),
-  changePassword: d => api.post('/auth/change-password/', d),
+  changePassword: d => api.patch('/auth/change-password/', d),
 };
 
 export const ws = {
@@ -150,7 +150,7 @@ export const wiki = {
 
 export const notifications = {
   list: () => api.get('/notifications/'),
-  markRead: id => api.patch(`/notifications/${id}/`, { is_read: true }),
+  markRead: id => api.post(`/notifications/${id}/mark_read/`),
   markAllRead: () => api.post('/notifications/mark_all_read/'),
   delete: id => api.delete(`/notifications/${id}/`),
 };
@@ -164,8 +164,8 @@ export const okr = {
   createObjective: d => api.post('/objectives/', d),
   updateObjective: (id, d) => api.patch(`/objectives/${id}/`, d),
   deleteObjective: id => api.delete(`/objectives/${id}/`),
-  keyResults: objectiveId => api.get(`/objectives/${objectiveId}/key-results/`),
-  createKeyResult: (objectiveId, d) => api.post(`/objectives/${objectiveId}/key-results/`, d),
+  keyResults: objectiveId => api.get('/key-results/', { params: { objective: objectiveId } }),
+  createKeyResult: (objectiveId, d) => api.post('/key-results/', { ...d, objective: objectiveId }),
 };
 
 export const unwrapData = res => {

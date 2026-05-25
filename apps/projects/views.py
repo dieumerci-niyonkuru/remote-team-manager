@@ -19,7 +19,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
-        qs = Project.objects.filter(workspace__members=user).prefetch_related('tasks', 'members')
+        qs = Project.objects.filter(workspace__members=user).prefetch_related('tasks')
         workspace_id = self.request.query_params.get('workspace')
         if workspace_id:
             qs = qs.filter(workspace_id=workspace_id)

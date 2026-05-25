@@ -6,7 +6,8 @@ from rest_framework.response import Response
 
 class NotificationViewSet(viewsets.GenericViewSet,
                           mixins.ListModelMixin,
-                          mixins.RetrieveModelMixin):
+                          mixins.RetrieveModelMixin,
+                          mixins.DestroyModelMixin):
     serializer_class = NotificationSerializer
     permission_classes = [permissions.IsAuthenticated]
 

@@ -27,3 +27,7 @@ class User(AbstractUser):
     avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
     bio = models.TextField(blank=True, default='')
     phone = models.CharField(max_length=20, blank=True, default='')
+
+    @property
+    def full_name(self) -> str:
+        return self.get_full_name() or self.username
