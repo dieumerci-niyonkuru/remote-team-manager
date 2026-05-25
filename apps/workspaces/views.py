@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from django.utils.timezone import now
 from apps.auth.decorators import role_required
 
+from .models import WorkspaceMember
 from .serializers import WorkspaceSerializer, WorkspaceMemberSerializer, ActivityFeedSerializer
 from .permissions import IsWorkspaceMember, HasWorkspaceRole
 from apps.notifications.models import Invite
@@ -123,9 +124,15 @@ class WorkspaceViewSet(viewsets.ModelViewSet):
             return Response({'error': 'Invalid or expired invite'}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=['delete'], url_path='members/(?P<user_id>[^/.]+)')
-    @role_required('owner', 'admin', 'super_admin', 'workspace_owner')
     def remove_member(self, request, pk=None, user_id=None):
         workspace = self.get_object()
+        # Check that the requesting user is a workspace owner (by membership role, not global role)
+        try:
+            requester_membership = workspace.workspacemember_set.get(user=request.user)
+        except WorkspaceMember.DoesNotExist:
+            return Response({'detail': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
+        if requester_membership.role not in ('owner', 'admin', 'super_admin', 'workspace_owner'):
+            return Response({'detail': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
         try:
             member = workspace.workspacemember_set.get(user_id=user_id)
             if member.role == 'owner':

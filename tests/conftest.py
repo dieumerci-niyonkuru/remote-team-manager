@@ -21,6 +21,12 @@ def disable_html_render(settings):
             'rest_framework.renderers.JSONRenderer',
         ),
     }
+    # Use in-memory channel layer so tests don't need a running Redis server
+    settings.CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels.layers.InMemoryChannelLayer"
+        }
+    }
 
 @pytest.fixture
 def api_client():
