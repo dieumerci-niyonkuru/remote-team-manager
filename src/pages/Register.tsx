@@ -241,7 +241,7 @@ export default function Register() {
                         </div>
                       )}
                       <div style={{ fontSize: 18, marginBottom: 4 }}>
-                        {r.value === 'viewer' ? '👁️' : r.value === 'developer' ? '💻' : r.value === 'manager' ? '📊' : '🎨'}
+                        {r.value === 'developer' ? '💻' : r.value === 'project_manager' ? '📊' : r.value === 'designer' ? '🎨' : '👁️'}
                       </div>
                       <div style={{ fontSize: 11, fontWeight: 900, color: form.role === r.value ? r.color : 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{r.label}</div>
                     </div>

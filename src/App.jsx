@@ -38,6 +38,7 @@ const AuditLogs     = React.lazy(() => import('./pages/AuditLogs'))
 const About         = React.lazy(() => import('./pages/About'))
 const Onboarding    = React.lazy(() => import('./pages/Onboarding'))
 const VideoCall     = React.lazy(() => import('./pages/VideoCall'))
+const ForgotPassword = React.lazy(() => import('./pages/ForgotPassword'))
 
 const PageLoader = () => (
   <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'60vh', flexDirection:'column', gap:16 }}>
@@ -72,6 +73,7 @@ function RouterContent() {
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Public><Login /></Public>} />
             <Route path="/register" element={<Public><Register /></Public>} />
+            <Route path="/forgot-password" element={<Public><ForgotPassword /></Public>} />
             <Route path="/about" element={<About />} />
             <Route path="/onboarding" element={<Protected><Onboarding /></Protected>} />
             <Route path="/dashboard" element={<Protected><Dashboard /></Protected>} />
