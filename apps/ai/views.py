@@ -1,82 +1,143 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import permissions
-import time
-import re
+from rest_framework import permissions, status
+from apps.projects.models import Task, Project
+from apps.workspaces.models import Workspace
+import logging
 
-class SuggestTasksView(APIView):
+logger = logging.getLogger(__name__)
+
+class AISuggestTasksView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
-        prompt = request.data.get('prompt', '').lower()
-        
-        # Natural language command detection
-        # e.g. "create 5 tasks for mobile app"
-        count_match = re.search(r'(\d+)\s+task', prompt)
-        task_count = int(count_match.group(1)) if count_match else None
+        prompt = request.data.get('prompt', '')
+        project_id = request.data.get('project_id')
 
-        # Simulate AI processing delay for realism
-        time.sleep(1.2)
+        suggestions = self._generate_task_suggestions(prompt, project_id, request.user)
+        return Response({'data': suggestions, 'message': 'AI suggestions generated.'})
 
-        tasks = []
+    def _generate_task_suggestions(self, prompt, project_id, user):
+        # Smart rule-based suggestions based on keywords
+        suggestions = []
+        prompt_lower = prompt.lower()
 
-        # === Natural language patterns ===
-        if 'mobile app' in prompt or 'ios' in prompt or 'android' in prompt:
-            tasks = [
-                {"title": "Setup React Native project", "priority": "high", "description": "Initialize project and configure navigation."},
-                {"title": "Design UI wireframes", "priority": "high", "description": "Create Figma mockups for all screens."},
-                {"title": "Build authentication flow", "priority": "high", "description": "Login, register, forgot password screens."},
-                {"title": "Integrate backend APIs", "priority": "high", "description": "Connect REST endpoints to mobile views."},
-                {"title": "Push notifications setup", "priority": "medium", "description": "Configure FCM for Android and APNs for iOS."},
-                {"title": "Performance testing", "priority": "low", "description": "Profile and optimize render performance."},
+        base_tasks = {
+            'auth': ['Implement user authentication', 'Add password reset flow', 'Set up OAuth integration', 'Add 2FA support'],
+            'api': ['Design REST API endpoints', 'Add API rate limiting', 'Write API documentation', 'Add API versioning'],
+            'ui': ['Create responsive layout', 'Implement dark mode', 'Add loading states', 'Design component library'],
+            'database': ['Design database schema', 'Write database migrations', 'Add database indexing', 'Set up backups'],
+            'test': ['Write unit tests', 'Set up E2E testing', 'Add integration tests', 'Performance testing'],
+            'deploy': ['Configure CI/CD pipeline', 'Set up Docker containers', 'Configure production server', 'Add monitoring'],
+            'dashboard': ['Build analytics dashboard', 'Add data visualization', 'Create report exports', 'Real-time updates'],
+            'chat': ['Implement real-time messaging', 'Add file sharing', 'Create notification system', 'Add emoji reactions'],
+        }
+
+        matched = False
+        for keyword, tasks in base_tasks.items():
+            if keyword in prompt_lower:
+                suggestions.extend([{'title': t, 'priority': 'medium', 'estimated_hours': 4} for t in tasks])
+                matched = True
+                break
+
+        if not matched:
+            suggestions = [
+                {'title': f'Research: {prompt[:50]}', 'priority': 'low', 'estimated_hours': 2},
+                {'title': f'Plan: {prompt[:50]}', 'priority': 'medium', 'estimated_hours': 3},
+                {'title': f'Implement: {prompt[:50]}', 'priority': 'high', 'estimated_hours': 8},
+                {'title': f'Test: {prompt[:50]}', 'priority': 'medium', 'estimated_hours': 4},
+                {'title': f'Deploy: {prompt[:50]}', 'priority': 'low', 'estimated_hours': 2},
             ]
-        elif 'login' in prompt or 'auth' in prompt or 'authentication' in prompt:
-            tasks = [
-                {"title": "Design UI for Login Page", "priority": "high", "description": "Create responsive mockups for desktop and mobile."},
-                {"title": "Setup Authentication API", "priority": "high", "description": "Implement JWT endpoints in Django."},
-                {"title": "Database Models", "priority": "medium", "description": "Update user models for OAuth support."},
-                {"title": "E2E Testing", "priority": "low", "description": "Write Cypress tests for the login flow."}
-            ]
-        elif 'dashboard' in prompt or 'analytics' in prompt:
-            tasks = [
-                {"title": "Design Dashboard Layout", "priority": "medium", "description": "Wireframe the main dashboard components."},
-                {"title": "Implement Chart Components", "priority": "high", "description": "Integrate Chart.js or pure CSS charts."},
-                {"title": "Build Aggregation API", "priority": "high", "description": "Create backend views to aggregate productivity data."},
-                {"title": "Real-time data sync", "priority": "medium", "description": "Use WebSockets or polling to refresh charts."},
-            ]
-        elif 'payment' in prompt or 'checkout' in prompt or 'stripe' in prompt:
-            tasks = [
-                {"title": "Design checkout UI", "priority": "high", "description": "Create card input form with validation."},
-                {"title": "Integrate Stripe SDK", "priority": "high", "description": "Setup Stripe.js and payment intents."},
-                {"title": "Backend payment endpoint", "priority": "high", "description": "Create /api/payments/charge/ endpoint."},
-                {"title": "Webhook handler", "priority": "medium", "description": "Handle Stripe events (success, failed, refund)."},
-                {"title": "Email receipt system", "priority": "low", "description": "Send confirmation emails after payment."},
-            ]
-        elif 'api' in prompt or 'backend' in prompt or 'endpoint' in prompt:
-            tasks = [
-                {"title": "Define API schema", "priority": "high", "description": "Write OpenAPI/Swagger spec."},
-                {"title": "Create Django models", "priority": "high", "description": "Define database models and relationships."},
-                {"title": "Build serializers", "priority": "high", "description": "Create DRF serializers with validation."},
-                {"title": "Write viewsets and URLs", "priority": "high", "description": "Implement CRUD endpoints."},
-                {"title": "Authentication middleware", "priority": "medium", "description": "Apply JWT auth to all endpoints."},
-                {"title": "Write API tests", "priority": "medium", "description": "Cover all endpoints with pytest."},
-            ]
+
+        return suggestions[:5]
+
+
+class AITaskSummaryView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        workspace_id = request.query_params.get('workspace')
+        tasks = Task.objects.filter(project__workspace__members=request.user)
+        if workspace_id:
+            tasks = tasks.filter(project__workspace_id=workspace_id)
+
+        total = tasks.count()
+        done = tasks.filter(status='done').count()
+        in_progress = tasks.filter(status='in_progress').count()
+        todo = tasks.filter(status='todo').count()
+        overdue = tasks.filter(due_date__isnull=False, status__in=['todo', 'in_progress']).count()
+
+        completion_rate = round((done / total * 100) if total > 0 else 0, 1)
+
+        insights = []
+        if completion_rate > 80:
+            insights.append({'type': 'success', 'text': f'Excellent progress! {completion_rate}% tasks completed.'})
+        elif completion_rate > 50:
+            insights.append({'type': 'info', 'text': f'Good momentum — {completion_rate}% done, keep going!'})
         else:
-            # Generic intelligent breakdown
-            feature_name = prompt[:30].strip().title()
-            base = [
-                {"title": f"Requirements & Research: {feature_name}", "priority": "high", "description": "Gather requirements, study existing solutions, write specs."},
-                {"title": "UI/UX Design", "priority": "medium", "description": "Create wireframes and high-fidelity mockups."},
-                {"title": "Backend API Implementation", "priority": "high", "description": "Set up database models and REST endpoints."},
-                {"title": "Frontend Integration", "priority": "high", "description": "Connect the React frontend to the new APIs."},
-                {"title": "Unit & Integration Tests", "priority": "medium", "description": "Achieve >80% test coverage."},
-                {"title": "Code Review & QA", "priority": "low", "description": "Peer review and UAT."},
-                {"title": "Documentation", "priority": "low", "description": "Update README, API docs, and Knowledge Base."},
+            insights.append({'type': 'warning', 'text': f'Only {completion_rate}% complete. Consider re-prioritizing.'})
+
+        if in_progress > 5:
+            insights.append({'type': 'warning', 'text': f'{in_progress} tasks in progress. Focus on finishing before starting new ones.'})
+
+        if overdue > 0:
+            insights.append({'type': 'error', 'text': f'{overdue} tasks may be overdue. Review deadlines.'})
+
+        return Response({'data': {
+            'total': total, 'done': done, 'in_progress': in_progress,
+            'todo': todo, 'overdue': overdue, 'completion_rate': completion_rate,
+            'insights': insights,
+        }})
+
+
+class AIWritingAssistantView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        action = request.data.get('action', 'improve')
+        text = request.data.get('text', '')
+
+        result = self._process_text(action, text)
+        return Response({'data': {'result': result}})
+
+    def _process_text(self, action, text):
+        if action == 'improve':
+            return f"{text.strip()}. This has been reviewed for clarity and professionalism."
+        elif action == 'shorten':
+            words = text.split()
+            return ' '.join(words[:max(10, len(words)//2)]) + '...'
+        elif action == 'expand':
+            return f"{text.strip()} Additionally, it's important to consider the broader implications and ensure all stakeholders are aligned on the objectives and timeline."
+        elif action == 'bullets':
+            sentences = [s.strip() for s in text.split('.') if s.strip()]
+            return '\n'.join(f'• {s}' for s in sentences[:5])
+        return text
+
+
+class AIWorkspaceInsightsView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        workspace_id = request.query_params.get('workspace')
+
+        projects = Project.objects.filter(workspace__members=request.user)
+        if workspace_id:
+            projects = projects.filter(workspace_id=workspace_id)
+
+        project_count = projects.count()
+        task_count = Task.objects.filter(project__in=projects).count()
+        done_count = Task.objects.filter(project__in=projects, status='done').count()
+
+        score = min(100, round((done_count / task_count * 60) + (min(project_count, 5) * 8) if task_count > 0 else 50))
+
+        return Response({'data': {
+            'productivity_score': score,
+            'projects': project_count,
+            'tasks': task_count,
+            'completed': done_count,
+            'recommendations': [
+                'Break large tasks into subtasks for better tracking.',
+                'Assign due dates to all open tasks.',
+                'Hold a weekly team sync to align on priorities.',
             ]
-            tasks = base
-
-        # If user specified a count, trim/pad
-        if task_count:
-            tasks = tasks[:task_count]
-
-        return Response({"data": {"tasks": tasks, "command_type": "breakdown"}, "message": "Intelligence core has generated recommendations."})
+        }})

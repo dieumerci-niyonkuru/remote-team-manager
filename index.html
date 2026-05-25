@@ -11,8 +11,10 @@
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#3366ff" />
     <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="RemoteTeam" />
+    <meta name="description" content="Enterprise workspace management platform for remote teams" />
 
     <!-- AUTO SW CLEANUP: runs before any cached JS, cannot be blocked by SW -->
     <script>
@@ -49,6 +51,13 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch(() => {});
+        });
+      }
+    </script>
   </body>
 </html>
 

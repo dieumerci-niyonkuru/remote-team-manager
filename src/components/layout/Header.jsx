@@ -7,7 +7,7 @@ import toast from 'react-hot-toast'
 import NotificationBadge from './NotificationBadge'
 import ThemeSwitcher from './ThemeSwitcher'
 import { Button } from '../common/Button'
-import { Globe, ChevronDown } from 'lucide-react'
+import { Globe, ChevronDown, Video } from 'lucide-react'
 
 const LANGS = [
   { code: 'en', label: 'EN', flag: '🇬🇧', name: 'English' },
@@ -189,6 +189,15 @@ export default function Header() {
             )}
           </div>
 
+          {isAuth && (
+            <button
+              onClick={() => navigate('/call?room=' + Math.random().toString(36).slice(2, 8).toUpperCase())}
+              title="Start Video Call"
+              style={{ background: 'rgba(51,102,255,0.1)', border: '1px solid rgba(51,102,255,0.2)', borderRadius: 10, padding: '8px', cursor: 'pointer', color: 'var(--brand)', display: 'flex', alignItems: 'center' }}
+            >
+              <Video size={18} />
+            </button>
+          )}
           {isAuth && <NotificationBadge />}
           
           <div className="desktop-only">

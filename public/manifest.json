@@ -1,27 +1,20 @@
 {
-  "name": "Remote Team Manager",
-  "short_name": "TeamManager",
-  "description": "AI-powered remote collaboration platform for distributed teams",
+  "name": "RemoteTeam Manager",
+  "short_name": "RemoteTeam",
+  "description": "Enterprise workspace management platform",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0f1117",
+  "background_color": "#0f172a",
   "theme_color": "#3366ff",
   "orientation": "portrait-primary",
-  "shortcuts": [
-    {
-      "name": "Dashboard",
-      "short_name": "Dashboard",
-      "description": "View your team dashboard",
-      "url": "/dashboard"
-    },
-    {
-      "name": "AI Assistant",
-      "short_name": "AI",
-      "description": "Open AI Productivity Assistant",
-      "url": "/ai"
-    }
+  "icons": [
+    { "src": "/logo.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/logo.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
   ],
   "categories": ["productivity", "business"],
-  "lang": "en",
-  "dir": "ltr"
+  "shortcuts": [
+    { "name": "Dashboard", "url": "/dashboard", "description": "Go to Dashboard" },
+    { "name": "Tasks", "url": "/tasks", "description": "View my tasks" },
+    { "name": "Chat", "url": "/chat", "description": "Open Chat" }
+  ]
 }

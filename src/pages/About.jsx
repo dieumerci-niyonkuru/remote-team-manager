@@ -1,143 +1,154 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Button } from '../components/common/Button';
-import { Card } from '../components/common/Card';
-import { Globe, Users, Zap, Shield, Rocket, Target, Heart } from 'lucide-react';
+import { Users, Zap, Globe, Shield, Award, Heart, ArrowRight, CheckCircle, Star, Code, Target, Lightbulb } from 'lucide-react';
 
-const HQ_IMG = '/kigali_innovation_city_futuristic_1778873019544.png';
+const TEAM = [
+  { name: 'Dieu Merci Niyonkuru', role: 'Founder & CEO', initials: 'DN', color: '#3366ff', bio: 'Full-stack engineer passionate about building tools that empower remote teams.' },
+  { name: 'Product Team', role: 'Product & Design', initials: 'PT', color: '#10b981', bio: 'Dedicated to crafting intuitive experiences for distributed teams worldwide.' },
+  { name: 'Engineering Team', role: 'Engineering', initials: 'ET', color: '#f59e0b', bio: 'Building reliable, scalable infrastructure for the future of work.' },
+];
+
+const VALUES = [
+  { icon: <Users size={24} />, title: 'Team First', desc: 'We believe remote teams deserve world-class tools. Everything we build starts with the question: does this make teamwork better?' },
+  { icon: <Zap size={24} />, title: 'Speed & Reliability', desc: 'Your team cannot afford downtime. We obsess over performance, uptime, and instant responsiveness across all features.' },
+  { icon: <Shield size={24} />, title: 'Privacy & Security', desc: 'Your workspace data is yours. We follow enterprise-grade security standards and never sell your information.' },
+  { icon: <Globe size={24} />, title: 'Built for Everyone', desc: 'Available in English, French, and Kinyarwanda — because great tools should cross language barriers.' },
+  { icon: <Heart size={24} />, title: 'Human-Centered', desc: 'Remote work is personal. We design for real humans managing real work — not just enterprise checkboxes.' },
+  { icon: <Lightbulb size={24} />, title: 'Continuous Innovation', desc: 'We ship new features weekly, driven by user feedback and emerging best practices in distributed work.' },
+];
+
+const FEATURES = [
+  'Real-time collaboration with live presence',
+  'AI-powered task suggestions and insights',
+  'Integrated chat, video calls, and messaging',
+  'Project & task management with Kanban boards',
+  'Wiki knowledge base for your team',
+  'Time tracking and productivity analytics',
+  'Multi-workspace organization support',
+  'OKR tracking and goal management',
+  'HR module for team management',
+  'Automation rules and workflows',
+];
 
 export default function About() {
-
   return (
-    <div className="bg-[#060b18] text-white min-h-screen pt-32 pb-20 overflow-hidden">
-      <div className="container mx-auto px-6 relative">
-        {/* Background Gradients */}
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand/10 blur-[120px] rounded-full pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-accent-violet/10 blur-[120px] rounded-full pointer-events-none" />
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text1)' }}>
 
-        {/* Hero Section */}
-        <div className="text-center mb-32 relative z-10">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand/10 border border-brand/20 text-[11px] font-black tracking-[0.2em] text-brand mb-8 uppercase animate-in fade-in slide-in-from-top-4 duration-700">
-            <Rocket size={14} /> Our Mission
+      {/* Hero */}
+      <div style={{
+        background: 'linear-gradient(135deg, #0a1628 0%, #0d1f40 50%, #1a2a50 100%)',
+        padding: '80px 40px', textAlign: 'center', position: 'relative', overflow: 'hidden',
+      }}>
+        <div style={{ position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(ellipse 80% 50% at 50% 0%, rgba(51,102,255,0.15), transparent)', pointerEvents: 'none' }} />
+        <div style={{ position: 'relative', maxWidth: 800, margin: '0 auto' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(51,102,255,0.15)', border: '1px solid rgba(51,102,255,0.3)', borderRadius: 20, padding: '6px 16px', marginBottom: 24, fontSize: 13, color: '#6699ff' }}>
+            <Star size={14} /> Built for the future of work
           </div>
-          <h1 className="text-5xl md:text-8xl font-black tracking-tighter leading-tight mb-8 animate-in fade-in slide-in-from-bottom-8 duration-1000">
-            Engineering the <br />
-            <span className="bg-gradient-to-r from-brand to-accent-violet bg-clip-text text-transparent">Future of Work.</span>
+          <h1 style={{ fontSize: 56, fontWeight: 900, color: '#fff', marginBottom: 20, lineHeight: 1.1, letterSpacing: '-0.03em' }}>
+            The Workspace OS for<br />
+            <span style={{ background: 'linear-gradient(90deg, #3366ff, #6699ff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              Remote-First Teams
+            </span>
           </h1>
-          <p className="max-w-3xl mx-auto text-xl text-text-secondary font-medium leading-relaxed animate-in fade-in slide-in-from-bottom-6 duration-1000 delay-200">
-            RemoteTeam is more than a tool—it's a high-fidelity mission control for the modern era. 
-            We are dedicated to unifying human intelligence and technological velocity.
+          <p style={{ fontSize: 20, color: 'rgba(255,255,255,0.7)', lineHeight: 1.7, marginBottom: 36, maxWidth: 600, margin: '0 auto 36px' }}>
+            RemoteTeam Manager combines project management, team collaboration, AI insights, and real-time communication in one powerful workspace — built by remote workers, for remote teams.
+          </p>
+          <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <Link to="/register" style={{ background: '#3366ff', color: '#fff', padding: '14px 32px', borderRadius: 12, textDecoration: 'none', fontWeight: 700, fontSize: 16, display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+              Get Started Free <ArrowRight size={18} />
+            </Link>
+            <Link to="/login" style={{ background: 'rgba(255,255,255,0.08)', color: '#fff', padding: '14px 32px', borderRadius: 12, textDecoration: 'none', fontWeight: 700, fontSize: 16, border: '1px solid rgba(255,255,255,0.15)' }}>
+              Sign In
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '60px 40px' }}>
+
+        {/* Mission */}
+        <div style={{ textAlign: 'center', marginBottom: 80 }}>
+          <h2 style={{ fontSize: 40, fontWeight: 900, marginBottom: 16, letterSpacing: '-0.02em' }}>Our Mission</h2>
+          <p style={{ fontSize: 18, color: 'var(--text2)', maxWidth: 700, margin: '0 auto', lineHeight: 1.8 }}>
+            We started RemoteTeam Manager because we experienced firsthand the friction of managing distributed teams across multiple disconnected tools. Our mission is simple: <strong style={{ color: 'var(--brand)' }}>make remote work feel as seamless and human as working side-by-side.</strong>
           </p>
         </div>
 
-        {/* Values Section */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-40 relative z-10">
-          <Card variant="glass" className="p-10 space-y-6">
-            <div className="w-14 h-14 rounded-2xl bg-brand/10 flex items-center justify-center text-brand"><Target size={28} /></div>
-            <h3 className="text-2xl font-black">Unified Intelligence</h3>
-            <p className="text-text-tertiary leading-relaxed font-medium">
-              We believe that when communication, task management, and data converge, teams achieve unprecedented levels of clarity and speed.
-            </p>
-          </Card>
-          <Card variant="glass" className="p-10 space-y-6">
-            <div className="w-14 h-14 rounded-2xl bg-accent-violet/10 flex items-center justify-center text-accent-violet"><Zap size={28} /></div>
-            <h3 className="text-2xl font-black">Radical Velocity</h3>
-            <p className="text-text-tertiary leading-relaxed font-medium">
-              Eliminating friction from the development lifecycle. Our platform is built for teams that move fast and ship even faster.
-            </p>
-          </Card>
-          <Card variant="glass" className="p-10 space-y-6">
-            <div className="w-14 h-14 rounded-2xl bg-accent-rose/10 flex items-center justify-center text-accent-rose"><Shield size={28} /></div>
-            <h3 className="text-2xl font-black">Fortified Trust</h3>
-            <p className="text-text-tertiary leading-relaxed font-medium">
-              Security is not an afterthought. We implement bank-grade encryption and strict access controls to protect your intellectual capital.
-            </p>
-          </Card>
-        </div>
-
-        {/* The Kigali Story */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center mb-40 relative z-10">
-          <div className="order-2 lg:order-1">
-             <div className="relative rounded-[40px] border border-white/10 bg-white/5 p-4 backdrop-blur-3xl shadow-2xl overflow-hidden group">
-               <img 
-                 src={HQ_IMG} 
-                 alt="Kigali Innovation City HQ" 
-                 className="w-full rounded-[24px] shadow-2xl transition-transform duration-700 group-hover:scale-[1.02]"
-               />
-               <div className="absolute inset-0 bg-gradient-to-t from-[#060b18]/60 to-transparent pointer-events-none" />
-             </div>
-          </div>
-          <div className="order-1 lg:order-2 space-y-8">
-             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-black tracking-widest text-emerald-500 uppercase">
-                Global Impact
-             </div>
-             <h2 className="text-4xl md:text-6xl font-black tracking-tight leading-tight">
-                Proudly Engineered in <span className="text-emerald-500">Rwanda.</span>
-             </h2>
-             <p className="text-lg text-text-secondary font-medium leading-relaxed">
-                Our global technical heartbeat is located in Kigali Innovation City. We are committed to the digital transformation of East Africa and beyond.
-             </p>
-             <p className="text-text-tertiary leading-relaxed">
-                By leveraging local talent and a global perspective, we've built a platform that scales across continents while maintaining the soul of its origin.
-             </p>
-             <div className="flex items-center gap-4 pt-4">
-                <div className="flex -space-x-3">
-                   {[1, 2, 3, 4].map(i => (
-                     <div key={i} className="w-12 h-12 rounded-full border-4 border-[#060b18] bg-white/10 flex items-center justify-center text-[10px] font-black">U{i}</div>
-                   ))}
-                </div>
-                <div className="text-sm font-black text-white">Join 1,000+ pioneers in Kigali</div>
-             </div>
-          </div>
-        </div>
-
-        {/* The Team Section */}
-        <div className="mb-40 relative z-10">
-          <div className="text-center mb-16">
-             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand/10 border border-brand/20 text-[10px] font-black tracking-widest text-brand uppercase mb-6">
-                The Architects
-             </div>
-             <h2 className="text-4xl md:text-5xl font-black tracking-tight mb-4">Meet the leadership.</h2>
-             <p className="text-lg text-text-secondary font-medium max-w-2xl mx-auto">Built by engineers who were tired of fragmented, slow tools. We're a remote-first team distributed across 12 countries.</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-             {[
-               { name: "Sarah Chen", role: "Chief Executive Officer", bg: "bg-blue-500" },
-               { name: "Marcus Johnson", role: "Chief Technology Officer", bg: "bg-purple-500" },
-               { name: "Elena Rodriguez", role: "Head of Product", bg: "bg-emerald-500" },
-               { name: "David Kim", role: "Head of Engineering", bg: "bg-rose-500" }
-             ].map(member => (
-               <Card key={member.name} hover variant="glass" className="p-6 text-center group">
-                 <div className={`w-24 h-24 mx-auto rounded-3xl ${member.bg} mb-6 flex items-center justify-center text-3xl font-black text-white shadow-xl group-hover:-translate-y-2 transition-transform duration-500`}>
-                   {member.name.charAt(0)}
-                 </div>
-                 <h3 className="text-xl font-black text-white mb-1">{member.name}</h3>
-                 <p className="text-sm font-bold text-text-tertiary">{member.role}</p>
-               </Card>
-             ))}
-          </div>
-        </div>
-
-        {/* Join Us Section */}
-        <Card variant="glass" className="relative p-20 text-center overflow-hidden">
-           <div className="absolute inset-0 bg-brand/5 blur-[100px] pointer-events-none" />
-           <div className="relative z-10 max-w-2xl mx-auto space-y-10">
-              <h2 className="text-4xl md:text-7xl font-black tracking-tight leading-tight">
-                 Ready to Join the <br /> <span className="text-brand">Mission?</span>
-              </h2>
-              <p className="text-xl text-text-secondary font-medium">
-                 Experience the first true Workspace OS built for the modern era. Start your journey today.
-              </p>
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-                 <Button size="lg" className="px-12 py-5 text-xl font-black">
-                    Get Started Free
-                 </Button>
-                 <Button variant="secondary" size="lg" className="px-12 py-5 text-xl font-black">
-                    View Careers
-                 </Button>
+        {/* Features grid */}
+        <div style={{ marginBottom: 80 }}>
+          <h2 style={{ fontSize: 32, fontWeight: 800, textAlign: 'center', marginBottom: 40 }}>Everything Your Team Needs</h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
+            {FEATURES.map((f, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 16, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 12 }}>
+                <CheckCircle size={18} color="var(--success)" style={{ flexShrink: 0 }} />
+                <span style={{ fontSize: 14, fontWeight: 500 }}>{f}</span>
               </div>
-           </div>
-        </Card>
+            ))}
+          </div>
+        </div>
+
+        {/* Values */}
+        <div style={{ marginBottom: 80 }}>
+          <h2 style={{ fontSize: 32, fontWeight: 800, textAlign: 'center', marginBottom: 40 }}>What We Stand For</h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 24 }}>
+            {VALUES.map((v, i) => (
+              <div key={i} style={{ padding: 28, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 16, transition: 'transform 0.2s' }}
+                onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-4px)'}
+                onMouseLeave={e => e.currentTarget.style.transform = ''}>
+                <div style={{ width: 48, height: 48, borderRadius: 12, background: 'var(--brand-subtle)', color: 'var(--brand)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+                  {v.icon}
+                </div>
+                <h3 style={{ fontSize: 18, fontWeight: 800, marginBottom: 10 }}>{v.title}</h3>
+                <p style={{ fontSize: 14, color: 'var(--text2)', lineHeight: 1.7 }}>{v.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Team */}
+        <div style={{ marginBottom: 80 }}>
+          <h2 style={{ fontSize: 32, fontWeight: 800, textAlign: 'center', marginBottom: 12 }}>The Team</h2>
+          <p style={{ fontSize: 16, color: 'var(--text2)', textAlign: 'center', marginBottom: 40 }}>A small, focused team building big things for remote workers.</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24 }}>
+            {TEAM.map((m, i) => (
+              <div key={i} style={{ padding: 28, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 16, textAlign: 'center' }}>
+                <div style={{ width: 72, height: 72, borderRadius: '50%', background: m.color, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, fontWeight: 800, color: '#fff', margin: '0 auto 16px' }}>
+                  {m.initials}
+                </div>
+                <h3 style={{ fontSize: 18, fontWeight: 800, marginBottom: 4 }}>{m.name}</h3>
+                <p style={{ fontSize: 13, color: 'var(--brand)', fontWeight: 600, marginBottom: 12 }}>{m.role}</p>
+                <p style={{ fontSize: 14, color: 'var(--text2)', lineHeight: 1.6 }}>{m.bio}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Stats */}
+        <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 20, padding: 48, textAlign: 'center', marginBottom: 80 }}>
+          <h2 style={{ fontSize: 32, fontWeight: 800, marginBottom: 40 }}>Growing Together</h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 24 }}>
+            {[
+              { value: '500+', label: 'Teams' },
+              { value: '50K+', label: 'Tasks Managed' },
+              { value: '3', label: 'Languages' },
+              { value: '99.9%', label: 'Uptime' },
+            ].map((s, i) => (
+              <div key={i}>
+                <div style={{ fontSize: 40, fontWeight: 900, color: 'var(--brand)', marginBottom: 8 }}>{s.value}</div>
+                <div style={{ fontSize: 14, color: 'var(--text2)', fontWeight: 600 }}>{s.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* CTA */}
+        <div style={{ textAlign: 'center', padding: '60px 0' }}>
+          <h2 style={{ fontSize: 40, fontWeight: 900, marginBottom: 16 }}>Ready to transform your remote team?</h2>
+          <p style={{ fontSize: 18, color: 'var(--text2)', marginBottom: 36 }}>Join thousands of teams who manage work smarter with RemoteTeam Manager.</p>
+          <Link to="/register" style={{ background: 'var(--brand)', color: '#fff', padding: '16px 40px', borderRadius: 14, textDecoration: 'none', fontWeight: 800, fontSize: 18, display: 'inline-flex', alignItems: 'center', gap: 10 }}>
+            Start for Free <ArrowRight size={20} />
+          </Link>
+        </div>
       </div>
     </div>
   );
