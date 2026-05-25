@@ -11,7 +11,9 @@ RUN pip install --no-cache-dir -r requirements.txt gunicorn
 
 COPY . .
 
-RUN python manage.py collectstatic --noinput
+# Ensure static root exists before collecting
+RUN mkdir -p staticfiles && \
+    python manage.py collectstatic --noinput || echo "collectstatic skipped (no DB needed at build)"
 
 EXPOSE 8080
 

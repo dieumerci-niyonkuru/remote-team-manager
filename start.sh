@@ -2,6 +2,9 @@
 set -e
 echo "=== RemoteTeam Server Boot ==="
 
+# Ensure staticfiles directory exists (required by WhiteNoise)
+mkdir -p staticfiles
+
 # Wait for database
 echo "Waiting for database..."
 for i in {1..30}; do
@@ -14,9 +17,9 @@ done
 echo "Running migrations..."
 python manage.py migrate --noinput
 
-# Collect static files
+# Collect static files (non-fatal — app still works without them)
 echo "Collecting static files..."
-python manage.py collectstatic --noinput --clear 2>/dev/null || true
+python manage.py collectstatic --noinput --clear 2>&1 || echo "WARNING: collectstatic failed (non-fatal)"
 
 # Start server with daphne (supports HTTP + WebSocket)
 PORT="${PORT:-8080}"

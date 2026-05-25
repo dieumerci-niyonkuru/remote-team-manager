@@ -23,6 +23,11 @@ ALLOWED_HOSTS = config(
     default='localhost,127.0.0.1,testserver,remote-team-manager-production.up.railway.app'
 ).split(',')
 
+# Allow all Railway subdomains automatically
+ALLOWED_HOSTS += ['.railway.app', '.up.railway.app']
+# Remove duplicates
+ALLOWED_HOSTS = list(set(h.strip() for h in ALLOWED_HOSTS if h.strip()))
+
 # =========================
 # INSTALLED APPS
 # =========================
@@ -215,20 +220,49 @@ CORS_ALLOWED_ORIGINS = [
 
 CORS_ALLOW_CREDENTIALS = True
 
+# Also trust Railway HTTPS origins for CSRF
+CSRF_TRUSTED_ORIGINS = config(
+    'CSRF_TRUSTED_ORIGINS',
+    default='https://*.railway.app,https://*.up.railway.app'
+).split(',')
+
 # =========================
 # CHANNEL LAYERS (FIXED)
 # =========================
 
-CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {
-            "hosts": [
-                ("127.0.0.1", 6379)
-            ],
+REDIS_URL = config('REDIS_URL', default=None) or config('REDISCLOUD_URL', default=None)
+
+if REDIS_URL:
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels_redis.core.RedisChannelLayer",
+            "CONFIG": {
+                "hosts": [REDIS_URL],
+            },
         },
-    },
-}
+    }
+else:
+    # Fallback to in-memory channel layer (single-process only; WebSockets limited to 1 replica)
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels.layers.InMemoryChannelLayer",
+        },
+    }
+
+# Cache: use Redis if available, else in-memory
+if REDIS_URL:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.redis.RedisCache",
+            "LOCATION": REDIS_URL,
+        }
+    }
+else:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        }
+    }
 
 # =========================
 # DEFAULT AUTO FIELD
@@ -239,8 +273,16 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # PRODUCTION SECURITY HARDENING
 # ============================================================
 
-# Force HTTPS in production
-SECURE_SSL_REDIRECT = not DEBUG
+# ============================================================
+# PRODUCTION SECURITY HARDENING
+# ============================================================
+
+# Railway terminates SSL at its edge proxy — never redirect internally
+# (the app always sees HTTP from Railway's proxy, not HTTPS directly)
+SECURE_SSL_REDIRECT = False
+# Trust Railway's forwarded proto header so Django knows the request arrived over HTTPS
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
 
