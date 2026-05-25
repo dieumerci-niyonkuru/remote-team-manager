@@ -18,7 +18,7 @@ import { auth as api } from '../services/api';
 import { Avatar, Input, Textarea, Button } from '../components/ui';
 
 export default function Settings() {
-  const { user, setUser, logout } = useStore();
+  const { user, setUser, logout, theme, setTheme, lang = 'en', setLang } = useStore();
   const [activeTab, setActiveTab] = React.useState('profile');
   const [formData, setFormData] = React.useState({
     username: user?.username || '',
@@ -155,6 +155,34 @@ export default function Settings() {
                     <ThemeCard active id="dark" label="Deep Space" icon={<Moon size={24} />} />
                     <ThemeCard id="light" label="Cloudy Day" icon={<Sun size={24} />} />
                     <ThemeCard id="system" label="System Sync" icon={<Laptop size={24} />} />
+                  </div>
+                </div>
+
+                {/* Language Switcher */}
+                <div>
+                  <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                    <Globe size={18} className="text-blue-400" /> Interface Language
+                  </h3>
+                  <p className="text-sm text-gray-500 mb-4">Choose the language for all labels, buttons, and navigation.</p>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {[
+                      { code: 'en', label: 'English', flag: '🇬🇧', native: 'English' },
+                      { code: 'fr', label: 'French', flag: '🇫🇷', native: 'Français' },
+                      { code: 'rw', label: 'Kinyarwanda', flag: '🇷🇼', native: 'Ikinyarwanda' },
+                    ].map(l => (
+                      <button
+                        key={l.code}
+                        onClick={() => setLang && setLang(l.code)}
+                        className={`p-5 rounded-2xl border-2 text-left transition-all ${(lang || 'en') === l.code ? 'border-blue-500 bg-blue-600/10 shadow-lg shadow-blue-600/10' : 'border-gray-800 bg-gray-900 hover:border-gray-700'}`}
+                      >
+                        <div className="text-2xl mb-2">{l.flag}</div>
+                        <p className="text-sm font-bold text-white">{l.native}</p>
+                        <p className="text-[10px] text-gray-500 mt-0.5">{l.label}</p>
+                        {(lang || 'en') === l.code && (
+                          <span className="inline-block mt-2 text-[10px] font-black text-blue-400 uppercase tracking-widest">Active</span>
+                        )}
+                      </button>
+                    ))}
                   </div>
                 </div>
 

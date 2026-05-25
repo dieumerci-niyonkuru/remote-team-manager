@@ -5,13 +5,18 @@ import { auth } from '../../services/api'
 import { getT } from '../../i18n'
 import toast from 'react-hot-toast'
 import NotificationBadge from './NotificationBadge'
-
 import ThemeSwitcher from './ThemeSwitcher'
 import { Button } from '../common/Button'
 
+const LANGS = [
+  { code: 'en', label: 'EN', flag: '🇬🇧' },
+  { code: 'fr', label: 'FR', flag: '🇫🇷' },
+  { code: 'rw', label: 'RW', flag: '🇷🇼' },
+]
+
 export default function Header() {
-  const { isAuth, user, logout, theme, setTheme } = useStore()
-  const t = getT('en')
+  const { isAuth, user, logout, theme, setTheme, lang = 'en', setLang } = useStore()
+  const t = getT(lang || 'en')
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const [showMenu, setShowMenu] = React.useState(false)
@@ -28,7 +33,7 @@ export default function Header() {
 
   const handleLogout = async () => {
     try { await auth.logout(localStorage.getItem('rtm_refresh')) } catch {}
-    logout(); toast.success('Secure Disconnection Successful'); navigate('/login')
+    logout(); toast.success('Signed out successfully'); navigate('/login')
   }
 
   const PRODUCT_MENU = [
@@ -40,17 +45,17 @@ export default function Header() {
   const SOLUTIONS_MENU = [
     { label: t.navTimeline, to: '/calendar', desc: t.navTimelineDesc, icon: '04' },
     { label: t.navAssets, to: '/files', desc: t.navAssetsDesc, icon: '05' },
-    { label: t.navHealth, to: '/health', desc: t.navHealthDesc, icon: '06' },
+    { label: t.navAuto, to: '/automations', desc: t.navAutoDesc, icon: '11' },
   ]
 
   const ENTERPRISE_MENU = [
-    { label: t.navSecurity, to: '/security', desc: t.navSecurityDesc, icon: '07' },
-    { label: t.navCompliance, to: '/compliance', desc: t.navComplianceDesc, icon: '08' },
-    { label: t.navMultiTenant, to: '/multi-tenant', desc: t.navMultiTenantDesc, icon: '09' },
+    { label: t.navSecurity, to: '/settings', desc: t.navSecurityDesc, icon: '07' },
+    { label: t.navCompliance, to: '/audit', desc: t.navComplianceDesc, icon: '08' },
+    { label: t.navMultiTenant, to: '/workspaces', desc: t.navMultiTenantDesc, icon: '09' },
   ]
 
   const PLATFORM_MENU = [
-    { label: t.navApi, to: '/api', desc: t.navApiDesc, icon: '10' },
+    { label: t.navApi, to: '/integrations', desc: t.navApiDesc, icon: '10' },
     { label: t.navAuto, to: '/automations', desc: t.navAutoDesc, icon: '11' },
     { label: t.navIntegrations, to: '/integrations', desc: t.navIntegrationsDesc, icon: '12' },
   ]
@@ -103,20 +108,20 @@ export default function Header() {
   return (
     <header style={{ 
       position:'fixed', top:0, left:0, right:0, zIndex:1000, 
-      background: scrolled ? 'rgba(var(--bg-rgb), 0.85)' : 'transparent',
+      background: scrolled ? 'rgba(var(--bg-rgb), 0.92)' : 'transparent',
       backdropFilter: scrolled ? 'blur(30px)' : 'none',
       borderBottom: scrolled ? '1px solid var(--border)' : '1px solid transparent',
-      height: scrolled ? 80 : 100, transition: '0.4s cubic-bezier(0.4, 0, 0.2, 1)'
+      height: scrolled ? 72 : 88, transition: '0.4s cubic-bezier(0.4, 0, 0.2, 1)'
     }}>
-      <div className="container" style={{ height:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', maxWidth:1400 }}>
+      <div className="container" style={{ height:'100%', display:'flex', alignItems:'center', justifyContent:'space-between', maxWidth:1400, padding:'0 24px' }}>
         
         {/* Brand */}
         <Link to="/" style={{ display:'flex', alignItems:'center', gap:12, textDecoration:'none' }}>
-           <div style={{ width:44, height:44, borderRadius:12, background:'linear-gradient(135deg, var(--brand), #8b5cf6)', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', boxShadow:'0 10px 20px -5px rgba(51,102,255,0.4)', overflow:'hidden', padding:8 }}>
+           <div style={{ width:40, height:40, borderRadius:12, background:'linear-gradient(135deg, var(--brand), #8b5cf6)', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', boxShadow:'0 10px 20px -5px rgba(51,102,255,0.4)', overflow:'hidden', padding:8 }}>
               <img src="/logo.png" alt="RemoteTeam" style={{ width:'100%', height:'100%', objectFit:'contain' }} />
            </div>
-           <span className="logo-font" style={{ fontSize:22, letterSpacing:'-0.03em', lineHeight: 1.1 }}>
-             RemoteTeam
+           <span style={{ fontSize:20, fontWeight:900, letterSpacing:'-0.03em', color:'var(--text)' }}>
+             Remote<span style={{ color:'var(--brand)' }}>Team</span>
            </span>
         </Link>
 
@@ -128,37 +133,69 @@ export default function Header() {
            <NavItem label={t.solutions} items={SOLUTIONS_MENU} />
            <NavItem label={t.enterprise} items={ENTERPRISE_MENU} />
            <NavItem label={t.platform} items={PLATFORM_MENU} />
-           <NavItem label={t.pricing} to="/pricing" />
+           {isAuth && <NavItem label={t.pricing || 'Pricing'} to="/dashboard" />}
         </nav>
 
         {/* Actions */}
-        <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+        <div style={{ display:'flex', alignItems:'center', gap:8 }}>
           
-          <NotificationBadge />
+          {/* Language Switcher */}
+          <div className="desktop-only" style={{ display:'flex', gap:4 }}>
+            {LANGS.map(l => (
+              <button
+                key={l.code}
+                onClick={() => setLang && setLang(l.code)}
+                style={{
+                  background: (lang || 'en') === l.code ? 'var(--brand-bg)' : 'transparent',
+                  border: (lang || 'en') === l.code ? '1px solid var(--brand)' : '1px solid transparent',
+                  color: (lang || 'en') === l.code ? 'var(--brand)' : 'var(--text3)',
+                  borderRadius:8, padding:'4px 8px', fontSize:11, fontWeight:800, cursor:'pointer',
+                  transition:'0.2s'
+                }}
+              >
+                {l.flag} {l.label}
+              </button>
+            ))}
+          </div>
+
+          {isAuth && <NotificationBadge />}
           
           <div className="desktop-only">
             <ThemeSwitcher />
           </div>
 
           {isAuth ? (
-            <Button variant="secondary" onClick={handleLogout} size="sm" className="font-black">{t.exit}</Button>
+            <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+              <Button variant="secondary" onClick={() => navigate('/dashboard')} size="sm" className="font-black desktop-only">{t.dashboard}</Button>
+              <Button variant="ghost" onClick={handleLogout} size="sm" className="font-black">{t.logout || t.exit}</Button>
+            </div>
           ) : (
             <div style={{ display:'flex', gap:8 }}>
                <Button variant="secondary" size="sm" className="desktop-only font-black" onClick={() => navigate('/login')}>{t.login}</Button>
-               <Button variant="primary" size="sm" className="font-black" onClick={() => navigate('/register')}>{t.joinMission}</Button>
+               <Button variant="primary" size="sm" className="font-black" onClick={() => navigate('/register')}>{t.register}</Button>
             </div>
           )}
 
-          <button className="mobile-only btn-icon" onClick={() => setShowMenu(!showMenu)} style={{ fontSize:24, background:'var(--bg3)', borderRadius:12 }}>
+          <button className="mobile-only btn-icon" onClick={() => setShowMenu(!showMenu)} style={{ fontSize:22, background:'var(--bg3)', border:'1px solid var(--border)', borderRadius:12, padding:'8px 12px', color:'var(--text)', cursor:'pointer' }}>
              {showMenu ? '✕' : '☰'}
           </button>
         </div>
       </div>
 
-      {/* Mobile Mega Menu */}
+      {/* Mobile Menu */}
       {showMenu && (
-        <div className="fade-in" style={{ position:'fixed', top:scrolled ? 80 : 100, inset:'0 0 0 0', background:'rgba(10, 15, 30, 0.98)', backdropFilter:'blur(40px)', zIndex:1001, padding:24, overflowY:'auto' }}>
-           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16, marginBottom:32 }}>
+        <div className="fade-in" style={{ position:'fixed', top: scrolled ? 72 : 88, inset:'0 0 0 0', background:'rgba(6, 11, 24, 0.98)', backdropFilter:'blur(40px)', zIndex:1001, padding:24, overflowY:'auto' }}>
+           {/* Language selector mobile */}
+           <div style={{ display:'flex', gap:8, marginBottom:24, justifyContent:'center' }}>
+             {LANGS.map(l => (
+               <button key={l.code} onClick={() => { setLang && setLang(l.code); }}
+                 style={{ background: (lang||'en')===l.code ? 'var(--brand)' : 'var(--bg3)', color:'#fff', border:'none', borderRadius:10, padding:'8px 16px', fontSize:13, fontWeight:800, cursor:'pointer' }}>
+                 {l.flag} {l.label}
+               </button>
+             ))}
+           </div>
+
+           <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:24 }}>
               <Link to="/" onClick={() => setShowMenu(false)} className="mobile-nav-link" style={{ textAlign:'center' }}>{t.home}</Link>
               <Link to="/about" onClick={() => setShowMenu(false)} className="mobile-nav-link" style={{ textAlign:'center' }}>{t.aboutUs}</Link>
            </div>
@@ -167,12 +204,12 @@ export default function Header() {
              { l: t.product, i:PRODUCT_MENU }, { l: t.solutions, i:SOLUTIONS_MENU },
              { l: t.enterprise, i:ENTERPRISE_MENU }, { l: t.platform, i:PLATFORM_MENU }
            ].map(cat => (
-             <div key={cat.l} style={{ marginBottom:24 }}>
-                <div style={{ fontSize:12, fontWeight:900, color:'var(--brand)', textTransform:'uppercase', letterSpacing:2, marginBottom:12, paddingLeft:12 }}>{cat.l}</div>
+             <div key={cat.l} style={{ marginBottom:20 }}>
+                <div style={{ fontSize:11, fontWeight:900, color:'var(--brand)', textTransform:'uppercase', letterSpacing:2, marginBottom:10, paddingLeft:12 }}>{cat.l}</div>
                 <div style={{ display:'grid', gap:8 }}>
                   {cat.i.map(item => (
                     <Link key={item.to} to={item.to} onClick={() => setShowMenu(false)} className="mobile-nav-link" style={{ display:'flex', alignItems:'center', gap:12 }}>
-                       <span style={{ fontSize:12, fontWeight:900, opacity:0.5 }}>{item.icon}</span>
+                       <span style={{ fontSize:11, fontWeight:900, opacity:0.5 }}>{item.icon}</span>
                        <span>{item.label}</span>
                     </Link>
                   ))}
@@ -180,13 +217,16 @@ export default function Header() {
              </div>
            ))}
 
-           <div style={{ marginTop:32, display:'grid', gap:12 }}>
-              <Link to="/pricing" onClick={() => setShowMenu(false)} className="mobile-nav-link" style={{ textAlign:'center' }}>{t.pricing}</Link>
-             {!isAuth && <Link to="/login" onClick={() => setShowMenu(false)} className="btn btn-secondary" style={{ padding:20, textAlign:'center', borderRadius:20 }}>{t.login}</Link>}
-             
-             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-               <button onClick={() => { setTheme(theme==='dark'?'light':'dark'); setShowMenu(false); }} className="btn btn-secondary" style={{ padding:16, borderRadius:20 }}>{t.toggleTheme}</button>
-             </div>
+           <div style={{ marginTop:24, display:'grid', gap:10 }}>
+             {!isAuth ? (
+               <>
+                 <Link to="/login" onClick={() => setShowMenu(false)} className="btn btn-secondary" style={{ padding:18, textAlign:'center', borderRadius:16 }}>{t.login}</Link>
+                 <Link to="/register" onClick={() => setShowMenu(false)} className="btn btn-primary" style={{ padding:18, textAlign:'center', borderRadius:16 }}>{t.register}</Link>
+               </>
+             ) : (
+               <button onClick={handleLogout} className="btn btn-secondary" style={{ padding:18, borderRadius:16 }}>{t.logout || t.exit}</button>
+             )}
+             <button onClick={() => { setTheme(theme==='dark'?'light':'dark'); }} className="btn btn-secondary" style={{ padding:16, borderRadius:16 }}>{t.toggleTheme}</button>
            </div>
         </div>
       )}
@@ -194,17 +234,17 @@ export default function Header() {
       <style>{`
         .desktop-only { display: flex !important; }
         .mobile-only { display: none !important; }
-        @media (max-width: 1200px) {
+        @media (max-width: 1024px) {
           .desktop-only { display: none !important; }
           .mobile-only { display: flex !important; }
         }
         .nav-link-hover:hover { color: var(--brand) !important; background: var(--brand-bg) !important; }
-        .dropdown-item-hover:hover { background: rgba(255,255,255,0.05); transform: translateX(8px); }
+        .dropdown-item-hover:hover { background: rgba(255,255,255,0.05); transform: translateX(6px); }
         .mobile-nav-link {
-          padding: 16px 20px; font-size: 15px; font-weight: 800; color: var(--text); text-decoration: none;
-          border-radius: 16px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); transition: 0.2s;
+          padding: 14px 18px; font-size: 14px; font-weight: 800; color: var(--text); text-decoration: none;
+          border-radius: 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); transition: 0.2s; display: block;
         }
-        .mobile-nav-link:active { transform: scale(0.98); }
+        .mobile-nav-link:hover { background: rgba(255,255,255,0.06); }
       `}</style>
     </header>
   )

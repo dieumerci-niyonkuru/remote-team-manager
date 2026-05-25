@@ -35,8 +35,8 @@ import FocusTrap from '../common/FocusTrap';
 
 
 export default function Sidebar() {
-  const { theme, setTheme, workspaces, activeWorkspace, setActiveWorkspace, user, status, isSyncing, logout } = useStore();
-  const t = getT('en');
+  const { theme, setTheme, workspaces, activeWorkspace, setActiveWorkspace, user, status, isSyncing, logout, lang = 'en', setLang } = useStore();
+  const t = getT(lang || 'en');
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [showWorkspaceMenu, setShowWorkspaceMenu] = useState(false);

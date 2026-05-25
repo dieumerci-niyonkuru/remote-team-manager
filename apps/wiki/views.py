@@ -6,6 +6,7 @@ from .models import WikiArticle, WikiRevision
 from .serializers import WikiArticleSerializer, WikiRevisionSerializer
 from .permissions import IsEditorOrOwner
 
+
 class WikiArticleViewSet(viewsets.ModelViewSet):
     serializer_class = WikiArticleSerializer
     permission_classes = [permissions.IsAuthenticated, IsEditorOrOwner]
@@ -17,22 +18,21 @@ class WikiArticleViewSet(viewsets.ModelViewSet):
             qs = qs.filter(title__icontains=q) | qs.filter(content__icontains=q)
         return qs.order_by('-updated_at')
 
-class WikiRevisionViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = WikiRevisionSerializer
-    permission_classes = [permissions.IsAuthenticated, IsEditorOrOwner]
+    @action(detail=True, methods=['get'], url_path='revisions')
+    def revisions(self, request, pk=None):
+        article = self.get_object()
+        revisions = WikiRevision.objects.filter(article=article).order_by('-created_at')
+        serializer = WikiRevisionSerializer(revisions, many=True)
+        return Response({'data': serializer.data})
 
-    def get_queryset(self):
-        article_id = self.kwargs.get('article_pk')
-        return WikiRevision.objects.filter(article_id=article_id)
-
-    @action(detail=True, methods=['post'])
-    def restore(self, request, pk=None, article_pk=None):
-        """Restore the article to this revision's content."""
-        rev = self.get_object()
-        article = rev.article
+    @action(detail=True, methods=['post'], url_path=r'revisions/(?P<revision_id>\d+)/restore')
+    def restore_revision(self, request, pk=None, revision_id=None):
+        article = self.get_object()
+        try:
+            rev = WikiRevision.objects.get(id=revision_id, article=article)
+        except WikiRevision.DoesNotExist:
+            return Response({'error': 'Revision not found'}, status=status.HTTP_404_NOT_FOUND)
         article.content = rev.content
         article.save()
-        # Optionally create a new revision reflecting the restore
         WikiRevision.objects.create(article=article, content=rev.content, author=request.user)
         return Response(WikiArticleSerializer(article).data, status=status.HTTP_200_OK)
-

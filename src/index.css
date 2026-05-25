@@ -343,3 +343,96 @@ h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: -0.02em; line
 }
 
 .text-gradient { background: linear-gradient(135deg, #fff 0%, #3366ff 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+/* ============================================================
+   PRODUCTION HARDENING — Responsive, A11y, Performance
+   ============================================================ */
+
+/* Prevent horizontal overflow globally */
+html, body { overflow-x: hidden; }
+
+/* Spin animation (used by loaders) */
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Ensure images never overflow their containers */
+img { max-width: 100%; height: auto; }
+
+/* Smooth scrolling */
+html { scroll-behavior: smooth; }
+
+/* Mobile: sidebar and layout */
+@media (max-width: 768px) {
+  .sidebar-desktop { display: none !important; }
+  .main-content-authenticated { padding: 12px !important; }
+}
+
+/* Prevent text selection on drag-and-drop elements */
+[draggable] { user-select: none; -webkit-user-select: none; }
+
+/* Avatar fallback */
+.avatar-fallback {
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 900; font-size: 12px; text-transform: uppercase;
+  color: #fff; border-radius: 50%; flex-shrink: 0;
+}
+
+/* Focus ring — accessible */
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Toast z-index fix */
+.react-hot-toast { z-index: 99999 !important; }
+
+/* Kanban column min-height for empty state visibility */
+.kanban-column { min-height: 200px; }
+
+/* Table responsive wrapper */
+.table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+/* Form inputs — consistent across browsers */
+input[type="text"], input[type="email"], input[type="password"],
+input[type="search"], textarea, select {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* Remove default outline on modals */
+dialog { outline: none; }
+
+/* Card hover lift */
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 40px -10px rgba(0,0,0,0.4);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Notification unread pulse */
+.notify-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Mobile nav menu overlay fix */
+@media (max-width: 1024px) {
+  .mobile-menu-overlay { position: fixed; inset: 0; z-index: 9999; }
+}
+
+/* Chart and analytics overflow protection */
+.recharts-responsive-container { overflow: hidden !important; }
+
+/* Skeleton loading animation */
+.skeleton {
+  background: linear-gradient(90deg, var(--bg3) 25%, var(--bg2) 50%, var(--bg3) 75%);
+  background-size: 400% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+}
+@keyframes skeleton-loading {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
