@@ -1069,3 +1069,203 @@ img, video, canvas, svg { transition: none !important; }
   background: var(--brand);
   border-radius: 0 2px 2px 0;
 }
+
+/* ============================================================
+   DESIGN SYSTEM ADDITIONS — Micro-animations, Glass, Badges
+   ============================================================ */
+
+/* ── Micro-animation keyframes ──────────────────────────── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-8px); }
+}
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(51,102,255,0.3); }
+  50%       { box-shadow: 0 0 40px rgba(51,102,255,0.6); }
+}
+
+/* ── Animation utility classes ──────────────────────────── */
+.animate-fade-in-up  { animation: fadeInUp      0.35s cubic-bezier(0.4,0,0.2,1) both; }
+.animate-fade-in     { animation: fadeIn        0.25s ease both; }
+.animate-slide-right { animation: slideInRight  0.3s  cubic-bezier(0.4,0,0.2,1) both; }
+
+/* ── Skeleton loader ─────────────────────────────────────── */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--bg3) 0%,
+    var(--bg2) 45%,
+    var(--bg3) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+  border-radius: var(--radius-md);
+}
+
+/* ── Glassmorphism ───────────────────────────────────────── */
+.glass-strong {
+  background: rgba(var(--bg-rgb), 0.55);
+  backdrop-filter: blur(28px) saturate(1.5);
+  -webkit-backdrop-filter: blur(28px) saturate(1.5);
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+}
+
+/* ── Hover lift ──────────────────────────────────────────── */
+.hover-lift {
+  transition: transform 0.2s var(--ease-smooth), box-shadow 0.2s var(--ease-smooth);
+}
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-float);
+}
+
+/* ── Badge system ────────────────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  background: var(--bg3);
+  color: var(--text2);
+  border: 1px solid var(--border);
+}
+.badge-success {
+  background: var(--success-subtle);
+  color: var(--success);
+  border-color: rgba(16,185,129,0.2);
+}
+.badge-warning {
+  background: var(--warning-subtle);
+  color: var(--warning);
+  border-color: rgba(245,158,11,0.2);
+}
+.badge-error {
+  background: var(--danger-subtle);
+  color: var(--danger);
+  border-color: rgba(239,68,68,0.2);
+}
+.badge-info {
+  background: var(--info-subtle);
+  color: var(--info);
+  border-color: rgba(59,130,246,0.2);
+}
+
+/* ── Tag / chip ──────────────────────────────────────────── */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--bg3);
+  color: var(--text2);
+  border: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+/* ── Styled input ────────────────────────────────────────── */
+.input-field {
+  width: 100%;
+  padding: 11px 14px;
+  background: var(--bg3);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  box-sizing: border-box;
+}
+.input-field:focus {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(51,102,255,0.12);
+}
+.input-field::placeholder { color: var(--text3); }
+
+/* ── Divider ─────────────────────────────────────────────── */
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 20px 0;
+  border: none;
+}
+
+/* ── Presence dots ───────────────────────────────────────── */
+.online-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 0 0 rgba(16,185,129,0.4);
+  animation: online-pulse 2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+@keyframes online-pulse {
+  0%   { box-shadow: 0 0 0 0   rgba(16,185,129,0.5); }
+  70%  { box-shadow: 0 0 0 6px rgba(16,185,129,0); }
+  100% { box-shadow: 0 0 0 0   rgba(16,185,129,0); }
+}
+.away-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--warning);
+  flex-shrink: 0;
+}
+.offline-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text3);
+  flex-shrink: 0;
+}
+
+/* ── Smooth page entry ───────────────────────────────────── */
+.page-enter {
+  animation: fadeInUp 0.25s ease both;
+}
+
+/* ── Custom scrollbar (webkit) ───────────────────────────── */
+::-webkit-scrollbar              { width: 6px; height: 6px; }
+::-webkit-scrollbar-track        { background: transparent; }
+::-webkit-scrollbar-thumb        { background: var(--bg3); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover  { background: var(--border2); }
+
+/* ── Mobile-first responsive utilities ──────────────────── */
+.hide-xs  { display: none !important; }
+@media (min-width: 480px)  { .hide-xs  { display: revert !important; } .show-xs  { display: none !important; } }
+@media (min-width: 640px)  { .hide-sm  { display: revert !important; } .show-sm  { display: none !important; } }
+@media (min-width: 768px)  { .hide-md  { display: revert !important; } .show-md  { display: none !important; } }
+@media (min-width: 1024px) { .hide-lg  { display: revert !important; } .show-lg  { display: none !important; } }
+
+.flex-center  { display: flex; align-items: center; justify-content: center; }
+.flex-between { display: flex; align-items: center; justify-content: space-between; }
+.flex-col     { display: flex; flex-direction: column; }
+.gap-1 { gap: 4px; }  .gap-2 { gap: 8px; }  .gap-3 { gap: 12px; }  .gap-4 { gap: 16px; }

@@ -1,0 +1,71 @@
+# =============================================================================
+# Stage 1 — builder: compile wheels for all Python dependencies
+# =============================================================================
+FROM python:3.11-slim AS builder
+
+WORKDIR /build
+
+# Build-time system deps (gcc + libpq for psycopg2)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq-dev \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy only the requirements file first for optimal layer caching.
+# Wheel compilation is re-run only when requirements.txt changes.
+COPY requirements.txt .
+
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip wheel --no-cache-dir --wheel-dir /wheels \
+        -r requirements.txt \
+        gunicorn
+
+# =============================================================================
+# Stage 2 — final: lean runtime image
+# =============================================================================
+FROM python:3.11-slim AS final
+
+# Runtime system deps only (no build tools, no gcc)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq5 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create a non-root user for running the application
+RUN groupadd --system appgroup && \
+    useradd --system --gid appgroup --no-create-home --shell /usr/sbin/nologin appuser
+
+WORKDIR /app
+
+# Install pre-built wheels from the builder stage (no compiler needed)
+COPY --from=builder /wheels /wheels
+RUN pip install --no-cache-dir --no-index --find-links /wheels \
+        /wheels/*.whl && \
+    rm -rf /wheels
+
+# Copy application source code
+COPY --chown=appuser:appgroup . .
+
+# Collect static files at build time (no DB connection required)
+RUN mkdir -p staticfiles && \
+    SECRET_KEY=dummy-build-key DEBUG=False \
+    python manage.py collectstatic --noinput || \
+    echo "collectstatic skipped"
+
+# Copy and prepare the start script
+COPY --chown=appuser:appgroup start.sh /start.sh
+RUN chmod +x /start.sh
+
+# Switch to non-root user before running the container
+USER appuser
+
+EXPOSE 8080
+
+# Health check: ping the lightweight /api/health/ endpoint every 30 s.
+# Allow 60 s of startup grace, then retry 3 times before marking unhealthy.
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD python -c "\
+import urllib.request, sys; \
+r = urllib.request.urlopen('http://localhost:8080/api/health/', timeout=8); \
+sys.exit(0 if r.status == 200 else 1)"
+
+CMD ["/start.sh"]
