@@ -11,12 +11,16 @@ from channels.security.websocket import AllowedHostsOriginValidator
 import apps.chat.routing
 import apps.notifications.routing
 import apps.presence.routing
+import apps.projects.routing
+import apps.wiki.routing
 
 # Combine WebSocket URL patterns from all apps
 websocket_urlpatterns = (
     apps.chat.routing.websocket_urlpatterns +
     apps.notifications.routing.websocket_urlpatterns +
-    apps.presence.routing.websocket_urlpatterns
+    apps.presence.routing.websocket_urlpatterns +
+    apps.projects.routing.websocket_urlpatterns +
+    apps.wiki.routing.websocket_urlpatterns
 )
 
 application = ProtocolTypeRouter({
