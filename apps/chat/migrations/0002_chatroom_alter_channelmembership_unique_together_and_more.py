@@ -14,15 +14,48 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.CreateModel(
-            name='ChatRoom',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(blank=True, max_length=255, null=True)),
-                ('room_type', models.CharField(choices=[('private', 'Private'), ('group', 'Group'), ('workspace', 'Workspace')], default='group', max_length=20)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('participants', models.ManyToManyField(related_name='chat_rooms', to=settings.AUTH_USER_MODEL)),
-                ('workspace', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='chat_rooms', to='workspaces.workspace')),
+        migrations.SeparateDatabaseAndState(
+            database_operations=[
+                migrations.RunSQL(
+                    sql="""
+                    CREATE TABLE IF NOT EXISTS "chat_chatroom" (
+                        "id" bigserial NOT NULL PRIMARY KEY,
+                        "name" varchar(255) NULL,
+                        "room_type" varchar(20) NOT NULL DEFAULT 'group',
+                        "created_at" timestamptz NOT NULL,
+                        "workspace_id" bigint NULL
+                            REFERENCES "workspaces_workspace" ("id")
+                            DEFERRABLE INITIALLY DEFERRED
+                    );
+                    CREATE TABLE IF NOT EXISTS "chat_chatroom_participants" (
+                        "id" bigserial NOT NULL PRIMARY KEY,
+                        "chatroom_id" bigint NOT NULL
+                            REFERENCES "chat_chatroom" ("id")
+                            DEFERRABLE INITIALLY DEFERRED,
+                        "user_id" bigint NOT NULL
+                            REFERENCES "accounts_user" ("id")
+                            DEFERRABLE INITIALLY DEFERRED,
+                        UNIQUE ("chatroom_id", "user_id")
+                    );
+                    """,
+                    reverse_sql=(
+                        'DROP TABLE IF EXISTS "chat_chatroom_participants";'
+                        'DROP TABLE IF EXISTS "chat_chatroom";'
+                    ),
+                ),
+            ],
+            state_operations=[
+                migrations.CreateModel(
+                    name='ChatRoom',
+                    fields=[
+                        ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                        ('name', models.CharField(blank=True, max_length=255, null=True)),
+                        ('room_type', models.CharField(choices=[('private', 'Private'), ('group', 'Group'), ('workspace', 'Workspace')], default='group', max_length=20)),
+                        ('created_at', models.DateTimeField(auto_now_add=True)),
+                        ('participants', models.ManyToManyField(related_name='chat_rooms', to=settings.AUTH_USER_MODEL)),
+                        ('workspace', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='chat_rooms', to='workspaces.workspace')),
+                    ],
+                ),
             ],
         ),
         migrations.AlterUniqueTogether(
