@@ -1,6 +1,8 @@
 import React from 'react'
 import * as tokens from '../../styles/tokens'
 import { Link } from 'react-router-dom'
+import { useStore } from '../../store'
+import { getT } from '../../i18n'
 import {
   Globe,
   Mail,
@@ -89,6 +91,8 @@ const BADGES = [
 ]
 
 export default function Footer() {
+  const { lang = 'en' } = useStore()
+  const t = getT(lang)
   const [email, setEmail] = React.useState('')
   const [subscribed, setSubscribed] = React.useState(false)
 
@@ -99,6 +103,37 @@ export default function Footer() {
       setEmail('')
     }
   }
+
+  const NAV_TRANSLATED = [
+    {
+      title: t.product || 'Product',
+      links: [
+        { label: t.dashboard || 'Dashboard', to: '/dashboard', icon: <BarChart3 size={13} /> },
+        { label: t.projects || 'Projects & Tasks', to: '/projects', icon: <Zap size={13} /> },
+        { label: t.team || 'Team', to: '/team', icon: <Users size={13} /> },
+        { label: t.channels || 'Chat', to: '/chat', icon: <MessageSquare size={13} /> },
+        { label: t.wiki || 'Wiki', to: '/wiki', icon: <BookOpen size={13} /> },
+      ]
+    },
+    {
+      title: 'Company',
+      links: [
+        { label: t.aboutUs || 'About Us', to: '/about', icon: <Globe size={13} /> },
+        { label: t.settings || 'Settings', to: '/settings', icon: <FileText size={13} /> },
+        { label: 'Security', to: '/about', icon: <Shield size={13} /> },
+        { label: 'Blog', to: '/about', icon: <BookOpen size={13} /> },
+      ]
+    },
+    {
+      title: 'Resources',
+      links: [
+        { label: 'Documentation', to: '/about', icon: <BookOpen size={13} /> },
+        { label: 'API Reference', to: '/about', icon: <FileText size={13} /> },
+        { label: 'Help Center', to: '/about', icon: <HelpCircle size={13} /> },
+        { label: 'Community', to: '/about', icon: <Users size={13} /> },
+      ]
+    },
+  ]
 
   return (
     <footer className="relative bg-[#060b18] text-white overflow-hidden">
@@ -204,7 +239,7 @@ export default function Footer() {
           </div>
 
           {/* Nav Columns */}
-          {NAV.map(section => (
+          {NAV_TRANSLATED.map(section => (
             <div key={section.title}>
               <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-5">
                 {section.title}
@@ -251,7 +286,7 @@ export default function Footer() {
         <div className="container mx-auto px-6 py-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
 
-                <p className="text-xs text-gray-600 font-medium">Remote Team Manager</p>
+                <p className="text-xs text-gray-600 font-medium">© {YEAR} RemoteTeam Manager. All rights reserved.</p>
 
             <div className="flex items-center gap-6">
               {['Privacy Policy', 'Terms of Service', 'Cookie Policy', 'Acceptable Use'].map(item => (

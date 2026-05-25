@@ -53,7 +53,7 @@ services:
   celery_worker:
     build: .
     container_name: rtm_celery_worker
-    command: celery -A core worker -l info
+    command: celery -A config worker -l info
     depends_on:
       db:
         condition: service_healthy
@@ -70,7 +70,7 @@ services:
   celery_beat:
     build: .
     container_name: rtm_celery_beat
-    command: celery -A core beat -l info
+    command: celery -A config beat -l info
     depends_on:
       db:
         condition: service_healthy

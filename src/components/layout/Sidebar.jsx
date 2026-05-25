@@ -203,9 +203,21 @@ export default function Sidebar() {
                 <p className="text-sm font-bold text-white truncate">{user?.first_name ? `${user.first_name} ${user.last_name || ''}` : user?.username}</p>
                 <p className="text-[10px] text-gray-500 font-bold uppercase truncate">{user?.email}</p>
               </div>
-              <div className="shrink-0 flex items-center gap-2">
+              <div className="shrink-0 flex items-center gap-1">
+                {/* Language quick toggle */}
+                <div style={{ display:'flex', gap:2 }}>
+                  {[{c:'en',f:'🇬🇧'},{c:'fr',f:'🇫🇷'},{c:'rw',f:'🇷🇼'}].map(l => (
+                    <button key={l.c} onClick={() => setLang && setLang(l.c)}
+                      title={l.c.toUpperCase()}
+                      style={{
+                        background: (lang||'en')===l.c ? 'rgba(51,102,255,0.2)' : 'transparent',
+                        border: `1px solid ${(lang||'en')===l.c ? 'rgba(51,102,255,0.4)' : 'transparent'}`,
+                        borderRadius:6, padding:'3px 5px', fontSize:11, cursor:'pointer', transition:'0.15s'
+                      }}>{l.f}</button>
+                  ))}
+                </div>
                 <ThemeSwitcher />
-                <button 
+                <button
                   onClick={logout}
                   className="p-2 hover:bg-rose-500/10 text-gray-500 hover:text-rose-500 rounded-xl transition-all"
                   title="Logout"

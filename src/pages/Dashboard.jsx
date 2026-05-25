@@ -224,7 +224,7 @@ export default function Dashboard() {
                   <div style={{ flex:1, minWidth:0 }}>
                     <p style={{ fontSize:13, fontWeight:700, color:'var(--text)', margin:0, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{task.title}</p>
                     <div style={{ display:'flex', alignItems:'center', gap:8, marginTop:4 }}>
-                      <span style={{ fontSize:10, fontWeight:800, color:statusColor, background:statusColor.replace('var(--brand)','rgba(51,102,255,').replace('#10b981','rgba(16,185,129,').replace('#ef4444','rgba(239,68,68,').replace('var(--text3)','rgba(100,116,139,')+='0.12)', padding:'2px 8px', borderRadius:4 }}>
+                      <span style={{ fontSize:10, fontWeight:800, color:statusColor, background:statusColor.replace('var(--brand)','rgba(51,102,255,0.12)').replace('#10b981','rgba(16,185,129,0.12)').replace('#ef4444','rgba(239,68,68,0.12)').replace('var(--text3)','rgba(100,116,139,0.12)'), padding:'2px 8px', borderRadius:4 }}>
                         {(task.status || 'todo').replace('_', ' ')}
                       </span>
                       <span style={{ fontSize:10, fontWeight:700, color:p.text }}>{task.priority}</span>

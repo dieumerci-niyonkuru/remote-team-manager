@@ -1,52 +1,59 @@
 import axios from 'axios';
 
-const PROD_URL = 'https://remote-team-manager-production.up.railway.app/api';
-const LOCAL_URL = 'http://localhost:8000/api';
-const BASE = import.meta.env.PROD ? PROD_URL : '/api';
+const BASE = import.meta.env.PROD
+  ? 'https://remote-team-manager-production.up.railway.app/api'
+  : '/api';
 
 const api = axios.create({ baseURL: BASE, headers: { 'Content-Type': 'application/json' } });
 
+// Attach JWT token to every request
 api.interceptors.request.use(cfg => {
   const t = localStorage.getItem('rtm_access');
   if (t) cfg.headers.Authorization = `Bearer ${t}`;
   return cfg;
 });
 
+// Unified response interceptor: unwrap data envelope + handle 401 token refresh
 api.interceptors.response.use(
   r => {
+    // Unwrap { data: ... } envelope returned by the backend
     if (r.data && typeof r.data === 'object' && 'data' in r.data) {
       r.data = r.data.data;
     }
     return r;
   },
-  err => Promise.reject(err)
-);
-
-api.interceptors.response.use(r => r, async err => {
-  if (err.response?.status === 401 && !err.config._retry) {
-    err.config._retry = true;
-    const refresh = localStorage.getItem('rtm_refresh');
-    if (refresh) {
-      try {
-        const { data } = await axios.post(`${BASE}/auth/token/refresh/`, { refresh });
-        localStorage.setItem('rtm_access', data.access);
-        err.config.headers.Authorization = `Bearer ${data.access}`;
-        return api(err.config);
-      } catch {
-        localStorage.clear();
-        window.location.href = '/login';
+  async err => {
+    if (err.response?.status === 401 && !err.config._retry) {
+      err.config._retry = true;
+      const refresh = localStorage.getItem('rtm_refresh');
+      if (refresh) {
+        try {
+          const { data } = await axios.post(`${BASE}/auth/token/refresh/`, { refresh });
+          localStorage.setItem('rtm_access', data.access);
+          err.config.headers.Authorization = `Bearer ${data.access}`;
+          return api(err.config);
+        } catch {
+          localStorage.removeItem('rtm_access');
+          localStorage.removeItem('rtm_refresh');
+          window.location.href = '/login';
+        }
       }
     }
+    return Promise.reject(err);
   }
-  return Promise.reject(err);
-});
+);
 
 export const auth = {
-  register: d => (d instanceof FormData ? api.post('/auth/register/', d, { headers: { 'Content-Type': 'multipart/form-data' } }) : api.post('/auth/register/', d)),
+  register: d => (d instanceof FormData
+    ? api.post('/auth/register/', d, { headers: { 'Content-Type': 'multipart/form-data' } })
+    : api.post('/auth/register/', d)),
   login: d => api.post('/auth/login/', d),
   me: () => api.get('/auth/me/'),
-  updateProfile: d => api.patch('/auth/me/', d),
+  updateProfile: d => (d instanceof FormData
+    ? api.patch('/auth/me/', d, { headers: { 'Content-Type': 'multipart/form-data' } })
+    : api.patch('/auth/me/', d)),
   logout: r => api.post('/auth/logout/', { refresh: r }),
+  changePassword: d => api.post('/auth/change-password/', d),
 };
 
 export const ws = {
@@ -110,6 +117,7 @@ export const hr = {
 export const files = {
   list: params => api.get('/file-attachments/', { params }),
   upload: d => api.post('/file-attachments/', d, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  delete: id => api.delete(`/file-attachments/${id}/`),
 };
 
 export const ai = {
@@ -119,6 +127,7 @@ export const ai = {
 export const automation = {
   list: () => api.get('/automation-rules/'),
   create: d => api.post('/automation-rules/', d),
+  update: (id, d) => api.patch(`/automation-rules/${id}/`, d),
   delete: id => api.delete(`/automation-rules/${id}/`),
 };
 
@@ -139,16 +148,32 @@ export const wiki = {
   restore: (articleId, revisionId) => api.post(`/wiki-articles/${articleId}/revisions/${revisionId}/restore/`),
 };
 
+export const notifications = {
+  list: () => api.get('/notifications/'),
+  markRead: id => api.patch(`/notifications/${id}/`, { is_read: true }),
+  markAllRead: () => api.post('/notifications/mark_all_read/'),
+  delete: id => api.delete(`/notifications/${id}/`),
+};
+
 export const search = {
   global: q => api.get('/search/', { params: { q } }),
+};
+
+export const okr = {
+  objectives: () => api.get('/objectives/'),
+  createObjective: d => api.post('/objectives/', d),
+  updateObjective: (id, d) => api.patch(`/objectives/${id}/`, d),
+  deleteObjective: id => api.delete(`/objectives/${id}/`),
+  keyResults: objectiveId => api.get(`/objectives/${objectiveId}/key-results/`),
+  createKeyResult: (objectiveId, d) => api.post(`/objectives/${objectiveId}/key-results/`, d),
 };
 
 export const unwrapData = res => {
   if (!res) return [];
   const d = res.data;
   if (d && typeof d === 'object') {
-    if ('data' in d) return d.data;
     if ('results' in d) return d.results;
+    if (Array.isArray(d)) return d;
     return d;
   }
   return [];

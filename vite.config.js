@@ -8,7 +8,7 @@ export default defineConfig({
   },
   server: {
     port: 5174,
-    strictPort: true,
+    strictPort: false,
     headers: {
       // Prevent browser/SW from caching the HTML shell and SW script
       'Cache-Control': 'no-store, no-cache, must-revalidate'

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useStore } from '../../store'
 import { auth } from '../../services/api'
@@ -7,11 +7,12 @@ import toast from 'react-hot-toast'
 import NotificationBadge from './NotificationBadge'
 import ThemeSwitcher from './ThemeSwitcher'
 import { Button } from '../common/Button'
+import { Globe, ChevronDown } from 'lucide-react'
 
 const LANGS = [
-  { code: 'en', label: 'EN', flag: '🇬🇧' },
-  { code: 'fr', label: 'FR', flag: '🇫🇷' },
-  { code: 'rw', label: 'RW', flag: '🇷🇼' },
+  { code: 'en', label: 'EN', flag: '🇬🇧', name: 'English' },
+  { code: 'fr', label: 'FR', flag: '🇫🇷', name: 'Français' },
+  { code: 'rw', label: 'RW', flag: '🇷🇼', name: 'Kinyarwanda' },
 ]
 
 export default function Header() {
@@ -22,6 +23,15 @@ export default function Header() {
   const [showMenu, setShowMenu] = React.useState(false)
   const [scrolled, setScrolled] = React.useState(false)
   const [activeDropdown, setActiveDropdown] = React.useState(null)
+  const [showLangMenu, setShowLangMenu] = React.useState(false)
+  const langRef = useRef(null)
+
+  // Close lang menu when clicking outside
+  React.useEffect(() => {
+    const handler = e => { if (langRef.current && !langRef.current.contains(e.target)) setShowLangMenu(false) }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
 
   React.useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20)
@@ -139,23 +149,44 @@ export default function Header() {
         {/* Actions */}
         <div style={{ display:'flex', alignItems:'center', gap:8 }}>
           
-          {/* Language Switcher */}
-          <div className="desktop-only" style={{ display:'flex', gap:4 }}>
-            {LANGS.map(l => (
-              <button
-                key={l.code}
-                onClick={() => setLang && setLang(l.code)}
-                style={{
-                  background: (lang || 'en') === l.code ? 'var(--brand-bg)' : 'transparent',
-                  border: (lang || 'en') === l.code ? '1px solid var(--brand)' : '1px solid transparent',
-                  color: (lang || 'en') === l.code ? 'var(--brand)' : 'var(--text3)',
-                  borderRadius:8, padding:'4px 8px', fontSize:11, fontWeight:800, cursor:'pointer',
-                  transition:'0.2s'
-                }}
-              >
-                {l.flag} {l.label}
-              </button>
-            ))}
+          {/* Language Switcher Dropdown */}
+          <div className="desktop-only" style={{ position:'relative' }} ref={langRef}>
+            <button
+              onClick={() => setShowLangMenu(v => !v)}
+              style={{
+                display:'flex', alignItems:'center', gap:6,
+                background: showLangMenu ? 'var(--brand-bg)' : 'var(--bg3)',
+                border:`1px solid ${showLangMenu ? 'var(--brand)' : 'var(--border)'}`,
+                color: showLangMenu ? 'var(--brand)' : 'var(--text2)',
+                borderRadius:10, padding:'7px 12px', fontSize:12, fontWeight:800, cursor:'pointer', transition:'0.2s'
+              }}
+            >
+              <Globe size={13} />
+              {LANGS.find(l => l.code === (lang||'en'))?.flag} {LANGS.find(l => l.code === (lang||'en'))?.label}
+              <ChevronDown size={11} style={{ opacity:0.6, transform: showLangMenu ? 'rotate(180deg)' : 'none', transition:'0.2s' }} />
+            </button>
+            {showLangMenu && (
+              <div style={{
+                position:'absolute', top:'calc(100% + 8px)', right:0, minWidth:160,
+                background:'var(--bg2)', border:'1px solid var(--border)', borderRadius:14,
+                padding:6, boxShadow:'0 20px 50px rgba(0,0,0,0.4)', zIndex:500,
+                animation:'fadeIn 0.15s ease'
+              }}>
+                {LANGS.map(l => (
+                  <button key={l.code} onClick={() => { setLang && setLang(l.code); setShowLangMenu(false); }}
+                    style={{
+                      display:'flex', alignItems:'center', gap:10, width:'100%', padding:'9px 12px',
+                      borderRadius:10, background: (lang||'en')===l.code ? 'var(--brand-bg)' : 'transparent',
+                      border:'none', color:(lang||'en')===l.code ? 'var(--brand)' : 'var(--text2)',
+                      fontSize:13, fontWeight:700, cursor:'pointer', transition:'0.15s', textAlign:'left'
+                    }}>
+                    <span style={{ fontSize:16 }}>{l.flag}</span>
+                    <span>{l.name}</span>
+                    {(lang||'en')===l.code && <span style={{ marginLeft:'auto', fontSize:10, color:'var(--brand)' }}>✓</span>}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {isAuth && <NotificationBadge />}
