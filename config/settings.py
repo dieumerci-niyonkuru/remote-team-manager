@@ -46,6 +46,8 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'corsheaders',
     'channels',
+    'django_celery_results',
+    'django_celery_beat',
 
     # local apps
     'apps.accounts',
@@ -364,3 +366,15 @@ CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutes
 CELERY_WORKER_PREFETCH_MULTIPLIER = 1
 CELERY_ACKS_LATE = True
+
+# Celery Beat — periodic tasks
+from celery.schedules import crontab
+CELERY_BEAT_SCHEDULE = {
+    'daily-digest': {
+        'task': 'apps.notifications.tasks.send_daily_digest',
+        'schedule': crontab(hour=8, minute=0),  # 8 AM every day
+    },
+}
+
+# Email
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@remoteteam.app')

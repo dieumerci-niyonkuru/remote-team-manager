@@ -118,6 +118,15 @@ class InviteViewSet(viewsets.ModelViewSet):
         join_url = f'{origin}/join/{token}'
 
         serializer = self.get_serializer(invite)
+
+        # Send email asynchronously if an email was provided
+        if email:
+            try:
+                from .tasks import send_invite_email
+                send_invite_email.delay(invite.id, join_url)
+            except Exception:
+                pass  # Email is best-effort; don't fail the request
+
         return Response({
             'data': {
                 **serializer.data,
