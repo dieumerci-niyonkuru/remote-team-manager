@@ -1,65 +1,134 @@
-name: CI — Build & Test
+﻿name: CI
 
 on:
   push:
     branches: [main, develop]
   pull_request:
-    branches: [main, develop]
+    branches: [main]
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+env:
+  PYTHON_VERSION: "3.11"
+  NODE_VERSION: "20"
 
 jobs:
-  frontend:
-    name: Frontend Build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-      - run: npm ci
-      - run: npm run build
-        env:
-          NODE_ENV: production
-      - uses: actions/upload-artifact@v4
-        with:
-          name: frontend-dist
-          path: dist/
-          retention-days: 7
-
   backend:
-    name: Backend Check
+    name: Backend (Django)
     runs-on: ubuntu-latest
+
     services:
       postgres:
         image: postgres:15
         env:
           POSTGRES_DB: rtm_test
-          POSTGRES_USER: rtm_user
-          POSTGRES_PASSWORD: rtm_pass
-        ports: ['5432:5432']
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+          POSTGRES_USER: rtm
+          POSTGRES_PASSWORD: rtm
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
     env:
-      DJANGO_SETTINGS_MODULE: config.settings
-      SECRET_KEY: ci-test-key-not-for-production-use
-      DEBUG: 'False'
-      DATABASE_URL: postgresql://rtm_user:rtm_pass@localhost:5432/rtm_test
-      ALLOWED_HOSTS: localhost,127.0.0.1
+      SECRET_KEY: ci-test-secret-key-not-used-in-prod
+      DATABASE_URL: postgres://rtm:rtm@localhost:5432/rtm_test
+      REDIS_URL: redis://localhost:6379/0
+      DEBUG: "False"
+      ALLOWED_HOSTS: localhost,127.0.0.1,testserver
+
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-          cache: 'pip'
-      - run: pip install -r requirements.txt
-      - name: Django system check
-        run: python manage.py check 2>&1 | tail -5
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
       - name: Run migrations
-        run: python manage.py migrate --run-syncdb
-      - name: Collect static
-        run: python manage.py collectstatic --noinput
+        run: python manage.py migrate --noinput
+
       - name: Run tests
-        run: python -m pytest tests/ -x -q --tb=short 2>/dev/null || echo "No tests dir — skipping."
+        run: pytest --tb=short -q --cov=apps --cov-report=term-missing
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: .coverage
+          retention-days: 7
+
+  frontend:
+    name: Frontend (Vite/React)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Upload dist
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: dist/
+          retention-days: 7
+
+  security:
+    name: Security scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install bandit
+        run: pip install bandit
+
+      - name: Run bandit
+        run: |
+          bandit -r apps/ -x apps/*/migrations/ \
+            --severity-level medium --confidence-level medium \
+            --exit-zero
+
+  ci-pass:
+    name: CI passed
+    needs: [backend, frontend]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Evaluate
+        run: |
+          if [[ "${{ needs.backend.result }}" != "success" ]]; then echo "Backend failed"; exit 1; fi
+          if [[ "${{ needs.frontend.result }}" != "success" ]]; then echo "Frontend failed"; exit 1; fi
+          echo "All CI checks passed"

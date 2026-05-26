@@ -5,6 +5,23 @@ from datetime import timedelta
 import dj_database_url
 import sys
 
+# ── Sentry — error monitoring & performance tracking ─────────────────────────
+SENTRY_DSN = config('SENTRY_DSN', default='')
+if SENTRY_DSN:
+    import sentry_sdk
+    from sentry_sdk.integrations.django import DjangoIntegration
+    from sentry_sdk.integrations.celery import CeleryIntegration
+    from sentry_sdk.integrations.redis import RedisIntegration
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        integrations=[DjangoIntegration(), CeleryIntegration(), RedisIntegration()],
+        traces_sample_rate=0.1,   # 10% of transactions for performance
+        profiles_sample_rate=0.05,
+        send_default_pii=False,   # Never send passwords / tokens
+        environment=config('SENTRY_ENV', default='production'),
+        release=config('RAILWAY_DEPLOYMENT_ID', default='local'),
+    )
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # =========================
@@ -356,8 +373,9 @@ EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
 # =========================
 # CELERY
 # =========================
-CELERY_BROKER_URL = config('REDIS_URL', default='redis://localhost:6379/0')
-CELERY_RESULT_BACKEND = config('REDIS_URL', default='redis://localhost:6379/0')
+_celery_redis = REDIS_URL or 'redis://localhost:6379/0'
+CELERY_BROKER_URL = _celery_redis
+CELERY_RESULT_BACKEND = _celery_redis
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
