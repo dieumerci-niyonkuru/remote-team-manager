@@ -1,100 +1,318 @@
-# 🚀 RemoteTeam Workspace OS
+<div align="center">
 
-> The all-in-one mission control for modern teams. Build faster. Scale global.
+# 🚀 RemoteTeam Manager
 
-RemoteTeam is a production-grade, enterprise-ready Workspace Operating System designed for distributed organizations. It combines project management, real-time communication, and deep analytics into a single, seamless interface.
+**The all-in-one platform for distributed teams — projects, tasks, chat, video calls, and AI in one unified workspace.**
 
-![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
-![Django](https://img.shields.io/badge/Django-092E20?style=for-the-badge&logo=django&logoColor=white)
-![Tailwind](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
-![WebSockets](https://img.shields.io/badge/WebSockets-Real--Time-blueviolet?style=for-the-badge)
-![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+[![CI](https://github.com/dieumerci-niyonkuru/remote-team-manager/actions/workflows/ci.yml/badge.svg)](https://github.com/dieumerci-niyonkuru/remote-team-manager/actions/workflows/ci.yml)
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com)
+[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react)](https://react.dev)
+[![Django](https://img.shields.io/badge/Django-4.2-092E20?logo=django)](https://www.djangoproject.com)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
----
+[Report Bug](https://github.com/dieumerci-niyonkuru/remote-team-manager/issues) · [Request Feature](https://github.com/dieumerci-niyonkuru/remote-team-manager/issues)
 
-## 🏗 System Architecture
-
-The platform follows a strict hierarchical multi-tenant structure, ensuring complete data isolation and high scalability.
-
-- **Workspace (Top Level)**: Secure containers for organizations.
-- **Projects**: Specialized modules (Software, Design, Marketing) with progress tracking.
-- **Task Board (Jira Engine)**: Kanban-driven workflow with subtasks, attachments, and real-time activity feeds.
-- **Communication Hub**: Real-time channels and Direct Messages with threading and typing indicators.
-- **Analytics Pulse**: Automated productivity metrics and velocity tracking.
+</div>
 
 ---
 
-## ✨ Core Features
+## Overview
 
-### 📦 Workspace Intelligence
-- **Multi-Workspace Support**: Switch between different team environments instantly.
-- **Role-Based Access (RBAC)**: Fine-grained permissions for Owners, Admins, and Members.
-- **Invitation Flow**: Secure email-based onboarding for new members.
+RemoteTeam Manager is a production-ready SaaS platform built for modern distributed teams. It combines everything a remote team needs into a single, beautifully designed application: workspace management, project tracking, real-time chat, WebRTC video calls, Gantt scheduling, analytics, and AI-powered insights.
 
-### ✅ Task Management (Enterprise Grade)
-- **Kanban Boards**: Drag-and-drop workflow (To Do → In Progress → Review → Done).
-- **Deep Task Details**: Subtasks, comments system, file attachments, and audit history.
-- **Real-Time Sync**: Every update is broadcasted instantly to all collaborators.
-
-### 💬 Unified Communication
-- **Public & Private Channels**: Topic-based discussions.
-- **Direct Messaging**: 1-on-1 private conversations.
-- **Rich Interaction**: Emoji reactions, typing indicators, and threaded replies.
-
-### 📈 Analytics & Reporting
-- **Productivity Dashboard**: Real-time visualization of task completion rates.
-- **Project Progress**: Automated calculation of project health based on task status.
-- **Member Insights**: Track team velocity and workload distribution.
+| Feature | Status |
+|---|---|
+| Multi-workspace with role-based access | ✅ Production Ready |
+| Project and Task Management (Kanban) | ✅ Production Ready |
+| Real-time Chat (WebSocket) | ✅ Production Ready |
+| WebRTC Video / Audio Calls | ✅ Production Ready |
+| Gantt Schedule Chart | ✅ Production Ready |
+| File Management with Uploads | ✅ Production Ready |
+| Team Analytics and Dashboard | ✅ Production Ready |
+| Email Invitation System | ✅ Production Ready |
+| Global Search | ✅ Production Ready |
+| Dark / Light Mode | ✅ Production Ready |
+| 3-Language Support (EN / FR / RW) | ✅ Production Ready |
+| AI Workspace Assistant | ✅ Production Ready |
+| Notification Center | ✅ Production Ready |
+| Celery Background Tasks | ✅ Production Ready |
+| CI/CD with GitHub Actions | ✅ Production Ready |
 
 ---
 
-## 🛠 Tech Stack
+## Tech Stack
 
 ### Frontend
-- **React 18** + **Vite**: Ultra-fast UI development and HMR.
-- **Tailwind CSS**: Modern, responsive design system.
-- **Zustand**: Lightweight global state management.
-- **Lucide React**: Premium iconography.
+
+| Technology | Version | Purpose |
+|---|---|---|
+| React | 19 | UI Framework |
+| Vite | 6 | Build tool and dev server |
+| TypeScript | 5 | Type safety |
+| TailwindCSS | 3 | Utility-first styling |
+| Zustand | 5 | Global state management |
+| React Query | 5 | Server-state caching |
+| React Router | 7 | Client-side routing |
+| Lucide React | latest | Icon library |
 
 ### Backend
-- **Django 4.2** + **Django REST Framework**: Robust API layer.
-- **Django Channels**: Real-time WebSocket infrastructure.
-- **PostgreSQL**: Enterprise-grade relational database.
-- **Redis & Celery**: Background task processing and notification engine.
+
+| Technology | Version | Purpose |
+|---|---|---|
+| Django | 4.2 | Web framework |
+| Django REST Framework | 3.15 | REST API |
+| Django Channels | 4 | WebSocket / ASGI |
+| Daphne | 4 | ASGI server |
+| SimpleJWT | 5 | JWT authentication |
+| Celery | 5 | Background task queue |
+| django-celery-beat | 2 | Periodic scheduled tasks |
+
+### Infrastructure
+
+| Technology | Purpose |
+|---|---|
+| PostgreSQL 15 | Primary database |
+| Redis 7 | Channel layers + Celery broker |
+| Railway | Cloud deployment |
+| GitHub Actions | CI/CD pipeline |
+| WhiteNoise | Static file serving |
 
 ---
 
-## 🚀 Deployment & Scaling
+## Project Structure
 
-### Local Development
-```bash
-# Clone the repository
-git clone https://github.com/dieumerci-niyonkuru/remote-team-manager.git
-
-# Setup Environment
-cp .env.example .env
-
-# Launch via Docker
-docker-compose up --build
+```
+remote-team-manager/
+├── apps/
+│   ├── accounts/          # User auth, profiles, JWT
+│   ├── workspaces/        # Workspace and member management
+│   ├── projects/          # Projects and task management
+│   ├── chat/              # Real-time WebSocket chat
+│   ├── notifications/     # Invitations and notifications
+│   ├── files/             # File upload and management
+│   └── analytics/         # Dashboard and reporting
+├── config/
+│   ├── settings.py        # Django settings
+│   ├── urls.py            # Root URL configuration
+│   └── asgi.py            # ASGI and WebSocket routing
+├── src/
+│   ├── pages/             # React page components
+│   ├── components/        # Reusable UI components
+│   ├── services/          # API client (Axios)
+│   ├── store/             # Zustand global state
+│   └── i18n/              # EN/FR/RW translations
+├── .github/workflows/     # GitHub Actions CI/CD
+├── start.sh               # Railway production boot script
+├── Dockerfile             # Container build
+├── railway.toml           # Railway deployment config
+└── requirements.txt       # Python dependencies
 ```
 
-### Production
-The platform is optimized for deployment on **Railway** (Backend) and **Netlify** (Frontend).
-- **Railway**: Handles the API, PostgreSQL, Redis, and Celery workers.
-- **Netlify**: Delivers the high-performance React bundle via global CDN.
+---
+
+## Quick Start
+
+### Prerequisites
+
+- **Node.js** 20+ and npm
+- **Python** 3.11+
+- **PostgreSQL** 15+
+- **Redis** 7+
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/dieumerci-niyonkuru/remote-team-manager.git
+cd remote-team-manager
+```
+
+### 2. Configure environment variables
+
+```bash
+cp .env.example .env
+# Edit .env with your actual values
+```
+
+### 3. Backend setup
+
+```bash
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py collectstatic --noinput
+```
+
+### 4. Frontend setup
+
+```bash
+npm install
+```
+
+### 5. Start development servers
+
+**Terminal 1 — Django / Daphne:**
+```bash
+daphne -b 0.0.0.0 -p 8000 config.asgi:application
+```
+
+**Terminal 2 — Celery worker:**
+```bash
+celery -A config worker -l info
+```
+
+**Terminal 3 — React dev server:**
+```bash
+npm run dev
+```
+
+Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ---
 
-## 🔒 Security
-- **JWT Authentication**: Secure stateless sessions with refresh token rotation.
-- **Bank-Grade Encryption**: All data is encrypted in transit and at rest.
-- **Isolation**: Strict tenant-level isolation enforced at the database query layer.
+## Environment Variables
+
+Copy `.env.example` to `.env` and fill in the values:
+
+| Variable | Description | Example |
+|---|---|---|
+| `SECRET_KEY` | Django secret key (50+ chars) | `django-insecure-...` |
+| `DEBUG` | Debug mode (False in production) | `False` |
+| `DATABASE_URL` | PostgreSQL connection string | `postgresql://user:pass@host:5432/db` |
+| `REDIS_URL` | Redis connection string | `redis://localhost:6379` |
+| `ALLOWED_HOSTS` | Comma-separated allowed hosts | `yourdomain.com,localhost` |
+| `FRONTEND_URL` | Frontend origin for CORS | `https://yourdomain.com` |
+| `EMAIL_HOST` | SMTP server hostname | `smtp.gmail.com` |
+| `EMAIL_PORT` | SMTP port | `587` |
+| `EMAIL_HOST_USER` | SMTP username / email | `yourapp@gmail.com` |
+| `EMAIL_HOST_PASSWORD` | SMTP password / app password | `your-app-password` |
+| `OPENAI_API_KEY` | OpenAI key for AI features (optional) | `sk-...` |
+| `DJANGO_SETTINGS_MODULE` | Settings module | `config.settings` |
 
 ---
 
-## 👤 Author
-**Dieumerci Niyonkuru**
-*Full-Stack Engineer & Product Designer*
+## Deploy on Railway
+
+This project is optimized for Railway deployment.
+
+### Step 1 — Create a Railway project
+
+1. Go to [railway.com](https://railway.com) and sign in
+2. Click **New Project** → **Deploy from GitHub repo**
+3. Select `dieumerci-niyonkuru/remote-team-manager`
+
+### Step 2 — Add services
+
+Add two additional services to your project:
+- **PostgreSQL** — Add Service → Database → PostgreSQL
+- **Redis** — Add Service → Database → Redis
+
+### Step 3 — Set environment variables
+
+In your Railway service settings, add all variables from the table above. Railway auto-injects `DATABASE_URL` and `REDIS_URL` when you link the database services.
+
+### Step 4 — Deploy
+
+Railway detects `railway.toml` and `start.sh` automatically and deploys your application. Migrations run on first deploy.
 
 ---
-© 2026 RemoteTeam Workspace, Inc. Built for the future of work.
+
+## CI/CD Pipeline
+
+GitHub Actions runs automatically on every push to `main` or `develop`:
+
+| Job | What it does |
+|---|---|
+| **Frontend Build** | Runs `npm ci` and `npm run build` — verifies zero TypeScript/bundle errors |
+| **Backend Check** | Spins up PostgreSQL, runs Django check, migrate, and collectstatic |
+
+See [`.github/workflows/ci.yml`](.github/workflows/ci.yml) for the full pipeline definition.
+
+---
+
+## API Overview
+
+All endpoints are prefixed with `/api/`.
+
+| Resource | Endpoint | Methods |
+|---|---|---|
+| Auth — Login | `/auth/login/` | POST |
+| Auth — Register | `/auth/register/` | POST |
+| Auth — Refresh token | `/auth/token/refresh/` | POST |
+| Workspaces | `/workspaces/` | GET, POST |
+| Workspace detail | `/workspaces/{id}/` | GET, PUT, DELETE |
+| Workspace members | `/workspaces/{id}/members/` | GET, POST |
+| Invite member | `/workspaces/{id}/invite/` | POST |
+| Accept invite | `/workspaces/accept_invite/` | POST |
+| Projects | `/projects/` | GET, POST |
+| Tasks | `/tasks/` | GET, POST |
+| Task detail | `/tasks/{id}/` | GET, PUT, PATCH, DELETE |
+| Chat rooms | `/chat/rooms/` | GET, POST |
+| Messages | `/chat/rooms/{id}/messages/` | GET, POST |
+| File upload | `/files/` | GET, POST |
+| Notifications | `/notifications/` | GET |
+| Global search | `/search/?q={query}` | GET |
+| Analytics | `/analytics/dashboard/` | GET |
+| User profile | `/accounts/profile/` | GET, PATCH |
+
+### WebSocket Endpoints
+
+| Channel | URL |
+|---|---|
+| Chat | `ws://host/ws/chat/{room_id}/` |
+| Notifications | `ws://host/ws/notifications/` |
+| Video calls | `ws://host/ws/call/{room_id}/` |
+
+---
+
+## Role System
+
+RemoteTeam uses a workspace-scoped role system:
+
+| Role | Permissions |
+|---|---|
+| `owner` | Full control: delete workspace, manage members, all write access |
+| `manager` | Invite/remove members, create/edit projects and tasks |
+| `developer` | Create and update tasks, comment, upload files |
+| `viewer` | Read-only access to all workspace content |
+
+---
+
+## Internationalization
+
+The app ships with three languages selectable from the login and register screens:
+
+| Language | Code | Coverage |
+|---|---|---|
+| English | `en` | 100% |
+| French | `fr` | 100% |
+| Kinyarwanda | `rw` | 100% |
+
+---
+
+## Contributing
+
+Contributions are welcome!
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feat/amazing-feature`
+3. Commit your changes: `git commit -m "feat: add amazing feature"`
+4. Push to the branch: `git push origin feat/amazing-feature`
+5. Open a Pull Request
+
+Please run `npm run build` and `python manage.py check` before submitting.
+
+---
+
+## License
+
+This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
+
+---
+
+<div align="center">
+
+Built with love by [Dieumerci Niyonkuru](https://github.com/dieumerci-niyonkuru)
+
+**RemoteTeam Manager** — Empowering distributed teams worldwide
+
+</div>

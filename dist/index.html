@@ -11,8 +11,10 @@
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#3366ff" />
     <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="RemoteTeam" />
+    <meta name="description" content="Enterprise workspace management platform for remote teams" />
 
     <!-- AUTO SW CLEANUP: runs before any cached JS, cannot be blocked by SW -->
     <script>
@@ -45,13 +47,24 @@
         });
       })();
     </script>
-    <script type="module" crossorigin src="/assets/index-DwY8jSd8.js"></script>
-    <link rel="modulepreload" crossorigin href="/assets/jsx-runtime-B6doAwFl.js">
-    <link rel="modulepreload" crossorigin href="/assets/utils-DO759gsv.js">
-    <link rel="stylesheet" crossorigin href="/assets/index-CE_PTt2p.css">
+    <script type="module" crossorigin src="/assets/index-BEfbMBcC.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/rolldown-runtime-S-ySWqyJ.js">
+    <link rel="modulepreload" crossorigin href="/assets/charts-INuWZw9L.js">
+    <link rel="modulepreload" crossorigin href="/assets/query-CtUmYBTR.js">
+    <link rel="modulepreload" crossorigin href="/assets/ui-DS1d7-iR.js">
+    <link rel="modulepreload" crossorigin href="/assets/vendor-BSmELOrf.js">
+    <link rel="modulepreload" crossorigin href="/assets/utils-DUISufAB.js">
+    <link rel="stylesheet" crossorigin href="/assets/index-CH75GtFG.css">
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch(() => {});
+        });
+      }
+    </script>
   </body>
 </html>
 

@@ -4,7 +4,7 @@ import { useStore } from '../store';
 import { auth } from '../services/api';
 import { getT } from '../i18n';
 import toast from 'react-hot-toast';
-import { ArrowRight, Mail, Lock, User as UserIcon, Globe, Check } from 'lucide-react';
+import { ArrowRight, Mail, Lock, User as UserIcon, Globe, Check, Eye, EyeOff } from 'lucide-react';
 
 const LANGS = [
   { code: 'en', label: 'EN', flag: '🇬🇧', name: 'English' },
@@ -36,6 +36,8 @@ export default function Register() {
   const [errors, setErrors] = React.useState<Record<string, string>>({});
   const [loading, setLoading] = React.useState(false);
   const [focused, setFocused] = React.useState<string | null>(null);
+  const [showPass, setShowPass] = React.useState(false);
+  const [showPass2, setShowPass2] = React.useState(false);
 
   const updateForm = (k: string, v: string) => {
     setForm(p => ({ ...p, [k]: v }));
@@ -253,21 +255,49 @@ export default function Register() {
 
               {/* Passwords */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-                {([['password', t.password, '••••••••'], ['password2', t.confirmPass, '••••••••']] as [string, string, string][]).map(([field, label, ph]) => (
-                  <div key={field}>
-                    <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>{label}</label>
-                    <div style={{ position: 'relative' }}>
-                      <Lock size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text3)' }} />
-                      <input type="password" value={form[field as keyof typeof form]} onChange={e => updateForm(field, e.target.value)}
-                        onFocus={() => setFocused(field)} onBlur={() => setFocused(null)}
-                        placeholder={ph} style={inputStyle(field)} />
-                    </div>
-                    {errors[field]
-                      ? <p style={{ fontSize: 11, color: '#ef4444', marginTop: 4 }}>{errors[field]}</p>
-                      : field === 'password' && <p style={{ fontSize: 10, color: 'var(--text3)', marginTop: 4 }}>Min 8 chars, not all numbers, not a common word</p>
-                    }
+                {/* Password */}
+                <div>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>{t.password}</label>
+                  <div style={{ position: 'relative' }}>
+                    <Lock size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text3)', pointerEvents: 'none' }} />
+                    <input
+                      type={showPass ? 'text' : 'password'}
+                      value={form.password}
+                      onChange={e => updateForm('password', e.target.value)}
+                      onFocus={() => setFocused('password')} onBlur={() => setFocused(null)}
+                      placeholder="••••••••"
+                      style={{ ...inputStyle('password'), paddingRight: 40 }}
+                    />
+                    <button type="button" onClick={() => setShowPass(v => !v)} tabIndex={-1}
+                      style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer', padding: 4, display: 'flex', alignItems: 'center' }}>
+                      {showPass ? <EyeOff size={15} /> : <Eye size={15} />}
+                    </button>
                   </div>
-                ))}
+                  {errors.password
+                    ? <p style={{ fontSize: 11, color: '#ef4444', marginTop: 4 }}>{errors.password}</p>
+                    : <p style={{ fontSize: 10, color: 'var(--text3)', marginTop: 4 }}>Min 8 characters</p>
+                  }
+                </div>
+                {/* Confirm Password */}
+                <div>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>{t.confirmPass}</label>
+                  <div style={{ position: 'relative' }}>
+                    <Lock size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text3)', pointerEvents: 'none' }} />
+                    <input
+                      type={showPass2 ? 'text' : 'password'}
+                      value={form.password2}
+                      onChange={e => updateForm('password2', e.target.value)}
+                      onFocus={() => setFocused('password2')} onBlur={() => setFocused(null)}
+                      placeholder="••••••••"
+                      style={{ ...inputStyle('password2'), paddingRight: 40 }}
+                    />
+                    <button type="button" onClick={() => setShowPass2(v => !v)} tabIndex={-1}
+                      style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer', padding: 4, display: 'flex', alignItems: 'center' }}>
+                      {showPass2 ? <EyeOff size={15} /> : <Eye size={15} />}
+                    </button>
+                  </div>
+                  {errors.password2 && <p style={{ fontSize: 11, color: '#ef4444', marginTop: 4 }}>{errors.password2}</p>}
+                </div>
               </div>
 
               {/* Submit */}

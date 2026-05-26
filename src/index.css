@@ -90,20 +90,45 @@
 }
 
 [class*="light"] {
+  /* Backgrounds */
   --bg: #f8fafc;
   --bg-rgb: 248, 250, 252;
-  --bg2: #f1f5f9;
-  --bg3: #e2e8f0;
-  --bg-card: rgba(255, 255, 255, 0.8);
-  
+  --bg2: #ffffff;
+  --bg3: #f1f5f9;
+  --bg-card: rgba(255, 255, 255, 0.95);
+
+  /* Brand (stays same, works on both) */
+  --brand: #2952e3;
+  --brand-dark: #1a3fcc;
+  --brand-light: #5577ff;
+  --brand-bg: rgba(41, 82, 227, 0.08);
+  --brand-subtle: rgba(41, 82, 227, 0.06);
+  --accent: #7c3aed;
+  --accent-bg: rgba(124, 58, 237, 0.08);
+
+  /* Text */
   --text: #0f172a;
-  --text2: #475569;
+  --text1: #0f172a;
+  --text2: #334155;
   --text3: #64748b;
-  
-  --border: rgba(15, 23, 42, 0.08);
-  --border2: rgba(15, 23, 42, 0.12);
-  
-  --shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.1);
+
+  /* Borders */
+  --border: rgba(15, 23, 42, 0.09);
+  --border2: rgba(15, 23, 42, 0.14);
+
+  /* Semantic colours — slightly stronger on white */
+  --success: #059669;
+  --warning: #d97706;
+  --danger: #dc2626;
+  --info: #2563eb;
+
+  /* Shadows — lighter for white bg */
+  --shadow: 0 4px 20px rgba(15, 23, 42, 0.08);
+  --shadow-sm: 0 1px 3px rgba(15,23,42,0.06);
+  --shadow-md: 0 4px 12px rgba(15,23,42,0.1);
+  --shadow-lg: 0 12px 40px rgba(15,23,42,0.12);
+  --shadow-xl: 0 20px 60px rgba(15,23,42,0.14);
+  --shadow-brand: 0 8px 24px rgba(41,82,227,0.22);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1269,3 +1294,35 @@ img, video, canvas, svg { transition: none !important; }
 .flex-between { display: flex; align-items: center; justify-content: space-between; }
 .flex-col     { display: flex; flex-direction: column; }
 .gap-1 { gap: 4px; }  .gap-2 { gap: 8px; }  .gap-3 { gap: 12px; }  .gap-4 { gap: 16px; }
+
+/* ── Light-mode overrides for hardcoded dark surfaces ────── */
+[class*="light"] .bg-\[\#060b18\],
+[class*="light"] .bg-\[\#0a0f1d\],
+[class*="light"] .bg-\[\#0a1020\],
+[class*="light"] .bg-\[\#0d1425\],
+[class*="light"] .bg-\[\#0b1429\] {
+  background-color: var(--bg2) !important;
+}
+[class*="light"] .bg-gray-900 { background-color: var(--bg3) !important; }
+[class*="light"] .bg-gray-800 { background-color: var(--bg2) !important; }
+[class*="light"] .bg-gray-800\/40 { background-color: rgba(241,245,249,0.8) !important; }
+[class*="light"] .bg-gray-800\/30 { background-color: rgba(241,245,249,0.6) !important; }
+[class*="light"] .text-gray-400 { color: var(--text2) !important; }
+[class*="light"] .text-gray-500 { color: var(--text3) !important; }
+[class*="light"] .text-gray-600 { color: var(--text3) !important; }
+[class*="light"] .text-white { color: var(--text) !important; }
+[class*="light"] .border-gray-700,
+[class*="light"] .border-gray-800 { border-color: var(--border2) !important; }
+
+/* Sidebar & Layout in light mode */
+[class*="light"] #sidebar,
+[class*="light"] [class*="bg-\\[\\#111e3b\\]"] {
+  background: #ffffff !important;
+  border-right-color: var(--border2) !important;
+}
+
+/* Skeleton animation for light mode */
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}

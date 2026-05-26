@@ -98,23 +98,66 @@ with connection.cursor() as c:
 
     # ── Chat: the most common offender ────────────────────────────────────────
     applied_chat = get_applied(c, 'chat')
-    chat_tables_exist = table_exists(c, 'chat_chatroom') and table_exists(c, 'chat_message')
+    chatroom_exists  = table_exists(c, 'chat_chatroom')
+    chatmsg_exists   = table_exists(c, 'chat_message')
+    both_chat_exist  = chatroom_exists and chatmsg_exists
 
-    if chat_tables_exist and '0001_initial' not in applied_chat:
+    def drop_chat_tables(cur):
+        """Drop all chat-app tables so migrate can recreate them cleanly."""
+        for tbl in [
+            'chat_messagereaction', 'chat_readreceipt',
+            'chat_chatroom_participants', 'chat_message', 'chat_chatroom',
+        ]:
+            try:
+                cur.execute(f"DROP TABLE IF EXISTS {tbl} CASCADE")
+                print(f"  [drop] {tbl}")
+            except Exception as e:
+                print(f"  [warn] dropping {tbl}: {e}")
+        try:
+            cur.execute("DELETE FROM django_migrations WHERE app='chat'")
+        except Exception:
+            pass
+
+    # Case 1: Both tables exist and 0001_initial not recorded → fake it
+    if both_chat_exist and '0001_initial' not in applied_chat:
         print("[pre-migrate] chat tables exist but 0001_initial not recorded — faking...")
-        # Clear any stale/partial chat migration records first
         try:
             c.execute("DELETE FROM django_migrations WHERE app='chat'")
         except Exception:
             pass
         insert_fake_migration(c, 'chat', '0001_initial')
+
+    # Case 2: 0001_initial recorded but tables are missing/partial → ghost migration
+    elif '0001_initial' in applied_chat and not both_chat_exist:
+        print("[pre-migrate] chat 0001_initial recorded but schema incomplete — resetting for fresh migration...")
+        drop_chat_tables(c)
+
+    # Case 3: chatroom exists but message doesn't (common split-migration legacy state)
+    elif chatroom_exists and not chatmsg_exists:
+        print("[pre-migrate] Partial chat schema (chat_chatroom exists, chat_message missing) — dropping and recreating...")
+        drop_chat_tables(c)
+
+    # Case 4: message exists but chatroom doesn't (inverted partial state)
+    elif chatmsg_exists and not chatroom_exists:
+        print("[pre-migrate] Partial chat schema (chat_message exists, chat_chatroom missing) — dropping and recreating...")
+        drop_chat_tables(c)
+
+    # Case 5: Old 2-migration schema (0001 + 0002 split)
     elif any('0002' in m for m in applied_chat):
-        # Old 2-migration schema: clear all chat records and let --fake-initial handle it
-        print("[pre-migrate] Old chat 0002 record detected — clearing for fresh fake-initial run...")
-        try:
-            c.execute("DELETE FROM django_migrations WHERE app='chat'")
-        except Exception:
-            pass
+        print("[pre-migrate] Old chat 0002 migration record detected...")
+        if both_chat_exist:
+            # Both tables exist from old schema → clear records and fake 0001_initial
+            try:
+                c.execute("DELETE FROM django_migrations WHERE app='chat'")
+            except Exception:
+                pass
+            insert_fake_migration(c, 'chat', '0001_initial')
+            print("  Both tables exist — faked 0001_initial.")
+        else:
+            # Tables incomplete from old schema → drop everything and recreate fresh
+            print("  Tables incomplete from old schema — dropping for fresh recreation...")
+            drop_chat_tables(c)
+
     else:
         print(f"[pre-migrate] Chat state OK (applied: {applied_chat or 'none yet'})")
 
