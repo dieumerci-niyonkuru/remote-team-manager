@@ -24,8 +24,14 @@ class RoleMiddleware:
                 "connect-src 'self' wss: https:; "
                 "frame-ancestors 'none';"
             )
-        response['Permissions-Policy'] = (
-            'camera=(), microphone=(), geolocation=(), payment=()'
-        )
-        response['X-Content-Type-Options'] = 'nosniff'
+        # Allow camera/mic for WebRTC video calls (same policy as SecurityHeadersMiddleware).
+        # SecurityHeadersMiddleware runs after this and will overwrite, but this ensures
+        # the correct policy if SecurityHeadersMiddleware is ever removed from the stack.
+        if 'Permissions-Policy' not in response:
+            response['Permissions-Policy'] = (
+                'geolocation=(), microphone=(self), camera=(self), '
+                'fullscreen=(self), picture-in-picture=(self)'
+            )
+        if 'X-Content-Type-Options' not in response:
+            response['X-Content-Type-Options'] = 'nosniff'
         return response
