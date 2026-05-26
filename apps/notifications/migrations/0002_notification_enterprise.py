@@ -1,3 +1,4 @@
+import django.db.models.deletion
 from django.db import migrations, models
 
 
@@ -46,7 +47,7 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(
                 blank=True,
                 null=True,
-                on_delete=models.deletion.CASCADE,
+                on_delete=django.db.models.deletion.CASCADE,
                 related_name='notifications_sent',
                 to='accounts.user',
             ),
