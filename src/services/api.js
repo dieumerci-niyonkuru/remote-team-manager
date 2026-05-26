@@ -158,6 +158,16 @@ export const calls = {
   initiate: (room_id, user_ids = []) => api.post('/calls/initiate/', { room_id, user_ids }),
 };
 
+export const invites = {
+  received: () => api.get('/invites/received/'),
+  sent: (wid) => api.get('/invites/sent/', { params: wid ? { workspace: wid } : {} }),
+  generateLink: (d) => api.post('/invites/generate_link/', d),
+  joinByToken: (token) => api.post('/invites/join_by_token/', { token }),
+  accept: (id) => api.post(`/invites/${id}/accept/`),
+  reject: (id) => api.post(`/invites/${id}/reject/`),
+  delete: (id) => api.delete(`/invites/${id}/`),
+};
+
 export const notifications = {
   list: () => api.get('/notifications/'),
   markRead: id => api.post(`/notifications/${id}/mark_read/`),

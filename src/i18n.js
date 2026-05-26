@@ -122,6 +122,28 @@ export const T = {
     unmute:'Unmute', cameraOn:'Camera On', cameraOff:'Camera Off', shareScreen:'Share Screen',
     participants:'Participants', inviteToCall:'Invite to Call',
 
+    // Invitations
+    invitationsTitle:'Invitations', invitationsSubtitle:'Manage workspace access · Share invite links · Join via token',
+    generateLink:'Generate Invite Link', generatingLink:'Generating…',
+    inviteLink:'Invite Link', copyLink:'Copy Link', linkCopied:'Copied!',
+    linkReady:'Link Ready!', linkExpires:'Expires', expiresIn:'Expires in',
+    joinByLink:'Join a Workspace', joinByLinkDesc:'Have an invite link or token? Paste it below to join instantly.',
+    pasteTokenPlaceholder:'Paste invite link or token…', joining:'Joining…',
+    joinWorkspace:'Join Workspace', sentInvites:'Sent Invitations', receivedInvites:'Received Invitations',
+    pendingForYou:'Pending for you', invitesSent:'Invites sent', noSentInvites:'No invitations sent yet',
+    noPendingInvites:'No pending invitations', allCaughtUp:"You're all caught up!",
+    generateLinkTip:'Invite links expire after the selected duration. Anyone with the link can join until it expires — share carefully.',
+    universalLink:'leave blank for a universal link', emailOptional:'Email (optional)',
+    workspaceOptional:'Workspace', refreshInvites:'Refresh',
+
+    // Files
+    filesTitle:'Files & Assets', totalFiles:'files total',
+    dragDropDesc:'Drag & drop files here, or click to browse', dropToUpload:'Drop to upload',
+    uploadingFiles:'Uploading files…', uploadSuccess:'uploaded', uploadFailed:'Failed to upload',
+    deleteFile:'Delete this file?', allTypes:'All types',
+    noFilesFilter:'No files match your filter', tryDifferentFilter:'Try a different search or filter.',
+    uploadFirstFile:'Upload First File', gridView:'Grid view', listView:'List view',
+
     // Errors
     networkError:'Network error. Please check your connection.',
     serverError:'Server error. Please try again later.',
@@ -259,6 +281,28 @@ export const T = {
     mute:'Couper le micro', unmute:'Activer le micro', cameraOn:'Caméra activée',
     cameraOff:'Caméra désactivée', shareScreen:'Partager l\'écran',
     participants:'Participants', inviteToCall:"Inviter à l'appel",
+
+    // Invitations
+    invitationsTitle:'Invitations', invitationsSubtitle:"Gérer l'accès · Partager des liens · Rejoindre via token",
+    generateLink:'Générer un lien', generatingLink:'Génération…',
+    inviteLink:"Lien d'invitation", copyLink:'Copier le lien', linkCopied:'Copié!',
+    linkReady:'Lien prêt!', linkExpires:'Expire', expiresIn:'Expire dans',
+    joinByLink:'Rejoindre un espace', joinByLinkDesc:"Vous avez un lien? Collez-le ci-dessous pour rejoindre.",
+    pasteTokenPlaceholder:'Collez le lien ou token…', joining:'Connexion…',
+    joinWorkspace:"Rejoindre l'espace", sentInvites:'Envoyées', receivedInvites:'Reçues',
+    pendingForYou:'En attente pour vous', invitesSent:'Invitations envoyées', noSentInvites:"Aucune invitation envoyée",
+    noPendingInvites:'Aucune invitation en attente', allCaughtUp:'Vous êtes à jour!',
+    generateLinkTip:"Les liens expirent après la durée sélectionnée. Partagez avec soin.",
+    universalLink:'laisser vide pour un lien universel', emailOptional:'Email (optionnel)',
+    workspaceOptional:'Espace de travail', refreshInvites:'Actualiser',
+
+    // Files
+    filesTitle:'Fichiers & Ressources', totalFiles:'fichiers au total',
+    dragDropDesc:'Glissez des fichiers ici ou cliquez pour naviguer', dropToUpload:'Déposez pour téléverser',
+    uploadingFiles:'Téléversement…', uploadSuccess:'téléversé', uploadFailed:'Échec du téléversement',
+    deleteFile:'Supprimer ce fichier?', allTypes:'Tous les types',
+    noFilesFilter:'Aucun fichier ne correspond', tryDifferentFilter:'Essayez un autre filtre.',
+    uploadFirstFile:'Premier fichier', gridView:'Vue grille', listView:'Vue liste',
 
     // Errors
     networkError:'Erreur réseau. Vérifiez votre connexion.',
@@ -399,6 +443,28 @@ export const T = {
     mute:'Dumanya ijwi', unmute:'Fungura ijwi', cameraOn:'Kamera ifunguye',
     cameraOff:'Kamera ifunze', shareScreen:'Sangira ecran',
     participants:'Abitabiriye', inviteToCall:"Zapreza mu kiganiro",
+
+    // Invitations
+    invitationsTitle:'Impapuro zo Gutumanahana', invitationsSubtitle:"Gucunga injira · Sangira link · Injira ukoresheje token",
+    generateLink:'Kora link yo Gutumanahana', generatingLink:'Gutegura…',
+    inviteLink:'Link yo gutumanahana', copyLink:'Kopi link', linkCopied:'Yakopiwe!',
+    linkReady:'Link iteguwe!', linkExpires:'Irangira', expiresIn:'Irangira mu',
+    joinByLink:"Injira mu gukorera", joinByLinkDesc:"Ufite link? Yongera hano kugira ngo winjire ako kanya.",
+    pasteTokenPlaceholder:'Shyiramo link cyangwa token…', joining:'Kwinjira…',
+    joinWorkspace:"Injira mu gukorera", sentInvites:'Zoherejwe', receivedInvites:'Zakiririwe',
+    pendingForYou:'Bitegerejwe nawe', invitesSent:'Impapuro zoherejwe', noSentInvites:"Nta mpapuro zoherejwe",
+    noPendingInvites:'Nta mpapuro z\'ubuguzi', allCaughtUp:'Nta makuru mashya!',
+    generateLinkTip:"Link zirangira nyuma y'igihe wahisemo. Sangira neza.",
+    universalLink:'siga ubusa kugira link rusange', emailOptional:'Imeyili (birakuka)',
+    workspaceOptional:'Aho gukorera', refreshInvites:'Vugurura',
+
+    // Files
+    filesTitle:'Amadosiye & Ibikoresho', totalFiles:'amadosiye yose',
+    dragDropDesc:'Kururura amadosiye hano cyangwa kanda kugira ngo uhitemo', dropToUpload:'Siga kugira ngo wohereze',
+    uploadingFiles:'Kohereza amadosiye…', uploadSuccess:'yoherejwe', uploadFailed:'Kwohereza byanze',
+    deleteFile:'Siba iri dosiye?', allTypes:'Ubwoko bwose',
+    noFilesFilter:'Nta madosiye ahuye', tryDifferentFilter:'Gerageza gushakisha ukundi.',
+    uploadFirstFile:'Dosiye ya mbere', gridView:'Reba mu murima', listView:'Reba mu rutonde',
 
     // Errors
     networkError:'Ikosa rya murandasi. Reba guhuza kwawe.',

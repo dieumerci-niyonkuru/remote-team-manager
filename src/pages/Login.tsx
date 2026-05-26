@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useStore } from '../store';
 import { auth } from '../services/api';
 import { getT } from '../i18n';
@@ -16,6 +16,8 @@ export default function Login() {
   const { setUser, lang = 'en', setLang } = useStore();
   const t = getT(lang);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const nextPath = searchParams.get('next') || '/dashboard';
   const [form, setForm] = React.useState({ email: '', password: '' });
   const [loading, setLoading] = React.useState(false);
   const [showPass, setShowPass] = React.useState(false);
@@ -31,7 +33,7 @@ export default function Login() {
       localStorage.setItem('rtm_refresh', result.refresh);
       setUser(result.user);
       toast.success('Welcome back! 👋');
-      navigate('/dashboard');
+      navigate(nextPath);
     } catch (err: any) {
       if (!err.response) {
         toast.error('Cannot connect to the server. Make sure the backend is running.');

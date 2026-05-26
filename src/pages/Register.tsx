@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useStore } from '../store';
 import { auth } from '../services/api';
 import { getT } from '../i18n';
@@ -16,6 +16,8 @@ export default function Register() {
   const { setUser, lang = 'en', setLang } = useStore();
   const t = getT(lang || 'en');
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const nextPath = searchParams.get('next') || '/onboarding';
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   // Role values must match User.ROLE_CHOICES in apps/accounts/models.py
@@ -79,10 +81,10 @@ export default function Register() {
         localStorage.setItem('rtm_refresh', data.refresh);
         setUser(data.user);
         toast.success('Account created! Welcome aboard. 🚀');
-        navigate('/onboarding');
+        navigate(nextPath === '/onboarding' ? '/onboarding' : nextPath);
       } else {
         toast.success('Account created! Please sign in.');
-        navigate('/login');
+        navigate(nextPath !== '/onboarding' ? `/login?next=${encodeURIComponent(nextPath)}` : '/login');
       }
     } catch (err: any) {
       if (!err.response) {

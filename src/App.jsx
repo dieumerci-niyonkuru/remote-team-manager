@@ -38,7 +38,8 @@ const AuditLogs     = React.lazy(() => import('./pages/AuditLogs'))
 const About         = React.lazy(() => import('./pages/About'))
 const Onboarding    = React.lazy(() => import('./pages/Onboarding'))
 const VideoCall     = React.lazy(() => import('./pages/VideoCall'))
-const ForgotPassword = React.lazy(() => import('./pages/ForgotPassword'))
+const ForgotPassword  = React.lazy(() => import('./pages/ForgotPassword'))
+const JoinWorkspace   = React.lazy(() => import('./pages/JoinWorkspace'))
 
 const PageLoader = () => (
   <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'60vh', flexDirection:'column', gap:16 }}>
@@ -100,6 +101,7 @@ function RouterContent() {
             <Route path="/profile" element={<Protected><Settings /></Protected>} />
           </Route>
           <Route path="/call" element={<Protected><VideoCall /></Protected>} />
+          <Route path="/join/:token" element={<JoinWorkspace />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </React.Suspense>
