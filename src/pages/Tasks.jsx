@@ -133,12 +133,15 @@ export default function Tasks() {
     }
     setCreating(true);
     try {
-      const { data } = await api.post('/tasks/', taskForm);
+      // Strip empty due_date so backend gets null, not ''
+      const payload = { ...taskForm };
+      if (!payload.due_date) delete payload.due_date;
+      const { data } = await api.post('/tasks/', payload);
       // tasks will be updated via WebSocket if backend broadcasts, 
       // but let's add locally just in case WS is slow
       setTasks(prev => [...prev, data.data || data]);
       setIsCreateModalOpen(false);
-      setTaskForm({ ...taskForm, title: '', description: '' });
+      setTaskForm(prev => ({ ...prev, title: '', description: '', due_date: '' }));
       toast.success('Task created! 📝');
     } catch (err) {
       toast.error('Failed to create task');
