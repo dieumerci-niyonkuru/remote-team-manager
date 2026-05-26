@@ -87,6 +87,26 @@ const translations = {
     fr: 'Vous avez déjà un compte ?',
     rw: 'Usanganywe konti?',
   },
+  'auth.register.subtitle': {
+    en: 'Join thousands of distributed teams today.',
+    fr: 'Rejoignez des milliers d\'équipes distribuées.',
+    rw: 'Injira mu itsinda ry\'ibihumbi by\'abakozi b\'amahanga.',
+  },
+  'auth.register.add_photo': {
+    en: 'Add Photo',
+    fr: 'Ajouter une photo',
+    rw: 'Ongeraho ifoto',
+  },
+  'auth.register.choose_role': {
+    en: 'Your Role',
+    fr: 'Votre rôle',
+    rw: 'Uruhare rwawe',
+  },
+  'auth.register.creating': {
+    en: 'Creating account…',
+    fr: 'Création du compte…',
+    rw: 'Gufungura konti…',
+  },
 
   // ─── Navigation / Sidebar ──────────────────────────────────
   'nav.dashboard': {
@@ -351,6 +371,31 @@ const translations = {
     en: 'Viewer',
     fr: 'Observateur',
     rw: 'Umurebera',
+  },
+  'team.role.designer': {
+    en: 'Designer',
+    fr: 'Designer',
+    rw: 'Umunyeshusho',
+  },
+  'team.role.developer_desc': {
+    en: 'Create & update tasks, manage projects',
+    fr: 'Créer et mettre à jour des tâches, gérer des projets',
+    rw: 'Kora no guhindura imirimo, gucunga imishinga',
+  },
+  'team.role.manager_desc': {
+    en: 'Manage projects, team members & sprints',
+    fr: 'Gérer les projets, membres et sprints',
+    rw: 'Gucunga imishinga, abagize itsinda na sprints',
+  },
+  'team.role.designer_desc': {
+    en: 'Design assets, collaborate on UI/UX',
+    fr: 'Créer des éléments de design, collaborer sur UI/UX',
+    rw: 'Gukora ibikoresho bya design, gukorana ku UI/UX',
+  },
+  'team.role.viewer_desc': {
+    en: 'Read-only access to projects & tasks',
+    fr: 'Accès en lecture seule aux projets et tâches',
+    rw: 'Gusoma gusa imishinga n\'imirimo',
   },
 
   // ─── Chat ──────────────────────────────────────────────────

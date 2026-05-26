@@ -22,10 +22,10 @@ export default function Register() {
 
   // Role values must match User.ROLE_CHOICES in apps/accounts/models.py
   const ROLES = [
-    { value: 'developer', label: t.developer, desc: t.developerDesc, color: '#3366ff' },
-    { value: 'project_manager', label: t.manager, desc: t.managerDesc, color: '#10b981' },
-    { value: 'designer', label: t.designer, desc: t.designerDesc, color: '#f59e0b' },
-    { value: 'member', label: t.viewer || 'Member', desc: t.viewerDesc, color: '#6366f1' },
+    { value: 'developer',       label: t('team.role.developer', 'Developer'),       desc: t('team.role.developer_desc', 'Create & update tasks'), color: '#3366ff' },
+    { value: 'project_manager', label: t('team.role.manager',   'Manager'),         desc: t('team.role.manager_desc',   'Manage projects & team'), color: '#10b981' },
+    { value: 'designer',        label: t('team.role.designer',  'Designer'),        desc: t('team.role.designer_desc',  'Design UI/UX assets'),    color: '#f59e0b' },
+    { value: 'member',          label: t('team.role.viewer',    'Member'),          desc: t('team.role.viewer_desc',    'Read-only access'),       color: '#6366f1' },
   ];
 
   const [form, setForm] = React.useState({
@@ -53,14 +53,18 @@ export default function Register() {
   };
 
   const validate = () => {
+    const required   = t('error.required',          'This field is required.');
+    const invalidEmail = t('error.invalid_email',   'Please enter a valid email address.');
+    const passMin    = t('error.too_short',          'Minimum 8 characters required.');
+    const passMismatch = t('error.password_mismatch','Passwords do not match.');
     const e: Record<string, string> = {};
-    if (!form.first_name) e.first_name = t.required;
-    if (!form.last_name) e.last_name = t.required;
-    if (!form.email) e.email = t.required;
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = t.invalidEmail;
-    if (!form.password) e.password = t.required;
-    else if (form.password.length < 8) e.password = t.passMin;
-    if (form.password !== form.password2) e.password2 = t.passMismatch;
+    if (!form.first_name) e.first_name = required;
+    if (!form.last_name)  e.last_name  = required;
+    if (!form.email)      e.email      = required;
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = invalidEmail;
+    if (!form.password)   e.password   = required;
+    else if (form.password.length < 8)  e.password  = passMin;
+    if (form.password !== form.password2) e.password2 = passMismatch;
     setErrors(e);
     return !Object.keys(e).length;
   };
@@ -170,9 +174,9 @@ export default function Register() {
           {/* Header */}
           <div style={{ textAlign: 'center', marginBottom: 32 }}>
             <h1 style={{ fontSize: 'clamp(26px,4vw,34px)', fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.03em', margin: '0 0 8px' }}>
-              {t.createAccountTitle}
+              {t('auth.register.title', 'Create your account')}
             </h1>
-            <p style={{ color: 'var(--text3)', fontSize: 14, margin: 0 }}>{t.createAccountDesc}</p>
+            <p style={{ color: 'var(--text3)', fontSize: 14, margin: 0 }}>{t('auth.register.subtitle', 'Join thousands of distributed teams today.')}</p>
           </div>
 
           {/* Card */}
@@ -192,7 +196,7 @@ export default function Register() {
                   ) : (
                     <div style={{ textAlign: 'center', padding: 8 }}>
                       <UserIcon size={22} style={{ color: 'var(--text3)', marginBottom: 4 }} />
-                      <div style={{ fontSize: 9, fontWeight: 900, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{t.addPhoto}</div>
+                      <div style={{ fontSize: 9, fontWeight: 900, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{t('auth.register.add_photo', 'Add Photo')}</div>
                     </div>
                   )}
                 </div>
@@ -201,7 +205,11 @@ export default function Register() {
 
               {/* Name row */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-                {([['first_name', t.firstName, 'John'], ['last_name', t.lastName, 'Doe']] as [string, string, string][]).map(([field, label, ph]) => (
+                {([[
+                  'first_name', t('auth.register.first_name', 'First Name'), 'John'
+                ], [
+                  'last_name',  t('auth.register.last_name',  'Last Name'),  'Doe'
+                ]] as [string, string, string][]).map(([field, label, ph]) => (
                   <div key={field}>
                     <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>{label}</label>
                     <div style={{ position: 'relative' }}>
@@ -217,7 +225,7 @@ export default function Register() {
 
               {/* Email */}
               <div>
-                <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>{t.email}</label>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>{t('common.email', 'Email')}</label>
                 <div style={{ position: 'relative' }}>
                   <Mail size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text3)' }} />
                   <input type="email" value={form.email} onChange={e => updateForm('email', e.target.value)}
@@ -229,7 +237,7 @@ export default function Register() {
 
               {/* Role selection */}
               <div>
-                <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>{t.chooseRole}</label>
+                <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 10 }}>{t('auth.register.choose_role', 'Your Role')}</label>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
                   {ROLES.map(r => (
                     <div key={r.value} onClick={() => updateForm('role', r.value)}
@@ -257,7 +265,7 @@ export default function Register() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
                 {/* Password */}
                 <div>
-                  <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>{t.password}</label>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>{t('auth.login.password', 'Password')}</label>
                   <div style={{ position: 'relative' }}>
                     <Lock size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text3)', pointerEvents: 'none' }} />
                     <input
@@ -280,7 +288,7 @@ export default function Register() {
                 </div>
                 {/* Confirm Password */}
                 <div>
-                  <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>{t.confirmPass}</label>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 6 }}>{t('auth.register.confirm_password', 'Confirm Password')}</label>
                   <div style={{ position: 'relative' }}>
                     <Lock size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text3)', pointerEvents: 'none' }} />
                     <input
@@ -314,18 +322,18 @@ export default function Register() {
                 {loading ? (
                   <>
                     <span style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTop: '2px solid #fff', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.7s linear infinite' }} />
-                    {t.creatingAccount}
+                    {t('auth.register.creating', 'Creating account…')}
                   </>
                 ) : (
-                  <>{t.signUp} <ArrowRight size={16} /></>
+                  <>{t('auth.register.submit', 'Create Account')} <ArrowRight size={16} /></>
                 )}
               </button>
             </form>
           </div>
 
           <p style={{ textAlign: 'center', fontSize: 14, color: 'var(--text3)', marginTop: 20 }}>
-            {t.hasAccount}{' '}
-            <Link to="/login" style={{ color: 'var(--brand)', fontWeight: 800, textDecoration: 'none' }}>{t.signinHere}</Link>
+            {t('auth.register.have_account', 'Already have an account?')}{' '}
+            <Link to="/login" style={{ color: 'var(--brand)', fontWeight: 800, textDecoration: 'none' }}>{t('auth.login.sign_up', 'Sign in')}</Link>
           </p>
         </div>
       </div>
