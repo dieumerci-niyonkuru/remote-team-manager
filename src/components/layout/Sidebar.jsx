@@ -53,37 +53,36 @@ export default function Sidebar() {
   const isAdmin = userRole === 'admin' || userRole === 'owner';
 
   const mainLinks = [
-    { to: '/dashboard', label: t.dashboard, icon: <LayoutDashboard size={20} /> },
-    { to: '/workspaces', label: t.workspaces, icon: <Briefcase size={20} /> },
-    { to: `/workspaces/${activeWorkspace?.id}`, label: 'Workspace Details', icon: <Blocks size={20} /> },
-    { to: '/projects', label: t.projects, icon: <FolderKanban size={20} /> },
-    { to: '/tasks', label: t.tasks, icon: <CheckSquare size={20} /> },
-    { to: '/schedule', label: 'Schedule', icon: <CalendarDays size={20} /> },
-    { to: '/team', label: 'Members', icon: <Users size={20} /> },
-    { to: '/invitations', label: 'Invitations', icon: <Mail size={20} />, badge: true },
+    { to: '/dashboard',                          label: t('nav.dashboard'),     icon: <LayoutDashboard size={20} /> },
+    { to: '/workspaces',                         label: t('nav.workspaces'),    icon: <Briefcase size={20} /> },
+    { to: `/workspaces/${activeWorkspace?.id}`,  label: 'Workspace Details',    icon: <Blocks size={20} /> },
+    { to: '/projects',                           label: t('nav.projects'),      icon: <FolderKanban size={20} /> },
+    { to: '/tasks',                              label: t('nav.tasks'),         icon: <CheckSquare size={20} /> },
+    { to: '/schedule',                           label: t('nav.schedule'),      icon: <CalendarDays size={20} /> },
+    { to: '/team',                               label: t('nav.team'),          icon: <Users size={20} /> },
+    { to: '/invitations',                        label: 'Invitations',          icon: <Mail size={20} />, badge: true },
   ];
 
   const adminLinks = isAdmin ? [
-    { to: '/settings', label: 'Workspace Settings', icon: <Settings size={20} /> },
-    { to: '/analytics', label: 'Intelligence', icon: <PieChart size={20} /> },
+    { to: '/settings',  label: t('nav.settings'),  icon: <Settings size={20} /> },
+    { to: '/analytics', label: t('nav.analytics'), icon: <PieChart size={20} /> },
   ] : [];
 
   const commLinks = [
-    { to: '/chat', label: t.channels, icon: <Hash size={20} /> },
-    { to: '/chat', label: t.directMessages, icon: <MessageSquare size={20} /> },
-    { to: '/calendar', label: t.calendar, icon: <Calendar size={20} /> },
+    { to: '/chat',     label: t('nav.chat'),      icon: <Hash size={20} /> },
+    { to: '/calendar', label: t('nav.calendar'),  icon: <Calendar size={20} /> },
+    { to: '/files',    label: t('nav.files'),     icon: <BarChart2 size={20} /> },
   ];
 
   const toolsLinks = [
-    { to: '/wiki', label: t.wiki, icon: <BookOpen size={20} /> },
-    { to: '/integrations', label: t.integrations, icon: <Blocks size={20} /> },
-    { to: '/audit', label: 'Audit Logs', icon: <Hash size={20} /> },
+    { to: '/wiki',         label: t('nav.wiki'),         icon: <BookOpen size={20} /> },
+    { to: '/integrations', label: t('nav.integrations'), icon: <Blocks size={20} /> },
+    { to: '/ai',           label: t('nav.ai_assistant'), icon: <Hash size={20} /> },
   ];
 
   const bottomLinks = [
-    { to: '/notifications', label: t.notifications, icon: <Bell size={20} /> },
-    { to: '/settings', label: t.settings, icon: <Settings size={20} /> },
-    { to: '/profile', label: t.profile, icon: <UserCircle size={20} /> },
+    { to: '/notifications', label: t('nav.notifications'), icon: <Bell size={20} /> },
+    { to: '/settings',      label: t('nav.settings'),      icon: <Settings size={20} /> },
   ];
 
   const SidebarContent = () => (

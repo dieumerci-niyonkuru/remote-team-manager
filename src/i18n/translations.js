@@ -169,6 +169,21 @@ const translations = {
     fr: 'Assistant IA',
     rw: 'Umufasha wa AI',
   },
+  'nav.integrations': {
+    en: 'Integrations',
+    fr: 'Intégrations',
+    rw: 'Guhuza',
+  },
+  'nav.audit': {
+    en: 'Audit Logs',
+    fr: 'Journaux d\'audit',
+    rw: 'Inyandiko',
+  },
+  'nav.hr': {
+    en: 'HR',
+    fr: 'RH',
+    rw: 'Abakozi',
+  },
 
   // ─── Dashboard ─────────────────────────────────────────────
   'dashboard.title': {
