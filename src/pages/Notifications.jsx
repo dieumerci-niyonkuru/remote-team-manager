@@ -87,7 +87,7 @@ function NotifRow({ n, onMarkRead, onDelete }) {
 
   function handleClick() {
     if (n.unread) onMarkRead(n.id);
-    if (n.target_url) navigate(n.target_url);
+    if (n.deep_link) navigate(n.deep_link);
   }
 
   return (
@@ -178,9 +178,9 @@ function NotifRow({ n, onMarkRead, onDelete }) {
             <Check size={13} />
           </button>
         )}
-        {n.target_url && (
+        {n.deep_link && (
           <button
-            onClick={e => { e.stopPropagation(); navigate(n.target_url); }}
+            onClick={e => { e.stopPropagation(); navigate(n.deep_link); }}
             title="Open"
             style={{ ...actionBtnStyle, color: 'var(--brand)' }}
           >
