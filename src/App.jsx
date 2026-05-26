@@ -40,6 +40,7 @@ const Onboarding    = React.lazy(() => import('./pages/Onboarding'))
 const VideoCall     = React.lazy(() => import('./pages/VideoCall'))
 const ForgotPassword  = React.lazy(() => import('./pages/ForgotPassword'))
 const JoinWorkspace   = React.lazy(() => import('./pages/JoinWorkspace'))
+const Schedule        = React.lazy(() => import('./pages/Schedule'))
 
 const PageLoader = () => (
   <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'60vh', flexDirection:'column', gap:16 }}>
@@ -87,6 +88,7 @@ function RouterContent() {
             <Route path="/activity" element={<Protected><Activity /></Protected>} />
             <Route path="/chat" element={<Protected><Chat /></Protected>} />
             <Route path="/calendar" element={<Protected><Calendar /></Protected>} />
+            <Route path="/schedule" element={<Protected><Schedule /></Protected>} />
             <Route path="/hr" element={<Protected><HR /></Protected>} />
             <Route path="/files" element={<Protected><Files /></Protected>} />
             <Route path="/ai" element={<Protected><AIAssistant /></Protected>} />

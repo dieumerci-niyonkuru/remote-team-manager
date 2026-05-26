@@ -25,8 +25,9 @@ export default function Projects() {
 
   const fetchProjects = async () => {
     try {
-      const { data } = await api.get(`/projects/?workspace=${activeWorkspace.id}`);
-      setProjects(data.data || data);
+      const res = await api.get(`/projects/?workspace=${activeWorkspace.id}`);
+      const list = Array.isArray(res.data) ? res.data : (Array.isArray(res.data?.data) ? res.data.data : []);
+      setProjects(list);
     } catch (err) {
       console.error('Failed to fetch projects:', err);
     } finally {
@@ -37,10 +38,15 @@ export default function Projects() {
   const handleCreate = async (e) => {
     e.preventDefault();
     if (!formData.name.trim()) return;
+    if (!activeWorkspace?.id) {
+      toast.error('Please select a workspace first');
+      return;
+    }
     setCreating(true);
     try {
       const res = await api.post('/projects/', { ...formData, workspace: activeWorkspace.id });
-      setProjects([res.data.data || res.data, ...projects]);
+      const created = Array.isArray(res.data) ? res.data[0] : (res.data?.data || res.data);
+      setProjects([created, ...projects]);
       setIsModalOpen(false);
       setFormData({ name: '', description: '', project_type: 'Software Development' });
       toast.success('Project created! 🚀');

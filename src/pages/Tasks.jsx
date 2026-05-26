@@ -70,12 +70,13 @@ export default function Tasks() {
   const [filterProject, setFilterProject] = React.useState('all');
   const [isCreateModalOpen, setIsCreateModalOpen] = React.useState(false);
   const [creating, setCreating] = React.useState(false);
-  const [taskForm, setTaskForm] = React.useState({ 
-    title: '', 
-    description: '', 
-    project: '', 
-    priority: 'medium', 
-    status: 'todo' 
+  const [taskForm, setTaskForm] = React.useState({
+    title: '',
+    description: '',
+    project: '',
+    priority: 'medium',
+    status: 'todo',
+    due_date: '',
   });
 
   const columns = [
@@ -110,10 +111,12 @@ export default function Tasks() {
         api.get(`/projects/?workspace=${activeWorkspace.id}`),
         api.get(`/tasks/?workspace=${activeWorkspace.id}`)
       ]);
-      setProjects(projectsRes.data.data || projectsRes.data);
-      setTasks(tasksRes.data.data || tasksRes.data);
-      if (projectsRes.data.length > 0) {
-        setTaskForm(prev => ({ ...prev, project: projectsRes.data[0].id }));
+      const projList = Array.isArray(projectsRes.data) ? projectsRes.data : (projectsRes.data?.data || []);
+      const taskList = Array.isArray(tasksRes.data) ? tasksRes.data : (tasksRes.data?.data || []);
+      setProjects(projList);
+      setTasks(taskList);
+      if (projList.length > 0) {
+        setTaskForm(prev => ({ ...prev, project: projList[0].id }));
       }
     } catch (err) {
       console.error('Failed to fetch task data:', err);
@@ -315,9 +318,18 @@ export default function Tasks() {
               className="w-full bg-[#0b1429] border border-white/5 rounded-2xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-brand/40 resize-none h-32" 
             />
           </div>
-          <Button 
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-text-tertiary uppercase tracking-widest">Due Date (optional)</label>
+            <input
+              type="date"
+              value={taskForm.due_date}
+              onChange={e => setTaskForm({...taskForm, due_date: e.target.value})}
+              className="w-full bg-[#0b1429] border border-white/5 rounded-2xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-brand/40"
+            />
+          </div>
+          <Button
             disabled={creating || !taskForm.project || !taskForm.title}
-            type="submit" 
+            type="submit"
             loading={creating}
             className="w-full py-3 md:py-4 text-base md:text-lg"
           >

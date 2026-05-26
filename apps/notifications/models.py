@@ -62,7 +62,7 @@ class Invite(models.Model):
         on_delete=models.CASCADE,
         related_name='invites',
     )
-    email = models.EmailField()
+    email = models.EmailField(blank=True, default='')
     invited_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     role = models.CharField(max_length=20, default='viewer')
     token = models.CharField(max_length=64, unique=True)

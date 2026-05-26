@@ -13,6 +13,7 @@ import {
   Hash,
   MessageSquare,
   Calendar,
+  CalendarDays,
   BarChart2,
   BookOpen,
   Bell,
@@ -57,6 +58,7 @@ export default function Sidebar() {
     { to: `/workspaces/${activeWorkspace?.id}`, label: 'Workspace Details', icon: <Blocks size={20} /> },
     { to: '/projects', label: t.projects, icon: <FolderKanban size={20} /> },
     { to: '/tasks', label: t.tasks, icon: <CheckSquare size={20} /> },
+    { to: '/schedule', label: 'Schedule', icon: <CalendarDays size={20} /> },
     { to: '/team', label: 'Members', icon: <Users size={20} /> },
     { to: '/invitations', label: 'Invitations', icon: <Mail size={20} />, badge: true },
   ];

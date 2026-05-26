@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
-import { Briefcase, Plus, Search, MapPin, Calendar, Users, ChevronRight, Globe } from 'lucide-react';
+import { Briefcase, Plus, Users, ChevronRight, Globe } from 'lucide-react';
 import api from '../services/api';
 import Modal from '../components/common/Modal';
 import toast from 'react-hot-toast';
-import * as tokens from '../styles/tokens';
 
 export default function Workspaces() {
   const navigate = useNavigate();
-  const { setWorkspaces: setGlobalWorkspaces } = useStore();
+  const { setWorkspaces: setGlobalWorkspaces, setActiveWorkspace } = useStore();
   const [workspaces, setWorkspaces] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -23,7 +22,8 @@ export default function Workspaces() {
   const fetchWorkspaces = async () => {
     try {
       const res = await api.get('/workspaces/');
-      const data = Array.isArray(res.data?.data) ? res.data.data : (Array.isArray(res.data) ? res.data : []);
+      // After interceptor, res.data is the already-unwrapped array
+      const data = Array.isArray(res.data) ? res.data : [];
       setWorkspaces(data);
       setGlobalWorkspaces(data);
     } catch (err) {
@@ -39,15 +39,18 @@ export default function Workspaces() {
     setCreating(true);
     try {
       const res = await api.post('/workspaces/', formData);
-      const newWs = res.data?.data || res.data;
+      // After interceptor, res.data is the workspace object
+      const newWs = res.data;
       const updated = [newWs, ...workspaces];
       setWorkspaces(updated);
       setGlobalWorkspaces(updated);
+      if (!workspaces.length) setActiveWorkspace(newWs); // auto-set if first workspace
       setIsModalOpen(false);
       setFormData({ name: '', description: '' });
       toast.success('Workspace created successfully! 🚀');
     } catch (err) {
-      toast.error('Failed to create workspace.');
+      const msg = err.response?.data?.detail || err.response?.data?.error || 'Failed to create workspace.';
+      toast.error(msg);
     } finally {
       setCreating(false);
     }

@@ -37,18 +37,24 @@ export default function WorkspaceDetail() {
     try {
       const [wsRes, membersRes] = await Promise.all([
         api.get(`/workspaces/${id}/`),
-        api.get(`/workspaces/${id}/members/`)
+        api.get(`/workspaces/${id}/members/`),
       ]);
-      const wsData = wsRes.data?.data || wsRes.data;
-      const memData = membersRes.data?.data || membersRes.data || [];
+      // After the api interceptor, r.data is already unwrapped from {data: ...}
+      const wsData = wsRes.data || null;
+      const memData = Array.isArray(membersRes.data)
+        ? membersRes.data
+        : (Array.isArray(membersRes.data?.data) ? membersRes.data.data : []);
       setWorkspace(wsData);
       setMembers(memData);
-      if (activeWorkspace?.id !== wsData.id) {
+      if (wsData && activeWorkspace?.id !== wsData.id) {
         setActiveWorkspace(wsData);
       }
     } catch (err) {
       console.error('Failed to fetch workspace:', err);
-      toast.error('Could not load workspace details');
+      const status = err.response?.status;
+      if (status === 404) toast.error('Workspace not found');
+      else if (status === 403) toast.error('Access denied to this workspace');
+      else toast.error('Could not load workspace details');
     } finally {
       setLoading(false);
     }
@@ -56,25 +62,31 @@ export default function WorkspaceDetail() {
 
   const handleInvite = async (e) => {
     e.preventDefault();
+    if (!inviteEmail.trim()) return;
     try {
-      await api.post(`/workspaces/${id}/invite/`, { 
-        email: inviteEmail, 
-        role: 'member',
-        project: targetProject || null
+      await api.post(`/workspaces/${id}/invite/`, {
+        email: inviteEmail,
+        role: 'viewer',
       });
-      toast.success(`Invite sent to ${inviteEmail}`);
+      toast.success(`Invite sent to ${inviteEmail}! 🎉`);
       setInviteEmail('');
       setTargetProject('');
     } catch (err) {
-      toast.error('Failed to send invitation');
+      const msg = err.response?.data?.error || 'Failed to send invitation';
+      toast.error(msg);
     }
   };
 
   const handleShareLink = async () => {
     try {
-      const res = await api.post('/invites/share_link/', { workspace_id: id });
-      navigator.clipboard.writeText(res.data.link);
-      toast.success('Invite link copied to clipboard!');
+      const res = await api.post('/invites/generate_link/', { workspace: id, role: 'viewer', expires_days: 7 });
+      const link = res.data?.join_url || res.data?.accept_url || '';
+      if (link) {
+        await navigator.clipboard.writeText(link);
+        toast.success('Invite link copied to clipboard! 🔗');
+      } else {
+        toast.error('Could not get invite link');
+      }
     } catch (err) {
       toast.error('Failed to generate invite link');
     }

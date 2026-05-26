@@ -2,7 +2,7 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.utils.timezone import now
-from apps.auth.decorators import role_required
+from django.db import models as django_models
 
 from .models import WorkspaceMember
 from .serializers import WorkspaceSerializer, WorkspaceMemberSerializer, ActivityFeedSerializer
@@ -85,21 +85,39 @@ class WorkspaceViewSet(viewsets.ModelViewSet):
             return Response({'error': 'User not found. Please invite them instead.'}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=['post'])
-    @role_required('owner', 'admin', 'super_admin', 'workspace_owner')
     def add_member(self, request, pk=None):
-        # This matches the frontend call in api.js line 49
+        # Permission: workspace owner or manager only (checked via workspace membership)
+        workspace = self.get_object()
+        try:
+            requester_membership = workspace.workspacemember_set.get(user=request.user)
+            if requester_membership.role not in ('owner', 'manager'):
+                return Response({'error': 'Only workspace owners or managers can add members.'}, status=status.HTTP_403_FORBIDDEN)
+        except WorkspaceMember.DoesNotExist:
+            return Response({'error': 'Permission denied.'}, status=status.HTTP_403_FORBIDDEN)
         return self.members(request, pk)
 
     @action(detail=True, methods=['post'])
-    @role_required('owner', 'admin', 'super_admin', 'workspace_owner')
     def invite(self, request, pk=None):
         workspace = self.get_object()
-        email = request.data.get('email')
-        role = request.data.get('role', 'viewer')
+        # Check that requester is owner or manager
+        try:
+            requester_membership = workspace.workspacemember_set.get(user=request.user)
+            if requester_membership.role not in ('owner', 'manager'):
+                return Response({'error': 'Only workspace owners or managers can invite members.'}, status=status.HTTP_403_FORBIDDEN)
+        except WorkspaceMember.DoesNotExist:
+            return Response({'error': 'Permission denied.'}, status=status.HTTP_403_FORBIDDEN)
+
+        email = request.data.get('email', '').strip()
+        # Normalize role — map UI-friendly values to valid WorkspaceMember roles
+        raw_role = request.data.get('role', 'viewer')
+        role_map = {'member': 'developer', 'admin': 'manager', 'owner': 'owner',
+                    'manager': 'manager', 'developer': 'developer', 'viewer': 'viewer'}
+        role = role_map.get(raw_role, 'viewer')
+
         token = uuid.uuid4().hex
         expire_days = 7
         expires_at = now() + timedelta(days=expire_days)
-        Invite.objects.create(
+        invite = Invite.objects.create(
             workspace=workspace,
             email=email,
             invited_by=request.user,
@@ -107,8 +125,20 @@ class WorkspaceViewSet(viewsets.ModelViewSet):
             token=token,
             expires_at=expires_at
         )
-        accept_url = f"{request.build_absolute_uri('/invite/')}{token}"
-        return Response({'data': {'accept_url': accept_url}, 'message': f'Invite sent to {email}'})
+        origin = request.headers.get('Origin') or request.build_absolute_uri('/').rstrip('/')
+        join_url = f'{origin}/join/{token}'
+
+        if email:
+            try:
+                from apps.notifications.tasks import send_invite_email
+                send_invite_email.delay(invite.id, join_url)
+            except Exception:
+                pass
+
+        return Response({
+            'data': {'accept_url': join_url, 'join_url': join_url, 'token': token},
+            'message': f'Invite created for {email or "shareable link"}'
+        })
 
     @action(detail=False, methods=['post'])
     def accept_invite(self, request):
@@ -165,19 +195,19 @@ class GlobalSearchView(APIView):
         tasks = Task.objects.filter(
             project__workspace__in=user_workspaces
         ).filter(
-            models.Q(title__icontains=q) | models.Q(description__icontains=q)
+            django_models.Q(title__icontains=q) | django_models.Q(description__icontains=q)
         )[:10]
 
         projects = Project.objects.filter(
             workspace__in=user_workspaces
         ).filter(
-            models.Q(name__icontains=q) | models.Q(description__icontains=q)
+            django_models.Q(name__icontains=q) | django_models.Q(description__icontains=q)
         )[:10]
 
         members = User.objects.filter(
             workspacemember__workspace__in=user_workspaces
         ).filter(
-            models.Q(username__icontains=q) | models.Q(first_name__icontains=q) | models.Q(email__icontains=q)
+            django_models.Q(username__icontains=q) | django_models.Q(first_name__icontains=q) | django_models.Q(email__icontains=q)
         ).distinct()[:10]
 
         return Response({
