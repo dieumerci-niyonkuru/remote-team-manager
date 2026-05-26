@@ -177,10 +177,10 @@ export default function Login() {
                 <Shield size={12} /> Secure Sign In
               </div>
               <h1 style={{ fontSize: 'clamp(26px,4vw,34px)', fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.03em', margin: '0 0 8px' }}>
-                {t.welcomeBack}
+                {t('auth.login.title', 'Welcome back')}
               </h1>
               <p style={{ color: 'var(--text3)', fontSize: 15, margin: 0 }}>
-                {t.enterCreds || 'Enter your credentials to access your workspace'}
+                {t('auth.login.subtitle', 'Enter your credentials to access your workspace')}
               </p>
             </div>
 
@@ -194,7 +194,7 @@ export default function Login() {
                 {/* Email */}
                 <div>
                   <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
-                    {t.email}
+                    {t('common.email', 'Email')}
                   </label>
                   <input
                     type="email" required value={form.email}
@@ -215,10 +215,10 @@ export default function Login() {
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
                     <label style={{ fontSize: 11, fontWeight: 800, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                      {t.password}
+                      {t('auth.login.password', 'Password')}
                     </label>
                     <Link to="/forgot-password" style={{ fontSize: 12, color: 'var(--brand)', textDecoration: 'none', fontWeight: 700 }}>
-                      {t.forgotPass}
+                      {t('auth.login.forgot', 'Forgot password?')}
                     </Link>
                   </div>
                   <div style={{ position: 'relative' }}>
@@ -270,9 +270,9 @@ export default function Login() {
             </div>
 
             <p style={{ textAlign: 'center', fontSize: 14, color: 'var(--text3)', marginTop: 24 }}>
-              {t.noAccount}{' '}
+              {t('auth.login.no_account', "Don't have an account?")}{' '}
               <Link to="/register" style={{ color: 'var(--brand)', fontWeight: 800, textDecoration: 'none' }}>
-                {t.signupFree}
+                {t('auth.login.sign_up', 'Sign up free')}
               </Link>
             </p>
           </div>
