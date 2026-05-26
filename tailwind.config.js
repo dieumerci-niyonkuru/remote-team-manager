@@ -11,6 +11,11 @@ export default {
         brand: 'var(--brand)',
         'brand-hover': 'var(--brand-hover)',
         'brand-bg': 'var(--brand-bg)',
+        text: {
+          DEFAULT:   'var(--text)',
+          secondary: 'var(--text2)',
+          tertiary:  'var(--text3)',
+        },
       },
       spacing: {
         // spacing scale (0‑96) using multiples of 0.25rem (4px)

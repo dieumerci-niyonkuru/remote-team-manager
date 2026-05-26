@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { Button } from '../components/common/Button';
 import { Card } from '../components/common/Card';
-import api from '../services/api';
+import api, { unwrapData } from '../services/api';
 import toast from 'react-hot-toast';
 
 export default function Calendar() {
@@ -148,7 +148,7 @@ export default function Calendar() {
                   )}
                 </div>
                 
-                <div className="flex-1 space-y-2 overflow-y-auto custom-scrollbar-mini pr-1">
+                <div className="flex-1 space-y-2 overflow-y-auto custom-scrollbar pr-1">
                   {dayTasks.map(t => (
                     <div 
                       key={t.id} 
