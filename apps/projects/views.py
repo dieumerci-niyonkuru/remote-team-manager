@@ -11,8 +11,10 @@ class ProjectViewSet(viewsets.ModelViewSet):
     serializer_class = ProjectSerializer
     
     def get_permissions(self):
-        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+        if self.action == 'destroy':
             return [permissions.IsAuthenticated(), IsWorkspaceAdmin()]
+        if self.action in ['create', 'update', 'partial_update']:
+            return [permissions.IsAuthenticated(), IsWorkspaceDeveloperOrAdmin()]
         return [permissions.IsAuthenticated(), IsWorkspaceMember()]
 
     queryset = Project.objects.none()

@@ -189,27 +189,6 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Support hours */}
-          <div>
-            <h4 style={{ fontSize: 10, fontWeight: 800, color: '#3366ff', textTransform: 'uppercase', letterSpacing: '0.14em', margin: '0 0 16px' }}>Support Hours</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {[
-                { d: 'Mon – Fri',  h: '09:00 – 18:00' },
-                { d: 'Saturday',   h: '10:00 – 14:00' },
-                { d: 'Sunday',     h: 'Closed' },
-              ].map(row => (
-                <div key={row.d} style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: 8 }}>
-                  <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.45)' }}>{row.d}</span>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: row.h === 'Closed' ? '#ef4444' : '#3366ff' }}>{row.h}</span>
-                </div>
-              ))}
-              <div style={{ marginTop: 6 }}>
-                <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 3 }}>Based in</div>
-                <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', fontWeight: 600 }}>🌍 Kigali, Rwanda</div>
-              </div>
-            </div>
-          </div>
-
           {/* Newsletter */}
           <div>
             <h4 style={{ fontSize: 10, fontWeight: 800, color: '#3366ff', textTransform: 'uppercase', letterSpacing: '0.14em', margin: '0 0 16px' }}>Stay Updated</h4>

@@ -110,19 +110,22 @@ function Section({ title, subtitle, children, action }) {
   );
 }
 
-/* ── Generate realistic weekly data from real tasks ─────────── */
-function buildWeekData(tasks) {
+/* ── Build weekly data from real tasks (no random fallback) ─── */
+function buildWeekData(tasks, activity) {
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   const now = new Date();
   return days.map((day, i) => {
     const d = new Date(now);
     d.setDate(now.getDate() - (6 - i));
     const dayStr = d.toISOString().slice(0, 10);
-    const created = tasks.filter(t => t.created_at?.startsWith(dayStr)).length;
+    // Created: tasks whose created_at matches this day, or activity entries of type 'task'
+    const created = tasks.filter(t => t.created_at?.startsWith(dayStr)).length
+      || activity.filter(a => a.object_type === 'task' && a.action === 'created' && a.timestamp?.startsWith(dayStr)).length;
+    // Completed: tasks marked done on this day
     const done = tasks.filter(t =>
       t.status === 'done' && (t.updated_at || t.created_at || '').startsWith(dayStr)
     ).length;
-    return { day, created: created || Math.floor(Math.random() * 8 + 2), completed: done || Math.floor(Math.random() * 6 + 1) };
+    return { day, created, completed: done };
   });
 }
 
@@ -132,6 +135,7 @@ export default function Analytics() {
   const [tasks,    setTasks]    = useState([]);
   const [projects, setProjects] = useState([]);
   const [members,  setMembers]  = useState([]);
+  const [activity, setActivity] = useState([]);
   const [loading,  setLoading]  = useState(true);
   const [period,   setPeriod]   = useState('week');
   const [insightIdx, setInsightIdx] = useState(0);
@@ -153,17 +157,22 @@ export default function Analytics() {
 
   const fetchData = async () => {
     try {
-      const [t, p, m] = await Promise.allSettled([
+      const [t, p, m, a] = await Promise.allSettled([
         api.get(`/tasks/?workspace=${activeWorkspace.id}`),
         api.get(`/projects/?workspace=${activeWorkspace.id}`),
         api.get(`/workspaces/${activeWorkspace.id}/members/`),
+        api.get(`/workspaces/${activeWorkspace.id}/activity/`),
       ]);
-      const tData = t.status === 'fulfilled' ? (t.value.data?.data || t.value.data || []) : [];
-      const pData = p.status === 'fulfilled' ? (p.value.data?.data || p.value.data || []) : [];
-      const mData = m.status === 'fulfilled' ? (m.value.data?.data || m.value.data || []) : [];
-      setTasks(Array.isArray(tData) ? tData : []);
-      setProjects(Array.isArray(pData) ? pData : []);
-      setMembers(Array.isArray(mData) ? mData : []);
+      const norm = res => {
+        if (res.status !== 'fulfilled') return [];
+        const d = res.value.data;
+        const arr = d?.data ?? d?.results ?? d ?? [];
+        return Array.isArray(arr) ? arr : [];
+      };
+      setTasks(norm(t));
+      setProjects(norm(p));
+      setMembers(norm(m));
+      setActivity(norm(a));
     } catch {}
     finally { setLoading(false); }
   };
@@ -195,7 +204,7 @@ export default function Analytics() {
     { name: 'Low',    value: tasks.filter(t => t.priority === 'low').length,    color: '#10b981', fill: 'rgba(16,185,129,0.15)' },
   ];
 
-  const weekData = useMemo(() => buildWeekData(tasks), [tasks]);
+  const weekData = useMemo(() => buildWeekData(tasks, activity), [tasks, activity]);
 
   const projectData = projects.slice(0, 6).map(p => {
     const ptasks = tasks.filter(t => t.project === p.id || t.project?.id === p.id);

@@ -131,7 +131,7 @@ export default function Projects() {
             label="Project Title"
             required
             value={formData.name}
-            onChange={v => setFormData({...formData, name: v})}
+            onChange={e => setFormData({...formData, name: e.target.value})}
             placeholder="e.g. Project Orion, Q4 Engineering"
           />
           <div className="space-y-2">

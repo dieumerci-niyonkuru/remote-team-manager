@@ -4,7 +4,7 @@ import { useStore } from '../store';
 import Dashboard from './Dashboard';
 import {
   Zap, Shield, Globe, MessageSquare, Video, BarChart2, Target,
-  Check, Star, ArrowRight, ChevronRight, Play, Share2, Code, Briefcase, Users
+  Check, Star, ArrowRight, ChevronRight, Play
 } from 'lucide-react';
 
 /* ─── Data ──────────────────────────────────────────────────── */
@@ -117,25 +117,6 @@ const TESTIMONIALS = [
     company: 'Quantum',
     initials: 'ER',
     bg: 'linear-gradient(135deg,#10b981,#06b6d4)',
-  },
-];
-
-const FOOTER_LINKS = [
-  {
-    heading: 'Product',
-    links: ['Features', 'Pricing', 'Changelog', 'Roadmap', 'Status'],
-  },
-  {
-    heading: 'Company',
-    links: ['About', 'Blog', 'Careers', 'Press', 'Partners'],
-  },
-  {
-    heading: 'Resources',
-    links: ['Docs', 'API Reference', 'Community', 'Tutorials', 'Webinars'],
-  },
-  {
-    heading: 'Legal',
-    links: ['Privacy Policy', 'Terms of Service', 'Cookie Policy', 'GDPR', 'Security'],
   },
 ];
 
@@ -494,65 +475,6 @@ function CTASection() {
   );
 }
 
-/* ─── Footer ─────────────────────────────────────────────────── */
-function SiteFooter() {
-  return (
-    <footer style={{ background: '#05080f', borderTop: '1px solid rgba(255,255,255,0.06)', padding: '60px 24px 32px' }}>
-      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(140px,1fr))', gap: 40, marginBottom: 52 }}>
-          {/* Logo column */}
-          <div style={{ gridColumn: 'span 1' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
-              <div style={{ width: 32, height: 32, borderRadius: 9, background: 'linear-gradient(135deg,#3366ff,#8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Zap size={18} color="#fff" />
-              </div>
-              <span style={{ fontSize: 16, fontWeight: 900, color: '#fff', letterSpacing: '-0.02em' }}>RemoteTeam</span>
-            </div>
-            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.35)', lineHeight: 1.7, margin: '0 0 20px' }}>
-              The operating system for modern remote teams.
-            </p>
-            <div style={{ display: 'flex', gap: 12 }}>
-              {[Share2, Code, Briefcase, Users].map((Icon, i) => (
-                <button key={i} style={{ width: 34, height: 34, borderRadius: 9, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'background 0.2s' }}
-                  onMouseEnter={e => { e.currentTarget.style.background = 'rgba(51,102,255,0.2)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}>
-                  <Icon size={15} color="rgba(255,255,255,0.5)" />
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Link columns */}
-          {FOOTER_LINKS.map(col => (
-            <div key={col.heading}>
-              <h4 style={{ fontSize: 12, fontWeight: 800, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 16px' }}>{col.heading}</h4>
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {col.links.map(link => (
-                  <li key={link}>
-                    <a href="#" style={{ fontSize: 13, color: 'rgba(255,255,255,0.38)', textDecoration: 'none', transition: 'color 0.2s', fontWeight: 500 }}
-                      onMouseEnter={e => { e.target.style.color = '#fff'; }}
-                      onMouseLeave={e => { e.target.style.color = 'rgba(255,255,255,0.38)'; }}
-                    >{link}</a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-
-        <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.25)', margin: 0 }}>
-            © {new Date().getFullYear()} RemoteTeam, Inc. All rights reserved.
-          </p>
-          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.2)', margin: 0 }}>
-            Made with care for distributed teams everywhere.
-          </p>
-        </div>
-      </div>
-    </footer>
-  );
-}
-
 /* ─── Main Home Component ────────────────────────────────────── */
 export default function Home() {
   const { isAuth } = useStore();
@@ -760,9 +682,6 @@ export default function Home() {
 
       {/* ── CTA SECTION ──────────────────────────────────────── */}
       <CTASection />
-
-      {/* ── FOOTER ───────────────────────────────────────────── */}
-      <SiteFooter />
 
       {/* ── VIDEO MODAL ──────────────────────────────────────── */}
       {videoModalOpen && (
