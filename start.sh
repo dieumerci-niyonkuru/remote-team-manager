@@ -37,8 +37,11 @@ if [ "$DB_READY" = false ]; then
   exit 1
 fi
 
-# ── Pre-migrate: clean up stale chat tables from old 2-migration approach ─────
-echo "Checking chat migration state for clean slate..."
+# ── Pre-migrate: ensure migration records match what's already in the DB ───────
+# This handles the case where tables exist (from old deployments) but the
+# django_migrations table is missing the corresponding records. We insert
+# fake records so Django's migrate --fake-initial can proceed cleanly.
+echo "Pre-migration state check..."
 python - <<'PYEOF'
 import os, sys
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
@@ -46,65 +49,95 @@ import django
 django.setup()
 from django.db import connection
 
-STALE_TABLES = [
-    'chat_messagereaction', 'chat_channelmembership',
-    'chat_channel_members', 'chat_channel',
-    'chat_directmessage_participants', 'chat_directmessage',
-]
-
-with connection.cursor() as c:
-    # Check if django_migrations table exists at all (fresh DB has none)
+def table_exists(cursor, name):
+    """Check if a table exists in the public schema (PostgreSQL) or at all (SQLite)."""
     try:
-        c.execute("""
+        cursor.execute("""
             SELECT EXISTS (
                 SELECT FROM information_schema.tables
                 WHERE table_schema = 'public'
-                AND table_name = 'django_migrations'
+                AND table_name = %s
             )
-        """)
-        row = c.fetchone()
-        migrations_table_exists = row[0] if row else False
+        """, [name])
+        row = cursor.fetchone()
+        return bool(row and row[0])
     except Exception:
-        # SQLite or other DB — fall back
+        # SQLite fallback
         try:
-            c.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='django_migrations'")
-            migrations_table_exists = c.fetchone() is not None
-        except Exception as e:
-            print(f"[pre-migrate] Could not check migrations table: {e}")
-            sys.exit(0)
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name=?", [name])
+            return cursor.fetchone() is not None
+        except Exception:
+            return False
 
-    if not migrations_table_exists:
-        print("[pre-migrate] Fresh database — no migrations yet. Proceeding cleanly.")
-        sys.exit(0)
+def migrations_table_exists(cursor):
+    return table_exists(cursor, 'django_migrations')
 
+def get_applied(cursor, app):
     try:
-        c.execute("SELECT name FROM django_migrations WHERE app='chat'")
-        applied = [r[0] for r in c.fetchall()]
+        cursor.execute("SELECT name FROM django_migrations WHERE app=%s", [app])
+        return [r[0] for r in cursor.fetchall()]
+    except Exception:
+        return []
+
+def insert_fake_migration(cursor, app, name):
+    from django.utils import timezone
+    try:
+        cursor.execute(
+            "INSERT INTO django_migrations (app, name, applied) VALUES (%s, %s, %s) "
+            "ON CONFLICT DO NOTHING",
+            [app, name, timezone.now()]
+        )
+        print(f"  [fake] Recorded {app}.{name}")
     except Exception as e:
-        print(f"[pre-migrate] Could not query chat migrations: {e}")
+        print(f"  [warn] Could not fake {app}.{name}: {e}")
+
+with connection.cursor() as c:
+    if not migrations_table_exists(c):
+        print("[pre-migrate] Fresh database — django_migrations doesn't exist yet. Proceeding cleanly.")
         sys.exit(0)
 
-    # If the old migration 0002 was recorded, clear stale records
-    if any('0002' in m for m in applied):
-        print("[pre-migrate] Old chat 0002 migration record found — clearing for clean 0001 run...")
-        for tbl in STALE_TABLES:
-            try:
-                c.execute(f'DROP TABLE IF EXISTS "{tbl}" CASCADE')
-                print(f"  dropped stale table: {tbl}")
-            except Exception as e:
-                print(f"  [warn] {tbl}: {e}")
+    # ── Chat: the most common offender ────────────────────────────────────────
+    applied_chat = get_applied(c, 'chat')
+    chat_tables_exist = table_exists(c, 'chat_chatroom') and table_exists(c, 'chat_message')
+
+    if chat_tables_exist and '0001_initial' not in applied_chat:
+        print("[pre-migrate] chat tables exist but 0001_initial not recorded — faking...")
+        # Clear any stale/partial chat migration records first
         try:
             c.execute("DELETE FROM django_migrations WHERE app='chat'")
-            print("[pre-migrate] Chat migration records cleared.")
-        except Exception as e:
-            print(f"[pre-migrate] [warn] Could not clear migration records: {e}")
+        except Exception:
+            pass
+        insert_fake_migration(c, 'chat', '0001_initial')
+    elif any('0002' in m for m in applied_chat):
+        # Old 2-migration schema: clear all chat records and let --fake-initial handle it
+        print("[pre-migrate] Old chat 0002 record detected — clearing for fresh fake-initial run...")
+        try:
+            c.execute("DELETE FROM django_migrations WHERE app='chat'")
+        except Exception:
+            pass
     else:
-        print("[pre-migrate] Chat migration state is clean.")
+        print(f"[pre-migrate] Chat state OK (applied: {applied_chat or 'none yet'})")
+
+    # ── Celery beat / results: new apps added recently, ensure they're fine ───
+    for app, marker_table in [
+        ('django_celery_results', 'django_celery_results_taskresult'),
+        ('django_celery_beat',    'django_celery_beat_periodictask'),
+    ]:
+        applied = get_applied(c, app)
+        if not applied:
+            print(f"[pre-migrate] {app}: no records — will be migrated fresh (OK)")
+        else:
+            print(f"[pre-migrate] {app}: {len(applied)} migration(s) recorded (OK)")
+
+    print("[pre-migrate] State check complete.")
 PYEOF
 
-# ── Run migrations ─────────────────────────────────────────────────────────────
-echo "Running migrations..."
-python manage.py migrate --noinput --verbosity=1
+# ── Run migrations with --fake-initial ────────────────────────────────────────
+# --fake-initial: for each app's 0001_initial migration, if ALL the tables it
+# would create already exist in the database, Django marks it as applied
+# WITHOUT running it. This is the correct fix for "relation already exists".
+echo "Running migrations (--fake-initial)..."
+python manage.py migrate --noinput --verbosity=1 --fake-initial
 
 # ── Verify critical tables exist (non-fatal — log only) ───────────────────────
 echo "Verifying schema..."
@@ -116,7 +149,12 @@ django.setup()
 from django.db import connection
 
 tables = connection.introspection.table_names()
-required = ['chat_chatroom', 'chat_message', 'accounts_user', 'workspaces_workspace', 'notifications_notification']
+required = [
+    'chat_chatroom', 'chat_message',
+    'accounts_user', 'workspaces_workspace',
+    'notifications_notification', 'notifications_invite',
+    'projects_project', 'projects_task',
+]
 missing = [t for t in required if t not in tables]
 if missing:
     print(f"WARNING: Missing tables after migration: {missing}")
@@ -132,6 +170,5 @@ python manage.py collectstatic --noinput --clear 2>&1 || echo "WARNING: collects
 
 # ── Start Daphne ───────────────────────────────────────────────────────────────
 PORT="${PORT:-8080}"
-WORKERS="${WEB_CONCURRENCY:-4}"
-echo "Starting Daphne on 0.0.0.0:$PORT (workers: $WORKERS)..."
+echo "Starting Daphne on 0.0.0.0:$PORT..."
 exec daphne -b 0.0.0.0 -p "$PORT" config.asgi:application
