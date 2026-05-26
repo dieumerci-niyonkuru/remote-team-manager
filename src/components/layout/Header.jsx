@@ -47,27 +47,27 @@ export default function Header() {
   }
 
   const PRODUCT_MENU = [
-    { label: t.navWorkspaces, to: '/dashboard', desc: t.navWorkspacesDesc, icon: '01' },
-    { label: t.navComm, to: '/chat', desc: t.navCommDesc, icon: '02' },
-    { label: t.navWiki, to: '/wiki', desc: t.navWikiDesc, icon: '03' },
+    { label: t('nav.dashboard',    'Workspaces'),     to: '/dashboard',    desc: 'Manage your team workspaces',      icon: '01' },
+    { label: t('nav.chat',         'Chat & Channels'), to: '/chat',        desc: 'Real-time team communication',     icon: '02' },
+    { label: t('nav.wiki',         'Knowledge Base'),  to: '/wiki',        desc: 'Document and share knowledge',     icon: '03' },
   ]
 
   const SOLUTIONS_MENU = [
-    { label: t.navTimeline, to: '/calendar', desc: t.navTimelineDesc, icon: '04' },
-    { label: t.navAssets, to: '/files', desc: t.navAssetsDesc, icon: '05' },
-    { label: t.navAuto, to: '/automations', desc: t.navAutoDesc, icon: '11' },
+    { label: t('nav.calendar',     'Timeline'),        to: '/calendar',    desc: 'Plan sprints and milestones',      icon: '04' },
+    { label: t('nav.files',        'Assets'),          to: '/files',       desc: 'Store and share team assets',      icon: '05' },
+    { label: t('nav.analytics',    'Analytics'),       to: '/analytics',   desc: 'Insights and productivity data',   icon: '11' },
   ]
 
   const ENTERPRISE_MENU = [
-    { label: t.navSecurity, to: '/settings', desc: t.navSecurityDesc, icon: '07' },
-    { label: t.navCompliance, to: '/audit', desc: t.navComplianceDesc, icon: '08' },
-    { label: t.navMultiTenant, to: '/workspaces', desc: t.navMultiTenantDesc, icon: '09' },
+    { label: 'Security',           to: '/settings',    desc: 'SSO, 2FA, and access control',     icon: '07' },
+    { label: 'Compliance',         to: '/audit',       desc: 'Audit logs and compliance reports', icon: '08' },
+    { label: t('nav.workspaces',   'Multi-workspace'), to: '/workspaces',  desc: 'Isolated project environments',   icon: '09' },
   ]
 
   const PLATFORM_MENU = [
-    { label: t.navApi, to: '/integrations', desc: t.navApiDesc, icon: '10' },
-    { label: t.navAuto, to: '/automations', desc: t.navAutoDesc, icon: '11' },
-    { label: t.navIntegrations, to: '/integrations', desc: t.navIntegrationsDesc, icon: '12' },
+    { label: 'API',                to: '/integrations', desc: 'REST API and webhooks',             icon: '10' },
+    { label: t('nav.integrations', 'Integrations'),    to: '/integrations', desc: 'Connect your favourite tools',   icon: '11' },
+    { label: t('nav.ai_assistant', 'AI Assistant'),    to: '/ai',          desc: 'AI-powered task intelligence',    icon: '12' },
   ]
 
   const NavItem = ({ label, items, to }) => {
