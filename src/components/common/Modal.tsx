@@ -1,5 +1,4 @@
-import { useRef } from "react";
-import React, { useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { useA11yId } from '../../styles/a11y';
 import { radiusStyle, shadowStyle } from '../../styles/utils';
 import { X } from 'lucide-react';
@@ -24,6 +23,9 @@ export const Modal: React.FC<ModalProps> = ({
   footer
 }) => {
   const previouslyFocused = useRef<HTMLElement | null>(null);
+  // ⚠️  ALL hooks must be called unconditionally (Rules of Hooks).
+  //     useA11yId uses useState internally — it MUST be above the early return.
+  const titleId = useA11yId('modal');
 
   useEffect(() => {
     if (isOpen) {
@@ -42,7 +44,6 @@ export const Modal: React.FC<ModalProps> = ({
     return () => {
       document.body.style.overflow = 'unset';
       window.removeEventListener('keydown', handleEsc);
-      // Restore focus to previously focused element
       if (previouslyFocused.current) {
         previouslyFocused.current.focus();
       }
@@ -57,8 +58,6 @@ export const Modal: React.FC<ModalProps> = ({
     lg: 'max-w-3xl',
     xl: 'max-w-5xl',
   };
-
-  const titleId = useA11yId('modal');
     return (
       <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby={titleId}>      <div 
         className="absolute inset-0 bg-black/80 backdrop-blur-md animate-in fade-in duration-300" 
