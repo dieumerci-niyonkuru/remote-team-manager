@@ -334,7 +334,7 @@ function DeleteConfirm({ onConfirm, onCancel }) {
 // ─── MessageBubble ───────────────────────────────────────────────────────────
 
 function MessageBubble({
-  m, prevM, isOwn, onReact, onEdit, onDelete, onPin, onReply,
+  m, prevM, isOwn, onReact, onEdit, onDelete, onPin, onReply, onOpenThread,
   editingId, editValue, onEditChange, onEditSave, onEditCancel
 }) {
   const [hovered, setHovered] = useState(false);
@@ -491,7 +491,7 @@ function MessageBubble({
 
           {/* Reply count */}
           {m.reply_count > 0 && (
-            <button onClick={() => onReply(m)} style={{
+            <button onClick={() => onOpenThread && onOpenThread(m)} style={{
               display: 'flex', alignItems: 'center', gap: 6, marginTop: 4,
               background: 'none', border: 'none', cursor: 'pointer',
               color: 'var(--brand)', fontSize: 12, fontWeight: 600, padding: '2px 0'
@@ -522,8 +522,10 @@ function MessageBubble({
                 />
               )}
             </div>
-            {/* Reply */}
-            <ActionBtn icon={<Reply size={15} />} title="Reply" onClick={() => onReply(m)} />
+            {/* Reply inline */}
+            <ActionBtn icon={<Reply size={15} />} title="Reply in channel" onClick={() => onReply(m)} />
+            {/* Open thread */}
+            <ActionBtn icon={<MessageSquare size={15} />} title="View thread" onClick={() => onOpenThread && onOpenThread(m)} />
             {/* Pin */}
             <ActionBtn icon={<Pin size={15} />} title={m.is_pinned ? 'Unpin' : 'Pin message'}
               onClick={() => onPin(m.id)} active={m.is_pinned} />
@@ -1257,7 +1259,8 @@ export default function Chat() {
                       onEdit={handleEditStart}
                       onDelete={handleDelete}
                       onPin={handlePin}
-                      onReply={(m) => { setThreadMsg(m); }}
+                      onReply={(m) => { setReplyTo(m); }}
+                      onOpenThread={(m) => { setThreadMsg(m); }}
                       editingId={editingId}
                       editValue={editValue}
                       onEditChange={setEditValue}
