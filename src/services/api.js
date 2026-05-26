@@ -154,6 +154,10 @@ export const wiki = {
   restore: (articleId, revisionId) => api.post(`/wiki-articles/${articleId}/revisions/${revisionId}/restore/`),
 };
 
+export const calls = {
+  initiate: (room_id, user_ids = []) => api.post('/calls/initiate/', { room_id, user_ids }),
+};
+
 export const notifications = {
   list: () => api.get('/notifications/'),
   markRead: id => api.post(`/notifications/${id}/mark_read/`),

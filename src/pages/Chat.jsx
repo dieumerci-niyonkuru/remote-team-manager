@@ -1,18 +1,27 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
-import { chat } from '../services/api';
+import { chat, calls } from '../services/api';
 import api from '../services/api';
 import {
   MessageSquare, Hash, Plus, Search, Send, Smile, Paperclip,
   Edit2, Trash2, Pin, Reply, X, ChevronDown, Users, MoreHorizontal,
-  Check, CheckCheck, AtSign
+  Check, CheckCheck, AtSign, Video, Phone, ChevronRight, Image,
+  Mic, Square
 } from 'lucide-react';
 import useWebSocket from '../hooks/useWebSocket';
 import CreateChannelModal from '../components/chat/CreateChannelModal';
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
-const COMMON_EMOJIS = ['👍', '❤️', '😂', '😮', '😢', '👏', '🔥', '✅', '🎉', '🙌'];
+const EMOJI_CATEGORIES = {
+  'Recent': ['👍', '❤️', '😂', '😮', '😢', '👏', '🔥', '✅', '🎉', '🙌'],
+  'Smileys': ['😀','😃','😄','😁','😆','🥹','😅','😂','🤣','🥲','☺️','😊','😇','🙂','🙃','😉','😌','😍','🥰','😘','😗','😙','😚','😋','😛','😝','😜','🤪','🤨','🧐','🤓','😎','🥸','🤩','🥳','😏','😒','😞','😔','😟','😕','🙁','☹️','😣','😖','😫','😩','🥺','😢','😭','😮‍💨','😤','😠','😡','🤬','🤯','😳','🥵','🥶','😱','😨','😰','😥','😓'],
+  'People': ['👋','🤚','🖐','✋','🖖','🫱','🫲','🫳','🫴','👌','🤌','🤏','✌️','🤞','🫰','🤟','🤘','🤙','👈','👉','👆','🖕','👇','☝️','🫵','👍','👎','✊','👊','🤛','🤜','👏','🙌','🫶','👐','🤲','🤝','🙏','✍️','💅','🤳','💪','🦾','🦿','🦵','🦶','👂','🦻','👃'],
+  'Objects': ['💬','📌','📍','🗺','🧭','⏰','⌚','📅','📆','🗓','📋','📊','📈','📉','📝','✏️','🖊','🖋','📎','🖇','✂️','🗃','🗄','🗑','🔒','🔓','🔑','🗝','🔨','🪓','⛏','⚒','🛠','🗡','⚔️','🛡','🔫','🪃','🏹','🛖','🏠','🏡','🏢','🏣','🏤','🏥','🏦','🏧','🏨','🏩','🏪','🏫','🏬','🏭','🏯','🏰'],
+  'Symbols': ['❤️','🧡','💛','💚','💙','💜','🖤','🤍','🤎','💔','❣️','💕','💞','💓','💗','💖','💘','💝','💟','☮️','✝️','☪️','🕉','☸️','🪯','✡️','🔯','🕎','☯️','☦️','🛐','⛎','♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓','🆔','⚛️','🉑','☢️','☣️','📴','📳','🈶','🈚','🈸','🈺','🈷️'],
+};
+const COMMON_EMOJIS = EMOJI_CATEGORIES['Recent'];
 
 function formatTime(ts) {
   if (!ts) return '';
@@ -79,29 +88,182 @@ function Avatar({ user, size = 36, isOnline }) {
 
 function EmojiPicker({ onPick, onClose }) {
   const ref = useRef(null);
+  const [cat, setCat] = useState('Recent');
+  const [search, setSearch] = useState('');
   useEffect(() => {
     function handler(e) { if (ref.current && !ref.current.contains(e.target)) onClose(); }
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [onClose]);
+
+  const allEmojis = Object.values(EMOJI_CATEGORIES).flat();
+  const displayEmojis = search
+    ? allEmojis.filter(e => e.includes(search)).slice(0, 30)
+    : (EMOJI_CATEGORIES[cat] || []);
+
   return (
     <div ref={ref} style={{
       position: 'absolute', bottom: '110%', left: 0,
       background: 'var(--bg2)', border: '1px solid var(--border)',
-      borderRadius: 12, padding: 8, display: 'flex', flexWrap: 'wrap',
-      gap: 4, width: 220, boxShadow: '0 8px 32px rgba(0,0,0,0.4)', zIndex: 100
+      borderRadius: 14, padding: 0, width: 300,
+      boxShadow: '0 12px 40px rgba(0,0,0,0.5)', zIndex: 100,
+      overflow: 'hidden',
     }}>
-      {COMMON_EMOJIS.map(e => (
-        <button key={e} onClick={() => { onPick(e); onClose(); }}
-          style={{
-            background: 'none', border: 'none', fontSize: 22,
-            cursor: 'pointer', padding: '4px 6px', borderRadius: 6,
-            transition: 'background .15s'
-          }}
+      {/* Search */}
+      <div style={{ padding: '8px 8px 4px' }}>
+        <input value={search} onChange={e => setSearch(e.target.value)}
+          placeholder="Search emoji..."
+          style={{ width: '100%', background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 7, padding: '5px 8px', color: 'var(--text)', fontSize: 12, outline: 'none', boxSizing: 'border-box' }} />
+      </div>
+      {/* Category tabs */}
+      {!search && (
+        <div style={{ display: 'flex', gap: 2, padding: '0 6px 4px', overflowX: 'auto' }}>
+          {Object.keys(EMOJI_CATEGORIES).map(c => (
+            <button key={c} onClick={() => setCat(c)} style={{
+              background: cat === c ? 'var(--brand)' : 'none',
+              border: 'none', borderRadius: 5, padding: '3px 7px',
+              color: cat === c ? '#fff' : 'var(--text3)', fontSize: 11, cursor: 'pointer', fontWeight: 600, whiteSpace: 'nowrap',
+            }}>{c}</button>
+          ))}
+        </div>
+      )}
+      {/* Emoji grid */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 1, padding: '4px 6px 8px', maxHeight: 200, overflowY: 'auto' }}>
+        {displayEmojis.map(e => (
+          <button key={e} onClick={() => { onPick(e); onClose(); }}
+            style={{
+              background: 'none', border: 'none', fontSize: 22,
+              cursor: 'pointer', padding: '4px 6px', borderRadius: 6,
+              transition: 'background .15s'
+            }}
           onMouseEnter={ev => ev.currentTarget.style.background = 'var(--bg3)'}
           onMouseLeave={ev => ev.currentTarget.style.background = 'none'}
         >{e}</button>
-      ))}
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── ThreadSidebar ───────────────────────────────────────────────────────────
+
+function ThreadSidebar({ parentMsg, onClose, currentUser }) {
+  const [replies, setReplies] = useState([]);
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(true);
+  const scrollRef = useRef(null);
+
+  useEffect(() => {
+    if (!parentMsg?.id) return;
+    setLoading(true);
+    chat.thread(parentMsg.id)
+      .then(res => {
+        const data = res.data;
+        setReplies(Array.isArray(data) ? data : (data?.data || []));
+      })
+      .catch(() => setReplies([]))
+      .finally(() => setLoading(false));
+  }, [parentMsg?.id]);
+
+  const handleSend = async () => {
+    if (!input.trim()) return;
+    const msg = input.trim();
+    setInput('');
+    try {
+      const res = await chat.sendMessage({ room: parentMsg.room, content: msg, reply_to: parentMsg.id });
+      const newMsg = res.data?.data || res.data;
+      if (newMsg) setReplies(prev => [...prev, newMsg]);
+      setTimeout(() => scrollRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
+    } catch (e) { console.warn('Thread reply failed', e); }
+  };
+
+  return (
+    <div style={{
+      width: 320, flexShrink: 0, display: 'flex', flexDirection: 'column',
+      background: 'var(--bg2)', borderLeft: '1px solid var(--border)',
+    }}>
+      {/* Header */}
+      <div style={{ padding: '12px 14px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <span style={{ fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>Thread</span>
+        <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text3)', display: 'flex', padding: 3, borderRadius: 4 }}><X size={16} /></button>
+      </div>
+
+      {/* Parent message */}
+      <div style={{ padding: '12px 14px', borderBottom: '1px solid var(--border)', background: 'var(--bg3)' }}>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+          <Avatar user={parentMsg?.sender || parentMsg?.user} size={28} />
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)', marginBottom: 2 }}>
+              {parentMsg?.sender?.first_name || parentMsg?.user?.first_name} {parentMsg?.sender?.last_name || parentMsg?.user?.last_name}
+            </div>
+            <div style={{ fontSize: 13, color: 'var(--text2)', lineHeight: 1.5 }}>
+              {parentMsg?.content}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Replies list */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}>
+        {loading && (
+          <div style={{ textAlign: 'center', padding: 24, color: 'var(--text3)', fontSize: 13 }}>Loading replies...</div>
+        )}
+        {!loading && replies.length === 0 && (
+          <div style={{ textAlign: 'center', padding: 24, color: 'var(--text3)', fontSize: 13 }}>
+            No replies yet. Start the thread!
+          </div>
+        )}
+        {replies.map(r => (
+          <div key={r.id} style={{ display: 'flex', gap: 8, padding: '6px 14px', alignItems: 'flex-start' }}>
+            <Avatar user={r.sender || r.user} size={26} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)' }}>
+                {(r.sender || r.user)?.first_name} {(r.sender || r.user)?.last_name}
+                <span style={{ fontWeight: 400, color: 'var(--text3)', marginLeft: 6, fontSize: 11 }}>
+                  {formatTime(r.created_at || r.timestamp)}
+                </span>
+              </div>
+              <div style={{ fontSize: 13, color: 'var(--text2)', lineHeight: 1.5, wordBreak: 'break-word' }}>
+                {r.content}
+              </div>
+            </div>
+          </div>
+        ))}
+        <div ref={scrollRef} />
+      </div>
+
+      {/* Reply compose */}
+      <div style={{ padding: 10, borderTop: '1px solid var(--border)' }}>
+        <div style={{ background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: 10, overflow: 'hidden' }}>
+          <textarea
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            placeholder="Reply in thread..."
+            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
+            style={{ width: '100%', background: 'transparent', border: 'none', color: 'var(--text)', padding: '8px 10px', fontSize: 13, resize: 'none', outline: 'none', minHeight: 50, fontFamily: 'inherit', boxSizing: 'border-box' }}
+            rows={2}
+          />
+          <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '3px 8px 6px' }}>
+            <button onClick={handleSend} disabled={!input.trim()} style={{ background: input.trim() ? 'var(--brand)' : 'var(--bg3)', border: 'none', borderRadius: 7, padding: '5px 12px', color: input.trim() ? '#fff' : 'var(--text3)', cursor: input.trim() ? 'pointer' : 'default', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5 }}>
+              <Send size={13} /> Reply
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── UnreadSeparator ─────────────────────────────────────────────────────────
+
+function UnreadSeparator({ count }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 16px', userSelect: 'none' }}>
+      <div style={{ flex: 1, height: 1, background: '#ef4444' }} />
+      <span style={{ fontSize: 11, fontWeight: 700, color: '#ef4444', padding: '2px 10px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 10, whiteSpace: 'nowrap' }}>
+        {count} New {count === 1 ? 'Message' : 'Messages'}
+      </span>
+      <div style={{ flex: 1, height: 1, background: '#ef4444' }} />
     </div>
   );
 }
@@ -588,6 +750,7 @@ function FormatBtn({ title, label, icon, onClick, style: s }) {
 
 export default function Chat() {
   const { user, activeWorkspace, onlineUsers } = useStore();
+  const navigate = useNavigate();
 
   // ── data state ──
   const [channels, setChannels] = useState([]);
@@ -608,9 +771,13 @@ export default function Chat() {
   const [showMembersPanel, setShowMembersPanel] = useState(true);
   const [pendingFiles, setPendingFiles] = useState([]);
   const [dragOver, setDragOver] = useState(false);
+  const [threadMsg, setThreadMsg] = useState(null);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [lastReadIdx, setLastReadIdx] = useState(-1);
 
   const scrollRef = useRef(null);
   const typingTimerRef = useRef(null);
+  const prevMsgLenRef = useRef(0);
 
   // ── load channels & DMs ──
   useEffect(() => {
@@ -662,6 +829,10 @@ export default function Chat() {
     setReplyTo(null);
     setEditingId(null);
     setSearchQuery('');
+    setThreadMsg(null);
+    setUnreadCount(0);
+    setLastReadIdx(-1);
+    prevMsgLenRef.current = 0;
     if (activeTab) {
       loadMessages(activeTab, 1);
       chat.markRead(activeTab).catch(() => {});
@@ -676,10 +847,19 @@ export default function Chat() {
     enabled: !!activeTab,
     onMessage: (data) => {
       switch (data.type) {
-        case 'chat_message':
-          setMessages(prev => [...prev, data]);
+        case 'chat_message': {
+          const incoming = data.message || data;
+          setMessages(prev => {
+            const isNewFromOther = incoming.sender?.id !== user?.id;
+            if (isNewFromOther) {
+              setUnreadCount(u => u + 1);
+              setLastReadIdx(prev.length);
+            }
+            return [...prev, incoming];
+          });
           setTimeout(() => scrollRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
           break;
+        }
         case 'typing':
           if (data.user_id !== user?.id) {
             setTypingUsers(prev =>
@@ -981,6 +1161,23 @@ export default function Chat() {
                 onBlur={e => { e.target.style.borderColor = 'var(--border)'; e.target.style.width = '180px'; }}
               />
             </div>
+            {/* Video call button */}
+            <button
+              onClick={async () => {
+                try {
+                  const res = await calls.initiate(null, []);
+                  const roomId = res.data?.data?.room_id || res.data?.room_id;
+                  if (roomId) navigate(`/call?room=${roomId}`);
+                } catch { navigate('/call'); }
+              }}
+              title="Start video call"
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer', padding: '5px 7px',
+                borderRadius: 7, color: 'var(--text3)', display: 'flex', transition: 'background .15s, color .15s'
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg3)'; e.currentTarget.style.color = 'var(--text)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'none'; e.currentTarget.style.color = 'var(--text3)'; }}
+            ><Video size={16} /></button>
             {/* Toggle members panel */}
             <button
               onClick={() => setShowMembersPanel(p => !p)}
@@ -1044,26 +1241,33 @@ export default function Chat() {
             </div>
           )}
 
-          {messageGroups.map(item =>
-            item.type === 'date'
-              ? <DateDivider key={item.key} label={item.label} />
-              : <MessageBubble
-                  key={item.key}
-                  m={item.m}
-                  prevM={item.prevM}
-                  isOwn={item.m.user?.id === user?.id}
-                  onReact={handleReact}
-                  onEdit={handleEditStart}
-                  onDelete={handleDelete}
-                  onPin={handlePin}
-                  onReply={setReplyTo}
-                  editingId={editingId}
-                  editValue={editValue}
-                  onEditChange={setEditValue}
-                  onEditSave={handleEditSave}
-                  onEditCancel={handleEditCancel}
-                />
-          )}
+          {messageGroups.map((item, globalIdx) => {
+            const msgIdx = messageGroups.filter((x, j) => j <= globalIdx && x.type === 'message').length - 1;
+            const showUnread = item.type === 'message' && lastReadIdx >= 0 && msgIdx === lastReadIdx + 1 && unreadCount > 0;
+            return (
+              <div key={item.key}>
+                {showUnread && <UnreadSeparator count={unreadCount} />}
+                {item.type === 'date'
+                  ? <DateDivider label={item.label} />
+                  : <MessageBubble
+                      m={item.m}
+                      prevM={item.prevM}
+                      isOwn={(item.m.sender?.id || item.m.user?.id) === user?.id}
+                      onReact={handleReact}
+                      onEdit={handleEditStart}
+                      onDelete={handleDelete}
+                      onPin={handlePin}
+                      onReply={(m) => { setThreadMsg(m); }}
+                      editingId={editingId}
+                      editValue={editValue}
+                      onEditChange={setEditValue}
+                      onEditSave={handleEditSave}
+                      onEditCancel={handleEditCancel}
+                    />
+                }
+              </div>
+            );
+          })}
           <div ref={scrollRef} style={{ height: 1 }} />
         </div>
 
@@ -1084,8 +1288,17 @@ export default function Chat() {
         />
       </div>
 
+      {/* ══════════ THREAD SIDEBAR ══════════ */}
+      {threadMsg && (
+        <ThreadSidebar
+          parentMsg={threadMsg}
+          currentUser={user}
+          onClose={() => setThreadMsg(null)}
+        />
+      )}
+
       {/* ══════════ RIGHT MEMBERS PANEL ══════════ */}
-      {showMembersPanel && (
+      {showMembersPanel && !threadMsg && (
         <aside style={{
           width: 220, flexShrink: 0, background: 'var(--bg2)',
           borderLeft: '1px solid var(--border)', display: 'flex',

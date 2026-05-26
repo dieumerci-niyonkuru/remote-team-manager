@@ -9,6 +9,7 @@ from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.auth import AuthMiddlewareStack
 from channels.security.websocket import AllowedHostsOriginValidator
 import apps.chat.routing
+import apps.chat.call_routing
 import apps.notifications.routing
 import apps.presence.routing
 import apps.projects.routing
@@ -17,6 +18,7 @@ import apps.wiki.routing
 # Combine WebSocket URL patterns from all apps
 websocket_urlpatterns = (
     apps.chat.routing.websocket_urlpatterns +
+    apps.chat.call_routing.websocket_urlpatterns +
     apps.notifications.routing.websocket_urlpatterns +
     apps.presence.routing.websocket_urlpatterns +
     apps.projects.routing.websocket_urlpatterns +

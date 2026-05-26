@@ -1,3 +1,4 @@
+import uuid
 from rest_framework import generics, viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -214,3 +215,21 @@ class MessageViewSet(viewsets.ModelViewSet):
         msg.content = '[This message was deleted]'
         msg.save(update_fields=['is_deleted', 'content', 'updated_at'])
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class CallRoomViewSet(viewsets.GenericViewSet):
+    """Creates and manages call room tokens for WebRTC sessions."""
+    permission_classes = [permissions.IsAuthenticated]
+
+    @action(detail=False, methods=['post'])
+    def initiate(self, request):
+        room_id = request.data.get('room_id') or str(uuid.uuid4())[:8].upper()
+        user_ids = request.data.get('user_ids', [])
+        call_url = f'/call?room={room_id}'
+        return Response({
+            'data': {
+                'room_id': room_id,
+                'call_url': call_url,
+                'invited_users': user_ids,
+            }
+        }, status=status.HTTP_201_CREATED)
