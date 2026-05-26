@@ -204,6 +204,66 @@ const translations = {
     fr: 'RH',
     rw: 'Abakozi',
   },
+  'nav.home': {
+    en: 'Home',
+    fr: 'Accueil',
+    rw: 'Ahabanza',
+  },
+  'nav.about': {
+    en: 'About Us',
+    fr: 'À propos',
+    rw: 'Abo turi bo',
+  },
+  'nav.product': {
+    en: 'Product',
+    fr: 'Produit',
+    rw: 'Igicuruzwa',
+  },
+  'nav.solutions': {
+    en: 'Solutions',
+    fr: 'Solutions',
+    rw: 'Ibisubizo',
+  },
+  'nav.enterprise': {
+    en: 'Enterprise',
+    fr: 'Entreprise',
+    rw: 'Ikigo',
+  },
+  'nav.platform': {
+    en: 'Platform',
+    fr: 'Plateforme',
+    rw: 'Urubuga',
+  },
+  'nav.pricing': {
+    en: 'Pricing',
+    fr: 'Tarifs',
+    rw: 'Ibiciro',
+  },
+  'auth.logout': {
+    en: 'Sign Out',
+    fr: 'Se déconnecter',
+    rw: 'Sohoka',
+  },
+  'auth.login.authorizing': {
+    en: 'Signing in…',
+    fr: 'Connexion en cours…',
+    rw: 'Injira…',
+  },
+  'common.toggle_theme': {
+    en: 'Toggle Theme',
+    fr: 'Changer le thème',
+    rw: 'Hindura isura',
+  },
+  'nav.useful_links': {
+    en: 'Useful Links',
+    fr: 'Liens utiles',
+    rw: 'Itumanaho rikunzwe',
+  },
+  'nav.about_remoteteam': {
+    en: 'About RemoteTeam',
+    fr: 'À propos de RemoteTeam',
+    rw: 'Ibyerekeye RemoteTeam',
+  },
 
   // ─── Dashboard ─────────────────────────────────────────────
   'dashboard.title': {

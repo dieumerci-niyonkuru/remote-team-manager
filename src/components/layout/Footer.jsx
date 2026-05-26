@@ -39,15 +39,15 @@ export default function Footer() {
   const t = getT(lang)
 
   const usefulLinks = [
-    { label: t.dashboard || 'Dashboard', to: '/dashboard' },
-    { label: t.projects || 'Projects & Tasks', to: '/projects' },
-    { label: t.team || 'Team Collaboration', to: '/team' },
-    { label: t.channels || 'Chat & Messages', to: '/chat' },
-    { label: t.wiki || 'Knowledge Base', to: '/wiki' },
+    { label: t('nav.dashboard', 'Dashboard'), to: '/dashboard' },
+    { label: t('nav.projects', 'Projects & Tasks'), to: '/projects' },
+    { label: t('nav.team', 'Team Collaboration'), to: '/team' },
+    { label: t('nav.chat', 'Chat & Messages'), to: '/chat' },
+    { label: t('nav.wiki', 'Knowledge Base'), to: '/wiki' },
   ]
 
   const aboutLinks = [
-    { label: t.aboutUs || 'About Us', to: '/about' },
+    { label: t('nav.about', 'About Us'), to: '/about' },
     { label: 'Our Mission', to: '/about' },
     { label: 'Careers', to: '/about' },
     { label: 'Privacy Policy', to: '/about' },
@@ -137,7 +137,7 @@ export default function Footer() {
           {/* Column 1 — Useful Links */}
           <div style={{ padding: '36px 36px', borderRight: '1px solid rgba(245,158,11,0.3)' }}>
             <h4 style={{ fontSize: 18, fontWeight: 900, color: '#fff', marginBottom: 24, letterSpacing: '-0.02em' }}>
-              {t.features || 'Useful Links'}
+              {t('nav.useful_links', 'Useful Links')}
             </h4>
             <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 14 }}>
               {usefulLinks.map(link => (
@@ -160,7 +160,7 @@ export default function Footer() {
           {/* Column 2 — About RemoteTeam */}
           <div style={{ padding: '36px 36px', borderRight: '1px solid rgba(245,158,11,0.3)' }}>
             <h4 style={{ fontSize: 18, fontWeight: 900, color: '#fff', marginBottom: 20, letterSpacing: '-0.02em' }}>
-              {t.aboutUs || 'About RemoteTeam'}
+              {t('nav.about_remoteteam', 'About RemoteTeam')}
             </h4>
             <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)', lineHeight: 1.7, marginBottom: 20 }}>
               RemoteTeam is the all-in-one workspace platform for distributed teams — combining project management, real-time chat, analytics, and AI in a single intelligent OS.

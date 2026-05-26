@@ -260,10 +260,10 @@ export default function Login() {
                   {loading ? (
                     <>
                       <span style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTop: '2px solid #fff', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.7s linear infinite' }} />
-                      {t.authorizing || 'Signing in...'}
+                      {t('auth.login.authorizing', 'Signing in...')}
                     </>
                   ) : (
-                    <>{t.establishConn || 'Sign In'} <ArrowRight size={16} /></>
+                    <>{t('auth.login.submit', 'Sign In')} <ArrowRight size={16} /></>
                   )}
                 </button>
               </form>

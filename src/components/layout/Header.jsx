@@ -137,13 +137,13 @@ export default function Header() {
 
         {/* Desktop Nav */}
         <nav className="desktop-only" style={{ display:'flex', alignItems:'center', gap:2, height:'100%' }}>
-           <NavItem label={t.home} to="/" />
-           <NavItem label={t.aboutUs} to="/about" />
-           <NavItem label={t.product} items={PRODUCT_MENU} />
-           <NavItem label={t.solutions} items={SOLUTIONS_MENU} />
-           <NavItem label={t.enterprise} items={ENTERPRISE_MENU} />
-           <NavItem label={t.platform} items={PLATFORM_MENU} />
-           {isAuth && <NavItem label={t.pricing || 'Pricing'} to="/dashboard" />}
+           <NavItem label={t('nav.home', 'Home')} to="/" />
+           <NavItem label={t('nav.about', 'About Us')} to="/about" />
+           <NavItem label={t('nav.product', 'Product')} items={PRODUCT_MENU} />
+           <NavItem label={t('nav.solutions', 'Solutions')} items={SOLUTIONS_MENU} />
+           <NavItem label={t('nav.enterprise', 'Enterprise')} items={ENTERPRISE_MENU} />
+           <NavItem label={t('nav.platform', 'Platform')} items={PLATFORM_MENU} />
+           {isAuth && <NavItem label={t('nav.pricing', 'Pricing')} to="/dashboard" />}
         </nav>
 
         {/* Actions */}
@@ -206,13 +206,13 @@ export default function Header() {
 
           {isAuth ? (
             <div style={{ display:'flex', gap:8, alignItems:'center' }}>
-              <Button variant="secondary" onClick={() => navigate('/dashboard')} size="sm" className="font-black desktop-only">{t.dashboard}</Button>
-              <Button variant="ghost" onClick={handleLogout} size="sm" className="font-black">{t.logout || t.exit}</Button>
+              <Button variant="secondary" onClick={() => navigate('/dashboard')} size="sm" className="font-black desktop-only">{t('nav.dashboard', 'Dashboard')}</Button>
+              <Button variant="ghost" onClick={handleLogout} size="sm" className="font-black">{t('auth.logout', 'Sign Out')}</Button>
             </div>
           ) : (
             <div style={{ display:'flex', gap:8 }}>
-               <Button variant="secondary" size="sm" className="desktop-only font-black" onClick={() => navigate('/login')}>{t.login}</Button>
-               <Button variant="primary" size="sm" className="font-black" onClick={() => navigate('/register')}>{t.register}</Button>
+               <Button variant="secondary" size="sm" className="desktop-only font-black" onClick={() => navigate('/login')}>{t('auth.login.submit', 'Sign In')}</Button>
+               <Button variant="primary" size="sm" className="font-black" onClick={() => navigate('/register')}>{t('auth.register.submit', 'Sign Up')}</Button>
             </div>
           )}
 
@@ -236,13 +236,13 @@ export default function Header() {
            </div>
 
            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12, marginBottom:24 }}>
-              <Link to="/" onClick={() => setShowMenu(false)} className="mobile-nav-link" style={{ textAlign:'center' }}>{t.home}</Link>
-              <Link to="/about" onClick={() => setShowMenu(false)} className="mobile-nav-link" style={{ textAlign:'center' }}>{t.aboutUs}</Link>
+              <Link to="/" onClick={() => setShowMenu(false)} className="mobile-nav-link" style={{ textAlign:'center' }}>{t('nav.home', 'Home')}</Link>
+              <Link to="/about" onClick={() => setShowMenu(false)} className="mobile-nav-link" style={{ textAlign:'center' }}>{t('nav.about', 'About Us')}</Link>
            </div>
            
            {[
-             { l: t.product, i:PRODUCT_MENU }, { l: t.solutions, i:SOLUTIONS_MENU },
-             { l: t.enterprise, i:ENTERPRISE_MENU }, { l: t.platform, i:PLATFORM_MENU }
+             { l: t('nav.product', 'Product'), i:PRODUCT_MENU }, { l: t('nav.solutions', 'Solutions'), i:SOLUTIONS_MENU },
+             { l: t('nav.enterprise', 'Enterprise'), i:ENTERPRISE_MENU }, { l: t('nav.platform', 'Platform'), i:PLATFORM_MENU }
            ].map(cat => (
              <div key={cat.l} style={{ marginBottom:20 }}>
                 <div style={{ fontSize:11, fontWeight:900, color:'var(--brand)', textTransform:'uppercase', letterSpacing:2, marginBottom:10, paddingLeft:12 }}>{cat.l}</div>
@@ -260,13 +260,13 @@ export default function Header() {
            <div style={{ marginTop:24, display:'grid', gap:10 }}>
              {!isAuth ? (
                <>
-                 <Link to="/login" onClick={() => setShowMenu(false)} className="btn btn-secondary" style={{ padding:18, textAlign:'center', borderRadius:16 }}>{t.login}</Link>
-                 <Link to="/register" onClick={() => setShowMenu(false)} className="btn btn-primary" style={{ padding:18, textAlign:'center', borderRadius:16 }}>{t.register}</Link>
+                 <Link to="/login" onClick={() => setShowMenu(false)} className="btn btn-secondary" style={{ padding:18, textAlign:'center', borderRadius:16 }}>{t('auth.login.submit', 'Sign In')}</Link>
+                 <Link to="/register" onClick={() => setShowMenu(false)} className="btn btn-primary" style={{ padding:18, textAlign:'center', borderRadius:16 }}>{t('auth.register.submit', 'Sign Up')}</Link>
                </>
              ) : (
-               <button onClick={handleLogout} className="btn btn-secondary" style={{ padding:18, borderRadius:16 }}>{t.logout || t.exit}</button>
+               <button onClick={handleLogout} className="btn btn-secondary" style={{ padding:18, borderRadius:16 }}>{t('auth.logout', 'Sign Out')}</button>
              )}
-             <button onClick={() => { setTheme(theme==='dark'?'light':'dark'); }} className="btn btn-secondary" style={{ padding:16, borderRadius:16 }}>{t.toggleTheme}</button>
+             <button onClick={() => { setTheme(theme==='dark'?'light':'dark'); }} className="btn btn-secondary" style={{ padding:16, borderRadius:16 }}>{t('common.toggle_theme', 'Toggle Theme')}</button>
            </div>
         </div>
       )}
