@@ -15,7 +15,13 @@ class AISuggestTasksView(APIView):
         project_id = request.data.get('project_id')
 
         suggestions = self._generate_task_suggestions(prompt, project_id, request.user)
-        return Response({'data': suggestions, 'message': 'AI suggestions generated.'})
+        return Response({
+            'data': {
+                'command_type': 'breakdown',
+                'tasks': suggestions,
+                'message': f'Here are {len(suggestions)} AI-generated task suggestions for your prompt.',
+            }
+        })
 
     def _generate_task_suggestions(self, prompt, project_id, user):
         # Smart rule-based suggestions based on keywords
