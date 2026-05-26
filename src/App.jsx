@@ -41,6 +41,7 @@ const VideoCall     = React.lazy(() => import('./pages/VideoCall'))
 const ForgotPassword  = React.lazy(() => import('./pages/ForgotPassword'))
 const JoinWorkspace   = React.lazy(() => import('./pages/JoinWorkspace'))
 const Schedule        = React.lazy(() => import('./pages/Schedule'))
+const OKR             = React.lazy(() => import('./pages/OKR'))
 
 const PageLoader = () => (
   <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'60vh', flexDirection:'column', gap:16 }}>
@@ -94,6 +95,7 @@ function RouterContent() {
             <Route path="/ai" element={<Protected><AIAssistant /></Protected>} />
             <Route path="/automations" element={<Protected><Automations /></Protected>} />
             <Route path="/wiki" element={<Protected><Wiki /></Protected>} />
+            <Route path="/okr" element={<Protected><OKR /></Protected>} />
             <Route path="/analytics" element={<ProtectedRoute requiredRoles={['admin','workspace_owner','super_admin']}><Analytics /></ProtectedRoute>} />
             <Route path="/search" element={<Protected><Search /></Protected>} />
             <Route path="/integrations" element={<Protected><Integrations /></Protected>} />

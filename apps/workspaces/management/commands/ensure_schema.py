@@ -45,7 +45,7 @@ GUARDED_APPS = [
     ('workspaces',    '0001_initial', ['workspaces_workspace', 'workspaces_workspacemember']),
     ('projects',      '0001_initial', ['projects_project', 'projects_task']),
     ('notifications', '0001_initial', ['notifications_notification', 'notifications_invite']),
-    ('presence',      '0001_initial', ['presence_userpresence']),
+    ('presence',      '0001_initial', ['presence_presence']),
 ]
 
 

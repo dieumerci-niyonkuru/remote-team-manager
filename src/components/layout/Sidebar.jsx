@@ -14,7 +14,7 @@ import {
   MessageSquare,
   Calendar,
   CalendarDays,
-  BarChart2,
+  FolderOpen,
   BookOpen,
   Bell,
   Blocks,
@@ -28,6 +28,8 @@ import {
   Mail,
   PieChart,
   LogOut,
+  Sparkles,
+  Target,
 } from 'lucide-react';
 import ThemeSwitcher from './ThemeSwitcher';
 import { Tooltip } from '../common/Tooltip';
@@ -71,13 +73,14 @@ export default function Sidebar() {
   const commLinks = [
     { to: '/chat',     label: t('nav.chat'),      icon: <Hash size={20} /> },
     { to: '/calendar', label: t('nav.calendar'),  icon: <Calendar size={20} /> },
-    { to: '/files',    label: t('nav.files'),     icon: <BarChart2 size={20} /> },
+    { to: '/files',    label: t('nav.files'),     icon: <FolderOpen size={20} /> },
   ];
 
   const toolsLinks = [
     { to: '/wiki',         label: t('nav.wiki'),         icon: <BookOpen size={20} /> },
+    { to: '/okr',          label: 'OKRs',                icon: <Target size={20} /> },
     { to: '/integrations', label: t('nav.integrations'), icon: <Blocks size={20} /> },
-    { to: '/ai',           label: t('nav.ai_assistant'), icon: <Hash size={20} /> },
+    { to: '/ai',           label: t('nav.ai_assistant'), icon: <Sparkles size={20} /> },
   ];
 
   const bottomLinks = [

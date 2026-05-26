@@ -186,6 +186,8 @@ export const okr = {
   deleteObjective: id => api.delete(`/objectives/${id}/`),
   keyResults: objectiveId => api.get('/key-results/', { params: { objective: objectiveId } }),
   createKeyResult: (objectiveId, d) => api.post('/key-results/', { ...d, objective: objectiveId }),
+  updateKeyResult: (id, d) => api.patch(`/key-results/${id}/`, d),
+  deleteKeyResult: id => api.delete(`/key-results/${id}/`),
 };
 
 export const unwrapData = res => {
