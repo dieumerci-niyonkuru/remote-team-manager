@@ -22,8 +22,8 @@ export default defineConfig(({ mode }) => {
     build: {
       outDir: 'dist',
       sourcemap: false,
-      // Minify for production
-      minify: 'esbuild',
+      // Vite 8 uses the built-in oxc minifier by default (esbuild no longer bundled)
+      minify: true,
       rollupOptions: {
         output: {
           // Code-split into named chunks to keep individual file sizes small
