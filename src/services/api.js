@@ -1,9 +1,12 @@
 import axios from 'axios';
 
 // VITE_API_BASE_URL can be set at Vite build-time for separate-domain setups.
-// Default (/api) works for the combined Railway deployment (Django serves the
-// React build on the same origin) AND for local dev (Vite proxies /api → :8000).
-const BASE = import.meta.env.VITE_API_BASE_URL ?? '/api';
+// Default (/api) works for:
+//   • Combined Railway deployment  — Django serves the React build, same origin
+//   • Netlify deployment           — netlify.toml proxies /api/* to Railway
+//   • Local dev                    — Vite proxies /api/* to :8000
+// Use || (not ??) so that an empty-string env var also falls back to '/api'.
+const BASE = import.meta.env.VITE_API_BASE_URL || '/api';
 
 const api = axios.create({ baseURL: BASE, headers: { 'Content-Type': 'application/json' } });
 

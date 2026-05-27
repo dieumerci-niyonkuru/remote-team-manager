@@ -62,9 +62,12 @@ export default function useWebSocket(url, options = {}) {
     let fullUrl = url;
     if (!url.startsWith('ws')) {
       const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-      const host = import.meta.env.PROD
-        ? window.location.host
-        : 'localhost:8000';
+      // VITE_WS_HOST is set in netlify.toml [build.environment] so that
+      // WebSocket connections bypass Netlify (which cannot proxy WS traffic)
+      // and connect directly to the Railway backend.
+      // In dev mode, fall back to localhost:8000 (Vite dev server proxies WS).
+      const host = import.meta.env.VITE_WS_HOST
+        || (import.meta.env.PROD ? window.location.host : 'localhost:8000');
       const token = localStorage.getItem('rtm_access');
       fullUrl = `${protocol}://${host}${url}${url.includes('?') ? '&' : '?'}token=${token}`;
     }

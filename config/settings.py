@@ -257,6 +257,7 @@ CORS_ALLOWED_ORIGINS = [o.strip() for o in _cors_raw.split(',') if o.strip()]
 CORS_ALLOWED_ORIGIN_REGEXES = [
     r'^https://.*\.railway\.app$',
     r'^https://.*\.up\.railway\.app$',
+    r'^https://.*\.netlify\.app$',   # Netlify frontend deployments
 ]
 
 CORS_ALLOW_CREDENTIALS = True
@@ -265,7 +266,7 @@ CORS_ALLOW_CREDENTIALS = True
 _railway_domain = config('RAILWAY_PUBLIC_DOMAIN', default='')
 _csrf_raw = config(
     'CSRF_TRUSTED_ORIGINS',
-    default='https://*.railway.app,https://*.up.railway.app'
+    default='https://*.railway.app,https://*.up.railway.app,https://*.netlify.app'
 )
 CSRF_TRUSTED_ORIGINS = [o.strip() for o in _csrf_raw.split(',') if o.strip()]
 if _railway_domain:
