@@ -548,7 +548,7 @@ export default function Home() {
           </p>
 
           {/* CTAs */}
-          <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 64, animation: 'fadeSlideUp 0.9s ease 0.4s both' }}>
+          <div className="hero-cta-row" style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap', marginBottom: 64, animation: 'fadeSlideUp 0.9s ease 0.4s both' }}>
             <button
               onClick={() => navigate('/register')}
               style={{
@@ -725,6 +725,31 @@ export default function Home() {
         @keyframes fadeSlideUp {
           from{opacity:0;transform:translateY(20px);}
           to{opacity:1;transform:translateY(0);}
+        }
+        /* ── Home page mobile overrides ─── */
+        @media (max-width: 640px) {
+          /* Hero CTA buttons full-width on mobile */
+          .hero-cta-row { flex-direction: column !important; align-items: stretch !important; }
+          .hero-cta-row > button, .hero-cta-row > a { width: 100% !important; justify-content: center !important; }
+          /* Hero title smaller on very narrow */
+          .hero-title { font-size: clamp(28px,8vw,52px) !important; }
+          /* Stat cards in hero strip */
+          .hero-stats { gap: 12px !important; }
+          /* Feature grid 1 col */
+          .feature-grid { grid-template-columns: 1fr !important; }
+          /* Pricing grid 1 col */
+          .pricing-grid { grid-template-columns: 1fr !important; }
+          /* Testimonial grid 1 col */
+          .testimonial-grid { grid-template-columns: 1fr !important; }
+          /* Section padding */
+          .home-section { padding: 48px 16px !important; }
+          /* CTA section */
+          .cta-section-inner { flex-direction: column !important; text-align: center !important; }
+        }
+        @media (max-width: 480px) {
+          /* Trust logos smaller */
+          .trust-bar { gap: 16px !important; }
+          .trust-bar span { font-size: 12px !important; }
         }
       `}</style>
     </div>

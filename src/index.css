@@ -1326,3 +1326,279 @@ img, video, canvas, svg { transition: none !important; }
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
 }
+
+/* ============================================================
+   GLOBAL RESPONSIVENESS — applied across ALL pages
+   ============================================================ */
+
+/* ── Fluid page wrapper for all authenticated pages ─────────── */
+/* Pages use height:100% / overflow-y:auto on their root div.
+   On mobile the sidebar adds a 56px (h-14) top bar in the flex column.
+   These rules ensure the scroll area fills correctly. */
+.page-scroll {
+  height: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ── Clamp-based responsive padding for page content ─────────── */
+@media (max-width: 768px) {
+  /* Any page that uses a fixed 32px padding */
+  [style*="padding: 32px"],
+  [style*="padding:32px"] {
+    padding: 16px !important;
+  }
+  [style*="padding: 24px 32px"],
+  [style*="padding:24px 32px"] {
+    padding: 16px !important;
+  }
+  [style*="padding: 28px 32px"] {
+    padding: 14px 16px !important;
+  }
+}
+
+/* ── Authenticated app: make the whole page scrollable on mobile ─ */
+@media (max-width: 768px) {
+  /* Override any fixed heights on page root divs inside <main> */
+  main > div[style*="height: 100%"],
+  main > div[style*="height:100%"] {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* ── Grid responsiveness for inline-style grids ──────────────── */
+/* Grids with minmax(320px…) overflow on narrow screens → clamp to 1 col */
+@media (max-width: 640px) {
+  [style*="minmax(320px"],
+  [style*="minmax(300px"] {
+    grid-template-columns: 1fr !important;
+  }
+  [style*="minmax(280px"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+@media (max-width: 480px) {
+  [style*="minmax(240px"],
+  [style*="minmax(250px"] {
+    grid-template-columns: 1fr !important;
+  }
+  [style*="minmax(200px"] {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+  }
+  [style*="minmax(170px"] {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+  }
+}
+
+/* ── Flex-row wrapping on mobile ─────────────────────────────── */
+@media (max-width: 640px) {
+  /* Header action rows inside pages */
+  [style*="display: flex"][style*="align-items: center"][style*="justify-content: space-between"] {
+    flex-wrap: wrap !important;
+    gap: 12px !important;
+  }
+}
+
+/* ── Quick action bars (horizontal scroll on mobile) ─────────── */
+@media (max-width: 640px) {
+  /* Dashboard quick actions */
+  [style*="overflowX: auto"] {
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x mandatory;
+  }
+}
+
+/* ── Modal responsive — slide up from bottom on small screens ─── */
+@media (max-width: 600px) {
+  [role="dialog"] > div > div {
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: auto !important;
+    border-radius: 24px 24px 0 0 !important;
+    max-height: 92vh !important;
+    animation: slideUpModal 0.3s cubic-bezier(0.34,1.56,0.64,1) !important;
+  }
+  @keyframes slideUpModal {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
+  }
+  /* Modal scroll area */
+  [role="dialog"] > div > div > div[class*="overflow-y"] {
+    max-height: 70vh !important;
+  }
+}
+
+/* ── Projects / Tasks filter bar ─────────────────────────────── */
+@media (max-width: 640px) {
+  /* Stack filter chips vertically */
+  .filter-bar {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+  .filter-bar > * {
+    flex: 1 1 auto !important;
+    min-width: 80px;
+  }
+}
+
+/* ── Analytics charts ─────────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* Force single-column analytics grid */
+  .analytics-page-grid {
+    grid-template-columns: 1fr !important;
+  }
+  /* Reduce chart height on mobile */
+  .recharts-responsive-container,
+  [style*="height: 260px"],
+  [style*="height: 280px"],
+  [style*="height: 300px"] {
+    height: 200px !important;
+  }
+}
+
+/* ── Chat page ─────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* The channel list sidebar */
+  .chat-channel-list {
+    position: fixed;
+    left: 0; top: 0; bottom: 0;
+    z-index: 300;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    width: min(280px, 85vw) !important;
+  }
+  .chat-channel-list.open {
+    transform: translateX(0);
+    box-shadow: 4px 0 40px rgba(0,0,0,0.5);
+  }
+  .chat-message-area {
+    width: 100% !important;
+  }
+}
+
+/* ── Projects page ─────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .project-card-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ── Video call page ───────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .video-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+  .video-controls {
+    padding: 12px 8px !important;
+    gap: 8px !important;
+  }
+  .video-controls button {
+    width: 44px !important;
+    height: 44px !important;
+  }
+}
+
+/* ── Header public pages ───────────────────────────────────────── */
+@media (max-width: 1024px) {
+  /* Already handled by .desktop-only / .mobile-only in Header.jsx */
+}
+
+/* ── Home page hero ────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  /* Hero badge row */
+  [style*="display: flex"][style*="justify-content: center"][style*="flexWrap"] {
+    gap: 8px !important;
+  }
+}
+
+/* ── Dashboard header ──────────────────────────────────────────── */
+@media (max-width: 480px) {
+  /* Hide workspace selector + bell on very small screens — use sidebar instead */
+  .dashboard-header-actions {
+    display: none !important;
+  }
+}
+
+/* ── OKR / HR pages ────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .okr-grid, .hr-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+}
+
+/* ── Wiki page ─────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .wiki-layout {
+    flex-direction: column !important;
+  }
+  .wiki-sidebar {
+    width: 100% !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--border);
+    max-height: 40vh;
+    overflow-y: auto;
+  }
+}
+
+/* ── Settings page two-column ──────────────────────────────────── */
+@media (max-width: 768px) {
+  .settings-layout {
+    flex-direction: column !important;
+  }
+  .settings-sidebar {
+    width: 100% !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--border);
+  }
+}
+
+/* ── Team page ─────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .team-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+  }
+}
+@media (max-width: 380px) {
+  .team-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ── Prevent text overflow globally ────────────────────────────── */
+h1, h2, h3, h4, h5 {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+p, span, a, label {
+  overflow-wrap: break-word;
+}
+
+/* ── Touch-friendly tap targets ────────────────────────────────── */
+@media (max-width: 768px) {
+  button, a, [role="button"] {
+    min-height: 40px;
+  }
+  /* Exception: icon-only small badges */
+  .badge, .chip {
+    min-height: unset;
+  }
+}
+
+/* ── Safe area insets (notched phones) ─────────────────────────── */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .safe-bottom {
+    padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  }
+  footer {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}

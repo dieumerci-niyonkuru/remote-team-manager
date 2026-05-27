@@ -1,10 +1,10 @@
 /**
  * Footer.jsx — Single unified site footer
  * Two-color palette: #060b18 (deep navy) + #3366ff (brand blue)
+ * Fully responsive across all screen sizes
  */
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useStore } from '../../store';
 
 /* ── Social SVG icons ─────────────────────────────────────────── */
 const GithubIcon = () => (
@@ -74,7 +74,7 @@ function NewsletterForm() {
         onChange={e => setEmail(e.target.value)}
         placeholder="your@email.com"
         style={{
-          flex: 1, minWidth: 160,
+          flex: 1, minWidth: 140,
           background: 'rgba(255,255,255,0.05)',
           border: '1px solid rgba(51,102,255,0.25)',
           borderRadius: 10, padding: '10px 14px',
@@ -105,14 +105,46 @@ function NewsletterForm() {
 export default function Footer() {
   return (
     <footer style={{ background: '#060b18', color: '#fff', fontFamily: 'inherit' }}>
+      <style>{`
+        .ft-strip-inner {
+          max-width: 1200px; margin: 0 auto;
+          padding: 24px clamp(16px,4vw,32px);
+          display: flex; align-items: center;
+          justify-content: space-between;
+          flex-wrap: wrap; gap: 20px;
+        }
+        .ft-grid {
+          max-width: 1200px; margin: 0 auto;
+          padding: clamp(28px,5vw,44px) clamp(16px,4vw,32px) clamp(24px,4vw,36px);
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(150px,1fr));
+          gap: clamp(24px,4vw,36px) clamp(16px,3vw,28px);
+        }
+        .ft-bottom {
+          display: flex; align-items: center;
+          justify-content: space-between;
+          flex-wrap: wrap; gap: 12px;
+        }
+        .ft-bottom-links {
+          display: flex; gap: 20px; flex-wrap: wrap;
+        }
+        @media (max-width: 480px) {
+          .ft-bottom { flex-direction: column; align-items: center; text-align: center; }
+          .ft-bottom-links { justify-content: center; gap: 12px; }
+          .ft-grid { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 320px) {
+          .ft-grid { grid-template-columns: 1fr; }
+        }
+      `}</style>
 
       {/* ─── Top hero strip ──────────────────────────────────── */}
       <div style={{ borderBottom: '2px solid #3366ff', background: 'linear-gradient(135deg,#0a1628 0%,#0d1f40 100%)' }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '24px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 20 }}>
+        <div className="ft-strip-inner">
 
           {/* Logo */}
           <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 14, textDecoration: 'none', flexShrink: 0 }}>
-            <div style={{ width: 48, height: 48, borderRadius: 12, background: 'linear-gradient(135deg,#3366ff,#6644ff)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 20px rgba(51,102,255,0.35)', padding: 8, overflow: 'hidden' }}>
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: 'linear-gradient(135deg,#3366ff,#6644ff)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 20px rgba(51,102,255,0.35)', padding: 8, overflow: 'hidden', flexShrink: 0 }}>
               <img
                 src="/logo.png"
                 alt="RemoteTeam logo"
@@ -121,7 +153,7 @@ export default function Footer() {
               />
             </div>
             <div>
-              <span style={{ fontSize: 20, fontWeight: 900, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1.1 }}>
+              <span style={{ fontSize: 'clamp(16px,3vw,20px)', fontWeight: 900, color: '#fff', letterSpacing: '-0.03em', lineHeight: 1.1 }}>
                 Remote<span style={{ color: '#3366ff' }}>Team</span>
               </span>
               <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.14em', marginTop: 2 }}>
@@ -130,13 +162,13 @@ export default function Footer() {
             </div>
           </Link>
 
-          {/* Tagline */}
-          <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', maxWidth: 320, lineHeight: 1.7, margin: 0, flex: '1 1 200px' }}>
+          {/* Tagline — hidden on very small screens */}
+          <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', maxWidth: 300, lineHeight: 1.7, margin: 0, flex: '1 1 180px' }}>
             The all-in-one platform for distributed teams — projects, chat, video, analytics &amp; AI.
           </p>
 
           {/* Socials */}
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
             {SOCIALS.map(s => (
               <a
                 key={s.label}
@@ -144,7 +176,7 @@ export default function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={s.label}
-                style={{ width: 40, height: 40, borderRadius: 10, background: 'rgba(51,102,255,0.1)', border: '1px solid rgba(51,102,255,0.22)', color: '#3366ff', display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', transition: 'all .2s' }}
+                style={{ width: 38, height: 38, borderRadius: 10, background: 'rgba(51,102,255,0.1)', border: '1px solid rgba(51,102,255,0.22)', color: '#3366ff', display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', transition: 'all .2s' }}
                 onMouseEnter={e => { e.currentTarget.style.background = '#3366ff'; e.currentTarget.style.color = '#fff'; }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'rgba(51,102,255,0.1)'; e.currentTarget.style.color = '#3366ff'; }}
               >
@@ -156,68 +188,67 @@ export default function Footer() {
       </div>
 
       {/* ─── Main grid ───────────────────────────────────────── */}
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '44px 32px 36px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(170px,1fr))', gap: '36px 28px' }}>
+      <div className="ft-grid">
 
-          {/* Product */}
-          <div>
-            <h4 style={{ fontSize: 10, fontWeight: 800, color: '#3366ff', textTransform: 'uppercase', letterSpacing: '0.14em', margin: '0 0 16px' }}>Product</h4>
-            <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {PRODUCT_LINKS.map(l => (
-                <li key={l.label}>
-                  <Link to={l.to} style={{ color: 'rgba(255,255,255,0.5)', textDecoration: 'none', fontSize: 13, fontWeight: 500, transition: 'color .18s' }}
-                    onMouseEnter={e => { e.currentTarget.style.color = '#fff'; }}
-                    onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.5)'; }}
-                  >{l.label}</Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Company */}
-          <div>
-            <h4 style={{ fontSize: 10, fontWeight: 800, color: '#3366ff', textTransform: 'uppercase', letterSpacing: '0.14em', margin: '0 0 16px' }}>Company</h4>
-            <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {COMPANY_LINKS.map(l => (
-                <li key={l.label}>
-                  <Link to={l.to} style={{ color: 'rgba(255,255,255,0.5)', textDecoration: 'none', fontSize: 13, fontWeight: 500, transition: 'color .18s' }}
-                    onMouseEnter={e => { e.currentTarget.style.color = '#fff'; }}
-                    onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.5)'; }}
-                  >{l.label}</Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Newsletter */}
-          <div>
-            <h4 style={{ fontSize: 10, fontWeight: 800, color: '#3366ff', textTransform: 'uppercase', letterSpacing: '0.14em', margin: '0 0 16px' }}>Stay Updated</h4>
-            <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', lineHeight: 1.7, margin: '0 0 14px' }}>
-              Get product updates &amp; remote work insights — no spam.
-            </p>
-            <NewsletterForm />
-          </div>
-
+        {/* Product */}
+        <div>
+          <h4 style={{ fontSize: 10, fontWeight: 800, color: '#3366ff', textTransform: 'uppercase', letterSpacing: '0.14em', margin: '0 0 16px' }}>Product</h4>
+          <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {PRODUCT_LINKS.map(l => (
+              <li key={l.label}>
+                <Link to={l.to} style={{ color: 'rgba(255,255,255,0.5)', textDecoration: 'none', fontSize: 13, fontWeight: 500, transition: 'color .18s' }}
+                  onMouseEnter={e => { e.currentTarget.style.color = '#fff'; }}
+                  onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.5)'; }}
+                >{l.label}</Link>
+              </li>
+            ))}
+          </ul>
         </div>
 
-        {/* Divider */}
-        <div style={{ height: 1, background: 'rgba(51,102,255,0.1)', margin: '36px 0 22px' }} />
-
-        {/* Bottom bar */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.28)', margin: 0 }}>
-            © {YEAR} RemoteTeam Manager — All rights reserved.
-          </p>
-          <div style={{ display: 'flex', gap: 20 }}>
-            {['Privacy Policy', 'Terms of Service', 'Cookie Policy'].map(item => (
-              <Link key={item} to="/about"
-                style={{ fontSize: 12, color: 'rgba(255,255,255,0.28)', textDecoration: 'none', transition: 'color .2s' }}
-                onMouseEnter={e => { e.currentTarget.style.color = '#3366ff'; }}
-                onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.28)'; }}
-              >
-                {item}
-              </Link>
+        {/* Company */}
+        <div>
+          <h4 style={{ fontSize: 10, fontWeight: 800, color: '#3366ff', textTransform: 'uppercase', letterSpacing: '0.14em', margin: '0 0 16px' }}>Company</h4>
+          <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {COMPANY_LINKS.map(l => (
+              <li key={l.label}>
+                <Link to={l.to} style={{ color: 'rgba(255,255,255,0.5)', textDecoration: 'none', fontSize: 13, fontWeight: 500, transition: 'color .18s' }}
+                  onMouseEnter={e => { e.currentTarget.style.color = '#fff'; }}
+                  onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.5)'; }}
+                >{l.label}</Link>
+              </li>
             ))}
+          </ul>
+        </div>
+
+        {/* Newsletter */}
+        <div style={{ gridColumn: 'span 1' }}>
+          <h4 style={{ fontSize: 10, fontWeight: 800, color: '#3366ff', textTransform: 'uppercase', letterSpacing: '0.14em', margin: '0 0 16px' }}>Stay Updated</h4>
+          <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', lineHeight: 1.7, margin: '0 0 14px' }}>
+            Get product updates &amp; remote work insights — no spam.
+          </p>
+          <NewsletterForm />
+        </div>
+
+      </div>
+
+      {/* ─── Bottom bar ──────────────────────────────────────── */}
+      <div style={{ borderTop: '1px solid rgba(51,102,255,0.1)', margin: '0 clamp(16px,4vw,32px)' }}>
+        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '20px 0' }}>
+          <div className="ft-bottom">
+            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.28)', margin: 0 }}>
+              © {YEAR} RemoteTeam Manager — All rights reserved.
+            </p>
+            <div className="ft-bottom-links">
+              {['Privacy Policy', 'Terms of Service', 'Cookie Policy'].map(item => (
+                <Link key={item} to="/about"
+                  style={{ fontSize: 12, color: 'rgba(255,255,255,0.28)', textDecoration: 'none', transition: 'color .2s' }}
+                  onMouseEnter={e => { e.currentTarget.style.color = '#3366ff'; }}
+                  onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.28)'; }}
+                >
+                  {item}
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
       </div>
