@@ -49,6 +49,7 @@ class MessageSerializer(serializers.ModelSerializer):
     )
     read_by_count = serializers.SerializerMethodField()
     reaction_summary = serializers.SerializerMethodField()
+    reply_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Message
@@ -57,7 +58,7 @@ class MessageSerializer(serializers.ModelSerializer):
             'reply_to', 'reply_to_id',
             'is_read', 'is_edited', 'is_deleted', 'is_pinned',
             'file_url', 'file_name', 'file_type',
-            'reactions', 'reaction_summary', 'read_by_count',
+            'reactions', 'reaction_summary', 'read_by_count', 'reply_count',
             'created_at', 'updated_at',
         )
         read_only_fields = ('id', 'created_at', 'updated_at', 'sender', 'is_edited')
@@ -77,6 +78,10 @@ class MessageSerializer(serializers.ModelSerializer):
 
     def get_read_by_count(self, obj):
         return obj.read_receipts.count()
+
+    def get_reply_count(self, obj):
+        """Count non-deleted replies to this message (thread depth indicator)."""
+        return obj.replies.filter(is_deleted=False).count()
 
 
 class ChatRoomSerializer(serializers.ModelSerializer):

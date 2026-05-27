@@ -59,18 +59,29 @@ export default function Schedule() {
   }, [activeWorkspace]);
 
   const fetchData = async () => {
+    setLoading(true);
+    // Fetch projects and tasks independently — one failure must not blank the other
     try {
-      const [pRes, tRes] = await Promise.all([
-        api.get(`/projects/?workspace=${activeWorkspace.id}`),
-        api.get(`/tasks/?workspace=${activeWorkspace.id}`),
-      ]);
-      setProjects(Array.isArray(pRes.data) ? pRes.data : pRes.data?.data || []);
-      setTasks(Array.isArray(tRes.data) ? tRes.data : tRes.data?.data || []);
-    } catch {
-      toast.error('Failed to load schedule data');
-    } finally {
-      setLoading(false);
+      const res = await api.get(`/projects/?workspace=${activeWorkspace.id}`);
+      const list = Array.isArray(res.data) ? res.data
+        : (res.data?.results || res.data?.data || []);
+      setProjects(list);
+    } catch (err) {
+      console.error('Failed to load projects:', err);
+      toast.error('Could not load projects for this workspace');
     }
+
+    try {
+      const res = await api.get(`/tasks/?workspace=${activeWorkspace.id}`);
+      const list = Array.isArray(res.data) ? res.data
+        : (res.data?.results || res.data?.data || []);
+      setTasks(list);
+    } catch (err) {
+      console.error('Failed to load tasks:', err);
+      toast.error('Failed to load schedule data');
+    }
+
+    setLoading(false);
   };
 
   // Generate visible date columns
@@ -80,8 +91,14 @@ export default function Schedule() {
 
   // Filter tasks
   const visibleTasks = useMemo(() => {
-    let filtered = tasks.filter(t => t.due_date); // Only tasks with due dates
-    if (filterProject !== 'all') filtered = filtered.filter(t => String(t.project) === filterProject);
+    let filtered = tasks.filter(t => t.due_date); // Only tasks with due dates shown on Gantt
+    if (filterProject !== 'all') {
+      filtered = filtered.filter(t => {
+        const pid = t.project && typeof t.project === 'object'
+          ? String(t.project.id) : String(t.project);
+        return pid === filterProject;
+      });
+    }
     if (filterStatus !== 'all') filtered = filtered.filter(t => t.status === filterStatus);
     return filtered;
   }, [tasks, filterProject, filterStatus]);

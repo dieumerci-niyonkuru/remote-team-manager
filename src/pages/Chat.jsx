@@ -376,32 +376,47 @@ function PinnedPanel({ channelId, onJumpTo, onClose }) {
 
 // ─── Thread Sidebar ───────────────────────────────────────────────────────────
 
-function ThreadSidebar({ parentMsg, currentUser, onClose }) {
+function ThreadSidebar({ parentMsg, currentUser, onClose, onReplied }) {
   const [replies, setReplies] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
   const scrollRef = useRef(null);
 
   useEffect(() => {
     if (!parentMsg?.id) return;
     setLoading(true);
+    setReplies([]);
     chat.thread(parentMsg.id)
       .then(r => {
+        // api.js interceptor already unwraps {data:[...]} → [...]; handle both
         const d = r.data;
-        setReplies(Array.isArray(d) ? d : (d?.data || []));
+        setReplies(Array.isArray(d) ? d : (d?.data || d?.results || []));
       })
       .catch(() => setReplies([]))
       .finally(() => setLoading(false));
   }, [parentMsg?.id]);
 
   const handleSend = async () => {
-    if (!input.trim()) return;
-    const txt = input.trim(); setInput('');
+    if (!input.trim() || sending) return;
+    const txt = input.trim();
+    setInput('');
+    setSending(true);
     try {
-      const r = await chat.sendMessage({ room: parentMsg.room, content: txt, reply_to_id: parentMsg.id });
+      // Backend MessageViewSet.create() reads request.data.get('reply_to') — NOT reply_to_id
+      const r = await chat.sendMessage({ room: parentMsg.room, content: txt, reply_to: parentMsg.id });
       const msg = r.data?.data || r.data;
-      if (msg) { setReplies(p => [...p, msg]); setTimeout(() => scrollRef.current?.scrollIntoView({ behavior: 'smooth' }), 50); }
-    } catch {}
+      if (msg) {
+        setReplies(p => [...p, msg]);
+        setTimeout(() => scrollRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
+      }
+      // Optimistically update parent reply_count in the main chat list
+      onReplied?.(parentMsg.id);
+    } catch {
+      setInput(txt); // restore on failure
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -446,8 +461,8 @@ function ThreadSidebar({ parentMsg, currentUser, onClose }) {
             style={{ width: '100%', background: 'transparent', border: 'none', color: 'var(--text)', padding: '8px 10px', fontSize: 13, resize: 'none', outline: 'none', minHeight: 50, fontFamily: 'inherit', boxSizing: 'border-box' }} rows={2}
           />
           <div style={{ display: 'flex', justifyContent: 'flex-end', padding: '3px 8px 6px' }}>
-            <button onClick={handleSend} disabled={!input.trim()} style={{ background: input.trim() ? 'var(--brand)' : 'var(--bg3)', border: 'none', borderRadius: 7, padding: '5px 12px', color: input.trim() ? '#fff' : 'var(--text3)', cursor: input.trim() ? 'pointer' : 'default', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5 }}>
-              <Send size={13} /> Reply
+            <button onClick={handleSend} disabled={!input.trim() || sending} style={{ background: (input.trim() && !sending) ? 'var(--brand)' : 'var(--bg3)', border: 'none', borderRadius: 7, padding: '5px 12px', color: (input.trim() && !sending) ? '#fff' : 'var(--text3)', cursor: (input.trim() && !sending) ? 'pointer' : 'default', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 5 }}>
+              <Send size={13} /> {sending ? 'Sending…' : 'Reply'}
             </button>
           </div>
         </div>
@@ -1050,6 +1065,13 @@ export default function Chat() {
           m.id === data.message_id ? { ...m, is_pinned: data.is_pinned } : m
         ));
       }
+
+      // A thread reply was created via HTTP; update parent message reply count
+      else if (type === 'reply_count_updated') {
+        setMessages(prev => prev.map(m =>
+          m.id === data.parent_id ? { ...m, reply_count: data.reply_count } : m
+        ));
+      }
     },
   });
 
@@ -1385,7 +1407,14 @@ export default function Chat() {
 
       {/* ════ SIDE PANELS ════ */}
       {sidePanel === 'thread' && threadMsg && (
-        <ThreadSidebar parentMsg={threadMsg} currentUser={user} onClose={() => { setSidePanel(null); setThreadMsg(null); }} />
+        <ThreadSidebar
+          parentMsg={threadMsg}
+          currentUser={user}
+          onClose={() => { setSidePanel(null); setThreadMsg(null); }}
+          onReplied={(parentId) => setMessages(prev => prev.map(m =>
+            m.id === parentId ? { ...m, reply_count: (m.reply_count || 0) + 1 } : m
+          ))}
+        />
       )}
       {sidePanel === 'pinned' && (
         <PinnedPanel channelId={activeTab} onJumpTo={jumpToMessage} onClose={() => setSidePanel(null)} />

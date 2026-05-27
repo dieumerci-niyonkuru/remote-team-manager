@@ -92,6 +92,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     'username': self.user.username,
                     'first_name': self.user.first_name,
                     'last_name': self.user.last_name,
+                    'full_name': f"{self.user.first_name} {self.user.last_name}".strip() or self.user.username,
                 },
                 'reply_to': reply_data,
                 'file_url': msg.file_url,
@@ -102,6 +103,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 'is_pinned': False,
                 'reactions': [],
                 'reaction_summary': [],
+                'reply_count': 0,
+                'read_by_count': 0,
                 'created_at': msg.created_at.isoformat(),
                 'room': room.id,
             }
@@ -313,4 +316,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
             'type': 'user_leave',
             'user_id': event['user_id'],
             'username': event['username'],
+        }))
+
+    async def reply_count_updated(self, event):
+        """Broadcast updated reply_count when a thread reply is created via HTTP."""
+        await self.send(text_data=json.dumps({
+            'type': 'reply_count_updated',
+            'parent_id': event['parent_id'],
+            'reply_count': event['reply_count'],
+            'reply': event.get('reply'),
         }))

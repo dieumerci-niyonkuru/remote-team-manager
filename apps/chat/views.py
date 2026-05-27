@@ -126,7 +126,7 @@ class MessageViewSet(viewsets.ModelViewSet):
         qs = Message.objects.filter(
             room__participants=user,
         ).select_related('sender', 'room', 'reply_to', 'reply_to__sender').prefetch_related(
-            'reactions__user', 'read_receipts__user',
+            'reactions__user', 'read_receipts__user', 'replies',
         )
         channel_id = self.request.query_params.get('channel') or self.request.query_params.get('thread')
         if channel_id:
@@ -143,11 +143,12 @@ class MessageViewSet(viewsets.ModelViewSet):
         except ChatRoom.DoesNotExist:
             return Response({'error': 'Room not found or access denied.'}, status=status.HTTP_404_NOT_FOUND)
 
-        reply_to_id = request.data.get('reply_to')
+        # Accept both 'reply_to' and 'reply_to_id' for backwards compat with thread sidebar
+        raw_reply_id = request.data.get('reply_to') or request.data.get('reply_to_id')
         reply_to = None
-        if reply_to_id:
+        if raw_reply_id:
             try:
-                reply_to = Message.objects.get(id=reply_to_id, room=room)
+                reply_to = Message.objects.get(id=raw_reply_id, room=room)
             except Message.DoesNotExist:
                 pass
 
@@ -161,7 +162,29 @@ class MessageViewSet(viewsets.ModelViewSet):
             file_type=request.data.get('file_type'),
         )
         serializer = self.get_serializer(message, context={'request': request})
-        return Response({'data': serializer.data}, status=status.HTTP_201_CREATED)
+        msg_data = serializer.data
+
+        # Broadcast the new thread reply to the WS room so all open Chat windows
+        # can increment the parent's reply_count without a page refresh
+        if reply_to is not None:
+            try:
+                from channels.layers import get_channel_layer
+                from asgiref.sync import async_to_sync
+                channel_layer = get_channel_layer()
+                new_reply_count = reply_to.replies.filter(is_deleted=False).count()
+                async_to_sync(channel_layer.group_send)(
+                    f'chat_{room_id}',
+                    {
+                        'type': 'reply_count_updated',
+                        'parent_id': reply_to.id,
+                        'reply_count': new_reply_count,
+                        'reply': dict(msg_data),
+                    }
+                )
+            except Exception:
+                pass  # channel layer unavailable (e.g. in-memory, or WS not connected)
+
+        return Response({'data': msg_data}, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=['post'])
     def react(self, request, pk=None):
