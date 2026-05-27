@@ -285,7 +285,9 @@ function ActivityItem({ item, user }) {
       <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.65)', margin: '0 0 2px', lineHeight: 1.5 }}>
           <span style={{ color: '#fff', fontWeight: 700 }}>{item.actor_name || user?.username}</span>{' '}
-          {item.verb || item.message || 'performed an action'}
+          {item.action
+            ? `${item.action} ${item.object_type || ''} ${item.object_name ? `"${item.object_name}"` : ''}`.trim()
+            : item.verb || item.message || 'performed an action'}
         </p>
         <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.25)', fontWeight: 500 }}>
           {item.timestamp ? new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now'}
