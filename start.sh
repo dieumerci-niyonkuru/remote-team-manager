@@ -23,7 +23,9 @@ else
 fi
 
 # ── Ensure required directories exist ─────────────────────────────────────────
-mkdir -p staticfiles media
+# Non-fatal: both dirs are pre-created in Dockerfile.prod with correct ownership.
+# This line is a safety net for edge cases (e.g. volume mounts, local dev).
+mkdir -p staticfiles media 2>/dev/null || true
 
 # ── Wait for PostgreSQL ───────────────────────────────────────────────────────
 echo "Waiting for database to be ready..."

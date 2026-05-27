@@ -70,8 +70,10 @@ COPY --chown=appuser:appgroup . .
 # Django's whitenoise WHITENOISE_ROOT will serve dist/ at the URL root
 COPY --from=frontend --chown=appuser:appgroup /frontend/dist ./dist
 
-# Collect Django static files (admin, DRF browsable API — separate from dist/)
-RUN mkdir -p staticfiles && \
+# Create all directories that need to be writable at runtime, then collect
+# Django static files (admin, DRF browsable API — separate from the React dist/).
+# Both steps run as root so they can write freely.
+RUN mkdir -p staticfiles media && \
     SECRET_KEY=dummy-build-key \
     DEBUG=False \
     DATABASE_URL="" \
@@ -80,6 +82,11 @@ RUN mkdir -p staticfiles && \
 
 # Ensure start script is executable
 RUN chmod +x /app/start.sh
+
+# Hand over full ownership of /app (including the directory itself) to appuser.
+# This is required because WORKDIR creates /app as root; without this chown,
+# appuser cannot create or write files inside /app at container runtime.
+RUN chown -R appuser:appgroup /app
 
 USER appuser
 
