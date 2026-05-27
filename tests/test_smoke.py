@@ -2,9 +2,15 @@
 Smoke tests — quick sanity checks that core endpoints behave correctly.
 These run in CI against a real PostgreSQL + Redis stack (GitHub Actions services).
 
+All tests are marked @pytest.mark.django_db so that middleware, authentication
+backends, and serializer validators can reach the database freely. Marking a
+test that doesn't *need* DB access is harmless; NOT marking one that does
+causes a cryptic "Database access not allowed" failure.
+
 Coverage goals:
-  - Health endpoints (no auth required)
-  - Auth endpoints return correct error codes for bad input
+  - Health endpoints (lightweight, no auth required)
+  - Auth endpoints return correct codes for bad input
+  - Login/register with correct input succeeds
   - Protected endpoints reject unauthenticated requests
   - Model layer: User creation works
   - Authenticated API: profile + workspace list
@@ -38,34 +44,45 @@ def test_health_extended_returns_200(client):
 
 # ── Auth — error handling ──────────────────────────────────────────────────────
 
+@pytest.mark.django_db
 def test_login_with_wrong_credentials_returns_401(client):
-    """Login with non-existent credentials must return 401."""
+    """Login with non-existent credentials must return 401.
+    Note: CustomTokenObtainPairSerializer.validate() calls authenticate()
+    which queries the DB — this test must be marked django_db.
+    """
     response = client.post(
         '/api/auth/login/',
         {'email': 'nobody@example.com', 'password': 'wrongpassword'},
         content_type='application/json',
     )
+    # 401 = auth failed; 400 = field validation error (acceptable in either case)
     assert response.status_code in (400, 401)
 
 
+@pytest.mark.django_db
 def test_login_with_empty_body_returns_400(client):
-    """Login with empty body must return 400."""
+    """Login with an empty body must fail validation with 400."""
     response = client.post('/api/auth/login/', {}, content_type='application/json')
     assert response.status_code in (400, 401)
 
 
+@pytest.mark.django_db
 def test_register_with_empty_body_returns_400(client):
     """Register with no fields must return 400 validation error."""
     response = client.post('/api/auth/register/', {}, content_type='application/json')
     assert response.status_code == 400
 
 
+@pytest.mark.django_db
 def test_register_with_mismatched_passwords_returns_400(client):
-    """Register with mismatched passwords must return 400."""
+    """Register with mismatched passwords must return 400.
+    Note: RegisterSerializer's email field has a UniqueValidator that queries
+    the DB — this test must be marked django_db.
+    """
     response = client.post(
         '/api/auth/register/',
         {
-            'email': 'new@example.com',
+            'email': 'newuser@example.com',
             'password': 'StrongPass123!',
             'password2': 'DifferentPass456!',
             'first_name': 'Test',
@@ -76,6 +93,7 @@ def test_register_with_mismatched_passwords_returns_400(client):
     assert response.status_code == 400
 
 
+@pytest.mark.django_db
 def test_token_refresh_with_empty_body_returns_400(client):
     """Token refresh without a refresh token must return 400."""
     response = client.post('/api/auth/token/refresh/', {}, content_type='application/json')
@@ -84,18 +102,21 @@ def test_token_refresh_with_empty_body_returns_400(client):
 
 # ── Protected endpoints — unauthenticated access ───────────────────────────────
 
+@pytest.mark.django_db
 def test_workspace_list_requires_auth(client):
     """Workspace list must reject unauthenticated requests (401)."""
     response = client.get('/api/workspaces/')
     assert response.status_code in (401, 403)
 
 
+@pytest.mark.django_db
 def test_projects_list_requires_auth(client):
     """Project list must reject unauthenticated requests (401)."""
     response = client.get('/api/projects/')
     assert response.status_code in (401, 403)
 
 
+@pytest.mark.django_db
 def test_user_profile_requires_auth(client):
     """Profile endpoint must reject unauthenticated requests (401)."""
     response = client.get('/api/auth/me/')
@@ -151,21 +172,21 @@ def test_authenticated_user_can_list_workspaces(api_client, create_user):
 
 @pytest.mark.django_db
 def test_register_new_user_returns_201(client):
-    """Registering a valid new user must return 201 with tokens."""
+    """Registering a valid new user must return 201 with JWT tokens."""
     response = client.post(
         '/api/auth/register/',
         {
-            'email': 'newuser@example.com',
+            'email': 'brandnew@example.com',
             'password': 'StrongPass123!',
             'password2': 'StrongPass123!',
-            'first_name': 'New',
-            'last_name': 'User',
+            'first_name': 'Brand',
+            'last_name': 'New',
         },
         content_type='application/json',
     )
     assert response.status_code == 201
     data = response.json()
-    # Should return tokens inside data envelope
+    # RegisterView wraps response in {data: {user, access, refresh}, message}
     user_data = data.get('data', data)
     assert 'access' in user_data
     assert 'refresh' in user_data
