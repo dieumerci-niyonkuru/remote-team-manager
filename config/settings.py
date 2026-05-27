@@ -190,6 +190,18 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+# ── Serve the compiled React SPA via WhiteNoise ───────────────────────────────
+# The production Dockerfile copies the Vite build output to dist/.
+# WHITENOISE_ROOT tells WhiteNoise to serve every file in dist/ at the URL
+# root (dist/index.html → /, dist/assets/main.js → /assets/main.js, etc.).
+# Requests for unknown paths (React Router routes like /dashboard) fall through
+# to the Django SPA catch-all view in config/urls.py which returns index.html.
+_FRONTEND_DIST = BASE_DIR / 'dist'
+if _FRONTEND_DIST.exists():
+    WHITENOISE_ROOT = str(_FRONTEND_DIST)
+    WHITENOISE_INDEX_FILE = True  # Serve index.html for directory requests (/)
+    WHITENOISE_AUTOREFRESH = not config('DEBUG', default=True, cast=bool)
+
 # =========================
 # DRF CONFIG
 # =========================
@@ -230,21 +242,32 @@ SIMPLE_JWT = {
 # CORS
 # =========================
 
-CORS_ALLOWED_ORIGINS = [
-    origin.strip()
-    for origin in config(
-        'CORS_ALLOWED_ORIGINS',
-        default='http://localhost:3000,http://localhost:5173,http://localhost:5174'
-    ).split(',')
+_cors_raw = config(
+    'CORS_ALLOWED_ORIGINS',
+    default='http://localhost:3000,http://localhost:5173,http://localhost:5174'
+)
+CORS_ALLOWED_ORIGINS = [o.strip() for o in _cors_raw.split(',') if o.strip()]
+
+# When deployed to Railway as a combined image, same-origin calls need no CORS.
+# But we also allow all Railway subdomains so preview deployments work.
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r'^https://.*\.railway\.app$',
+    r'^https://.*\.up\.railway\.app$',
 ]
 
 CORS_ALLOW_CREDENTIALS = True
 
-# Also trust Railway HTTPS origins for CSRF
-CSRF_TRUSTED_ORIGINS = config(
+# Trust Railway HTTPS origins for CSRF — also auto-add RAILWAY_PUBLIC_DOMAIN
+_railway_domain = config('RAILWAY_PUBLIC_DOMAIN', default='')
+_csrf_raw = config(
     'CSRF_TRUSTED_ORIGINS',
     default='https://*.railway.app,https://*.up.railway.app'
-).split(',')
+)
+CSRF_TRUSTED_ORIGINS = [o.strip() for o in _csrf_raw.split(',') if o.strip()]
+if _railway_domain:
+    _origin = f'https://{_railway_domain}'
+    if _origin not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(_origin)
 
 # =========================
 # CHANNEL LAYERS (FIXED)

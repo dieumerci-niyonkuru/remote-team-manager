@@ -1,6 +1,22 @@
+# =============================================================================
+# RemoteTeam Manager — Docker Compose
+#
+# Development (default):
+#   docker compose up
+#   → Backend  at http://localhost:8000   (Django dev server, hot-reload)
+#   → Frontend at http://localhost:5174   (Vite dev server, HMR)
+#   → Postgres at localhost:5432
+#   → Redis    at localhost:6379
+#
+# Production simulation (combined image — same as Railway):
+#   docker compose --profile prod up
+#   → App at http://localhost:8080  (Daphne serves Django + built React SPA)
+# =============================================================================
+
 services:
+  # ── Infrastructure ──────────────────────────────────────────────────────────
   db:
-    image: postgres:14
+    image: postgres:15-alpine
     container_name: rtm_db
     environment:
       POSTGRES_DB: remoteteam
@@ -8,80 +24,132 @@ services:
       POSTGRES_PASSWORD: postgres
     ports:
       - "5432:5432"
+    volumes:
+      - rtm_pg_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
     networks:
       - rtm_network
 
   redis:
     image: redis:7-alpine
     container_name: rtm_redis
+    command: redis-server --appendonly yes
     ports:
       - "6379:6379"
-    command: redis-server --appendonly yes
+    volumes:
+      - rtm_redis_data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
     networks:
       - rtm_network
 
-  web:
-    build: .
-    container_name: rtm_web
-    command: bash -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+  # ── Backend — Django dev server (hot-reload) ─────────────────────────────────
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rtm_backend
+    command: >
+      bash -c "python manage.py migrate --noinput &&
+               python manage.py runserver 0.0.0.0:8000"
     ports:
       - "8000:8000"
+    volumes:
+      - .:/app
+      - /app/node_modules
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
     environment:
-      - DATABASE_URL=postgres://postgres:postgres@db:5432/remoteteam
-      - REDIS_URL=redis://redis:6379/0
-      - DEBUG=1
-      - SECRET_KEY=django-insecure-dev-key-change-in-production
-      - ALLOWED_HOSTS=localhost,127.0.0.1
+      DATABASE_URL: postgres://postgres:postgres@db:5432/remoteteam
+      REDIS_URL: redis://redis:6379/0
+      DEBUG: "True"
+      SECRET_KEY: django-insecure-dev-key-change-in-production
+      ALLOWED_HOSTS: localhost,127.0.0.1,backend
+      CORS_ALLOWED_ORIGINS: http://localhost:5173,http://localhost:5174,http://localhost:3000
+      CSRF_TRUSTED_ORIGINS: http://localhost:5173,http://localhost:5174
+      FRONTEND_URL: http://localhost:5174
     networks:
       - rtm_network
 
-  celery_worker:
-    build: .
-    container_name: rtm_celery_worker
-    command: celery -A config worker -l info
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+  # ── Frontend — Vite dev server (HMR, proxies /api → backend) ────────────────
+  frontend:
+    image: node:20-alpine
+    container_name: rtm_frontend
+    working_dir: /app
+    command: sh -c "npm ci && npm run dev -- --host 0.0.0.0"
+    ports:
+      - "5174:5174"
+    volumes:
+      - .:/app
+      - /app/node_modules
     environment:
-      - DATABASE_URL=postgres://postgres:postgres@db:5432/remoteteam
-      - REDIS_URL=redis://redis:6379/0
-      - DEBUG=1
-      - SECRET_KEY=django-insecure-dev-key-change-in-production
+      VITE_API_BASE_URL: ""   # Empty → uses /api proxy (see vite.config.js)
     networks:
       - rtm_network
 
-  celery_beat:
-    build: .
-    container_name: rtm_celery_beat
-    command: celery -A config beat -l info
+  # ── Celery worker (background tasks) ─────────────────────────────────────────
+  celery:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rtm_celery
+    command: celery -A config worker -l info --concurrency=2
+    volumes:
+      - .:/app
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
     environment:
-      - DATABASE_URL=postgres://postgres:postgres@db:5432/remoteteam
-      - REDIS_URL=redis://redis:6379/0
-      - SECRET_KEY=django-insecure-dev-key-change-in-production
+      DATABASE_URL: postgres://postgres:postgres@db:5432/remoteteam
+      REDIS_URL: redis://redis:6379/0
+      DEBUG: "True"
+      SECRET_KEY: django-insecure-dev-key-change-in-production
     networks:
       - rtm_network
+
+  # ── Production simulation — combined image (mirrors Railway) ─────────────────
+  # Run with:  docker compose --profile prod up app
+  app:
+    profiles: [prod]
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    container_name: rtm_app_prod
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@db:5432/remoteteam
+      REDIS_URL: redis://redis:6379/0
+      DEBUG: "False"
+      SECRET_KEY: prod-sim-key-change-me
+      ALLOWED_HOSTS: localhost,127.0.0.1
+      CORS_ALLOWED_ORIGINS: http://localhost:8080
+      CSRF_TRUSTED_ORIGINS: http://localhost:8080
+      FRONTEND_URL: http://localhost:8080
+      PORT: "8080"
+    networks:
+      - rtm_network
+
+volumes:
+  rtm_pg_data:
+  rtm_redis_data:
 
 networks:
   rtm_network:

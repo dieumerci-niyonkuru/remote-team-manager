@@ -1,71 +1,95 @@
 # =============================================================================
-# Stage 1 — builder: compile wheels for all Python dependencies
+# RemoteTeam Manager — Production Dockerfile
+# Three-stage build:
+#   1. frontend  — Node 20, npm ci + npm run build  → dist/
+#   2. builder   — Python 3.11, compile all wheels
+#   3. final     — lean Python runtime + Django + built React frontend
+#
+# Single Railway service; Django + Daphne serve BOTH the API and the SPA.
 # =============================================================================
+
+# ── Stage 1: Build the React / Vite frontend ──────────────────────────────────
+FROM node:20-alpine AS frontend
+
+WORKDIR /frontend
+
+# Install deps first (layer-cached until package-lock.json changes)
+COPY package.json package-lock.json ./
+RUN npm ci --include=dev
+
+# Copy source files needed for the build
+COPY index.html vite.config.js tailwind.config.js postcss.config.js ./
+COPY tsconfig.json* ./
+COPY src ./src
+COPY public ./public
+
+# Build for production (output → dist/)
+RUN npm run build
+
+# ── Stage 2: Compile Python wheels ───────────────────────────────────────────
 FROM python:3.11-slim AS builder
 
 WORKDIR /build
 
-# Build-time system deps (gcc + libpq for psycopg2)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
     gcc \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy only the requirements file first for optimal layer caching.
-# Wheel compilation is re-run only when requirements.txt changes.
 COPY requirements.txt .
 
 RUN pip install --no-cache-dir --upgrade pip && \
     pip wheel --no-cache-dir --wheel-dir /wheels \
         -r requirements.txt \
-        gunicorn
+        gunicorn \
+        daphne
 
-# =============================================================================
-# Stage 2 — final: lean runtime image
-# =============================================================================
+# ── Stage 3: Final runtime image ─────────────────────────────────────────────
 FROM python:3.11-slim AS final
 
-# Runtime system deps only (no build tools, no gcc)
+# Runtime-only system libraries (no build tools)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq5 \
     && rm -rf /var/lib/apt/lists/*
 
-# Create a non-root user for running the application
+# Non-root user for security
 RUN groupadd --system appgroup && \
     useradd --system --gid appgroup --no-create-home --shell /usr/sbin/nologin appuser
 
 WORKDIR /app
 
-# Install pre-built wheels from the builder stage (no compiler needed)
+# Install pre-built wheels
 COPY --from=builder /wheels /wheels
-RUN pip install --no-cache-dir --no-index --find-links /wheels \
-        /wheels/*.whl && \
+RUN pip install --no-cache-dir --no-index --find-links /wheels /wheels/*.whl && \
     rm -rf /wheels
 
-# Copy application source code
+# Copy Django application
 COPY --chown=appuser:appgroup . .
 
-# Collect static files at build time (no DB connection required)
+# Copy the built React frontend into dist/
+# Django's whitenoise WHITENOISE_ROOT will serve dist/ at the URL root
+COPY --from=frontend --chown=appuser:appgroup /frontend/dist ./dist
+
+# Collect Django static files (admin, DRF browsable API — separate from dist/)
 RUN mkdir -p staticfiles && \
-    SECRET_KEY=dummy-build-key DEBUG=False \
-    python manage.py collectstatic --noinput || \
-    echo "collectstatic skipped"
+    SECRET_KEY=dummy-build-key \
+    DEBUG=False \
+    DATABASE_URL="" \
+    python manage.py collectstatic --noinput 2>&1 || \
+    echo "collectstatic skipped — will run at startup"
 
-# Copy and prepare the start script
-COPY --chown=appuser:appgroup start.sh /start.sh
-RUN chmod +x /start.sh
+# Ensure start script is executable
+RUN chmod +x /app/start.sh
 
-# Switch to non-root user before running the container
 USER appuser
 
 EXPOSE 8080
 
-# Health check: ping the lightweight /api/health/ endpoint every 30 s.
-# Allow 60 s of startup grace, then retry 3 times before marking unhealthy.
+# Health check via the lightweight /api/health/ endpoint
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD python -c "\
 import urllib.request, sys; \
 r = urllib.request.urlopen('http://localhost:8080/api/health/', timeout=8); \
 sys.exit(0 if r.status == 200 else 1)"
 
-CMD ["/start.sh"]
+CMD ["/app/start.sh"]

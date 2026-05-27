@@ -1,6 +1,26 @@
+[build]
+  # Use the production Dockerfile which builds React frontend AND Django backend
+  # in a single combined image served by Daphne (ASGI, required for WebSockets).
+  dockerfilePath = "Dockerfile.prod"
+
 [deploy]
-startCommand = "sh /start.sh"
-healthcheckPath = "/api/health/"
-healthcheckTimeout = 120
-restartPolicyType = "ON_FAILURE"
-restartPolicyMaxRetries = 3
+  startCommand = "/app/start.sh"
+  healthcheckPath = "/api/health/"
+  healthcheckTimeout = 120
+  restartPolicyType = "ON_FAILURE"
+  restartPolicyMaxRetries = 3
+
+# ── Required environment variables ───────────────────────────────────────────
+# Set these in the Railway dashboard → Variables:
+#
+#   SECRET_KEY          = <long random string>
+#   DATABASE_URL        = <Railway PostgreSQL URL — injected automatically>
+#   REDIS_URL           = <Railway Redis URL — injected automatically>
+#   DEBUG               = False
+#   ALLOWED_HOSTS       = <your-app>.up.railway.app
+#   CORS_ALLOWED_ORIGINS= https://<your-app>.up.railway.app
+#   CSRF_TRUSTED_ORIGINS= https://<your-app>.up.railway.app
+#   FRONTEND_URL        = https://<your-app>.up.railway.app
+#
+# Optional:
+#   SENTRY_DSN, EMAIL_HOST_USER, EMAIL_HOST_PASSWORD

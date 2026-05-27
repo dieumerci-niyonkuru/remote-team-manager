@@ -1,28 +1,37 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 echo "=== RemoteTeam Manager — Production Boot ==="
+echo "    Python: $(python --version)"
+echo "    Django: $(python -c 'import django; print(django.__version__)')"
 
-# ── Validate environment ──────────────────────────────────────────────────────
-if [ -z "$SECRET_KEY" ]; then
-  echo "FATAL: SECRET_KEY is not set. Aborting."
+# ── Validate required environment ─────────────────────────────────────────────
+if [ -z "${SECRET_KEY:-}" ]; then
+  echo "FATAL: SECRET_KEY is not set. Aborting." >&2
   exit 1
 fi
-if [ -z "$DATABASE_URL" ]; then
-  echo "FATAL: DATABASE_URL is not set. Aborting."
+if [ -z "${DATABASE_URL:-}" ]; then
+  echo "FATAL: DATABASE_URL is not set. Aborting." >&2
   exit 1
 fi
 
-# Ensure staticfiles directory exists (WhiteNoise requirement)
-mkdir -p staticfiles
+# ── Report frontend build status ──────────────────────────────────────────────
+if [ -f "/app/dist/index.html" ]; then
+  echo "✓ React frontend build present (dist/index.html found)"
+else
+  echo "⚠  dist/index.html not found — SPA routes will show a fallback page."
+  echo "   The API is still available at /api/."
+fi
 
-# ── Wait for PostgreSQL to be ready ──────────────────────────────────────────
-echo "Waiting for database..."
+# ── Ensure required directories exist ─────────────────────────────────────────
+mkdir -p staticfiles media
+
+# ── Wait for PostgreSQL ───────────────────────────────────────────────────────
+echo "Waiting for database to be ready..."
 DB_READY=false
 for i in $(seq 1 40); do
   if python - <<'PYEOF' 2>/dev/null
-import os, sys
+import os, sys, django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
-import django
 django.setup()
 from django.db import connection
 connection.ensure_connection()
@@ -30,7 +39,7 @@ sys.exit(0)
 PYEOF
   then
     DB_READY=true
-    echo "  Database ready (attempt $i)"
+    echo "  ✓ Database ready (attempt $i)"
     break
   fi
   echo "  Database not ready — attempt $i/40, retrying in 2s..."
@@ -38,66 +47,57 @@ PYEOF
 done
 
 if [ "$DB_READY" = false ]; then
-  echo "FATAL: Database never became ready — aborting."
+  echo "FATAL: Database never became ready after 80 s — aborting." >&2
   exit 1
 fi
 
-# ── Fix inconsistent DB state BEFORE running migrate ─────────────────────────
-# This management command detects and repairs partial/ghost migration states
-# that would cause migrate to fail. It uses psycopg2 in autocommit=True mode
-# so every DDL (DROP TABLE) commits immediately and cannot be rolled back.
-#
-# Key scenario it fixes:
-#   - chat_chatroom exists but chat_message doesn't (split-migration remnant)
-#   - 0001_initial recorded in django_migrations but tables are missing
-#   - Old 0002 migration records from a deprecated split schema
-#
-echo "Checking and fixing migration state..."
-python manage.py ensure_schema --verbosity=1 || {
-  echo "WARNING: ensure_schema failed — attempting migration anyway"
+# ── Fix inconsistent migration state ──────────────────────────────────────────
+echo "Checking migration state..."
+python manage.py ensure_schema --verbosity=1 2>/dev/null || {
+  echo "  ensure_schema not available or failed — continuing..."
 }
 
-# ── Run migrations ────────────────────────────────────────────────────────────
-# --fake-initial: if ALL tables in a 0001_initial already exist, mark it applied
-# without running the SQL. This safely skips apps whose tables were created by
-# a previous deployment that had a different migration structure.
+# ── Apply migrations ──────────────────────────────────────────────────────────
 echo "Running migrations..."
 python manage.py migrate --noinput --verbosity=1 --fake-initial
 
-# ── Verify critical tables exist ─────────────────────────────────────────────
+# ── Verify critical tables ────────────────────────────────────────────────────
 echo "Verifying schema..."
 python - <<'PYEOF'
-import os, sys
+import os, sys, django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
-import django
 django.setup()
 from django.db import connection
 
 tables = set(connection.introspection.table_names())
 required = [
-    'chat_chatroom', 'chat_message',
     'accounts_user', 'workspaces_workspace',
-    'notifications_notification', 'notifications_invite',
     'projects_project', 'projects_task',
+    'chat_chatroom', 'chat_message',
+    'notifications_notification',
 ]
 missing = [t for t in required if t not in tables]
 if missing:
-    print(f"WARNING: {len(missing)} table(s) missing after migration: {missing}")
-    print(f"  Total tables present: {len(tables)}")
-    print("  The server will start — these tables may be recreated on first request.")
+    print(f"  ⚠  {len(missing)} table(s) missing: {missing}")
 else:
-    print(f"Schema OK — all {len(required)} critical tables verified ({len(tables)} total).")
+    print(f"  ✓ Schema OK — {len(tables)} tables present, all critical tables verified")
 PYEOF
 
-# ── Collect static files ─────────────────────────────────────────────────────
-echo "Collecting static files..."
-python manage.py collectstatic --noinput --clear 2>&1 \
-  || echo "WARNING: collectstatic failed (non-fatal — WhiteNoise will serve from source)"
+# ── Collect static files (Django admin / DRF UI — NOT the React build) ────────
+echo "Collecting Django static files..."
+python manage.py collectstatic --noinput --clear 2>&1 | tail -3 || \
+  echo "  WARNING: collectstatic failed (non-fatal)"
 
-# ── Start Daphne (ASGI server) ────────────────────────────────────────────────
+# ── Start Daphne (ASGI — required for Django Channels WebSockets) ─────────────
 PORT="${PORT:-8080}"
-WORKERS="${WEB_CONCURRENCY:-1}"
-echo "Starting Daphne on 0.0.0.0:${PORT}..."
+echo ""
+echo "=== Starting Daphne on 0.0.0.0:${PORT} ==="
+echo "    API     → http://0.0.0.0:${PORT}/api/"
+echo "    Admin   → http://0.0.0.0:${PORT}/admin/"
+echo "    Health  → http://0.0.0.0:${PORT}/api/health/"
+echo "    SPA     → http://0.0.0.0:${PORT}/"
+echo ""
+
 exec daphne \
   -b 0.0.0.0 \
   -p "${PORT}" \

@@ -1,8 +1,9 @@
 import axios from 'axios';
 
-const BASE = import.meta.env.PROD
-  ? 'https://remote-team-manager-production.up.railway.app/api'
-  : '/api';
+// VITE_API_BASE_URL can be set at Vite build-time for separate-domain setups.
+// Default (/api) works for the combined Railway deployment (Django serves the
+// React build on the same origin) AND for local dev (Vite proxies /api → :8000).
+const BASE = import.meta.env.VITE_API_BASE_URL ?? '/api';
 
 const api = axios.create({ baseURL: BASE, headers: { 'Content-Type': 'application/json' } });
 
