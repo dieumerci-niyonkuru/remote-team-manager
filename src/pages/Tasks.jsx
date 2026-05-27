@@ -106,23 +106,30 @@ export default function Tasks() {
   });
 
   const fetchInitialData = async () => {
+    setLoading(true);
+    // Fetch projects and tasks independently so one failure never blanks the other
     try {
-      const [projectsRes, tasksRes] = await Promise.all([
-        api.get(`/projects/?workspace=${activeWorkspace.id}`),
-        api.get(`/tasks/?workspace=${activeWorkspace.id}`)
-      ]);
-      const projList = Array.isArray(projectsRes.data) ? projectsRes.data : (projectsRes.data?.data || []);
-      const taskList = Array.isArray(tasksRes.data) ? tasksRes.data : (tasksRes.data?.data || []);
-      setProjects(projList);
-      setTasks(taskList);
-      if (projList.length > 0) {
-        setTaskForm(prev => ({ ...prev, project: projList[0].id }));
+      const res = await api.get(`/projects/?workspace=${activeWorkspace.id}`);
+      const list = Array.isArray(res.data) ? res.data
+        : (res.data?.results || res.data?.data || []);
+      setProjects(list);
+      if (list.length > 0) {
+        setTaskForm(prev => ({ ...prev, project: String(list[0].id) }));
       }
     } catch (err) {
-      console.error('Failed to fetch task data:', err);
-    } finally {
-      setLoading(false);
+      console.error('Failed to fetch projects:', err);
     }
+
+    try {
+      const res = await api.get(`/tasks/?workspace=${activeWorkspace.id}`);
+      const list = Array.isArray(res.data) ? res.data
+        : (res.data?.results || res.data?.data || []);
+      setTasks(list);
+    } catch (err) {
+      console.error('Failed to fetch tasks:', err);
+    }
+
+    setLoading(false);
   };
 
   const handleCreateTask = async (e) => {
@@ -154,9 +161,12 @@ export default function Tasks() {
   const [selectedTask, setSelectedTask] = React.useState(null);
 
   const filteredTasks = React.useMemo(() => {
-    return filterProject === 'all' 
-      ? tasks 
-      : tasks.filter(t => t.project === parseInt(filterProject));
+    if (filterProject === 'all') return tasks;
+    const fid = String(filterProject);
+    return tasks.filter(t => {
+      const pid = t.project && typeof t.project === 'object' ? String(t.project.id) : String(t.project);
+      return pid === fid;
+    });
   }, [tasks, filterProject]);
 
   const onDragStart = React.useCallback((e, taskId) => {
@@ -278,7 +288,7 @@ export default function Tasks() {
               required
               type="text" 
               value={taskForm.title}
-              onChange={e => setTaskForm({...taskForm, title: e.target.value})}
+              onChange={e => setTaskForm(prev => ({...prev, title: e.target.value}))}
               placeholder="What needs to be done?"
               className="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500/50" 
             />
@@ -288,7 +298,7 @@ export default function Tasks() {
               <label className="text-[10px] font-black text-text-tertiary uppercase tracking-widest">Project</label>
               <select 
                 value={taskForm.project}
-                onChange={e => setTaskForm({...taskForm, project: e.target.value})}
+                onChange={e => setTaskForm(prev => ({...prev, project: e.target.value}))}
                 className="w-full bg-[#0b1429] border border-white/5 rounded-2xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-brand/40"
               >
                 <option value="">Select a Project</option>
@@ -301,7 +311,7 @@ export default function Tasks() {
               <label className="text-[10px] font-black text-text-tertiary uppercase tracking-widest">Priority</label>
               <select 
                 value={taskForm.priority}
-                onChange={e => setTaskForm({...taskForm, priority: e.target.value})}
+                onChange={e => setTaskForm(prev => ({...prev, priority: e.target.value}))}
                 className="w-full bg-[#0b1429] border border-white/5 rounded-2xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-brand/40"
               >
                 <option value="low">Low</option>
@@ -315,7 +325,7 @@ export default function Tasks() {
             <label className="text-[10px] font-black text-text-tertiary uppercase tracking-widest">Description</label>
             <textarea 
               value={taskForm.description}
-              onChange={e => setTaskForm({...taskForm, description: e.target.value})}
+              onChange={e => setTaskForm(prev => ({...prev, description: e.target.value}))}
               placeholder="Add details about this task..."
               rows={3}
               className="w-full bg-[#0b1429] border border-white/5 rounded-2xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-brand/40 resize-none h-32" 
@@ -326,7 +336,7 @@ export default function Tasks() {
             <input
               type="date"
               value={taskForm.due_date}
-              onChange={e => setTaskForm({...taskForm, due_date: e.target.value})}
+              onChange={e => setTaskForm(prev => ({...prev, due_date: e.target.value}))}
               className="w-full bg-[#0b1429] border border-white/5 rounded-2xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-brand/40"
             />
           </div>

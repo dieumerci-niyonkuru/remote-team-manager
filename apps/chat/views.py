@@ -24,13 +24,24 @@ class ChannelViewSet(viewsets.ModelViewSet):
         return qs.distinct()
 
     def create(self, request, *args, **kwargs):
-        data = request.data.copy()
-        data['room_type'] = data.get('room_type', 'group')
-        serializer = self.get_serializer(data=data)
+        name = str(request.data.get('name') or '').strip()
+        if not name:
+            return Response({'detail': 'Channel name is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Only pass known model fields — ignore unknown keys like 'description'
+        clean = {
+            'name': name,
+            'room_type': request.data.get('room_type') or 'group',
+            'workspace': request.data.get('workspace'),
+        }
+        serializer = ChatRoomSerializer(data=clean, context={'request': request})
         serializer.is_valid(raise_exception=True)
         room = serializer.save()
         room.participants.add(request.user)
-        return Response({'data': serializer.data, 'message': 'Channel created.'}, status=status.HTTP_201_CREATED)
+
+        # Use a fresh serializer so all SerializerMethodFields have the right context
+        out = ChatRoomSerializer(room, context={'request': request})
+        return Response({'data': out.data, 'message': 'Channel created.'}, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=['post'])
     def join(self, request, pk=None):

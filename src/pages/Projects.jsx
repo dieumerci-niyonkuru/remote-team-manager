@@ -131,14 +131,14 @@ export default function Projects() {
             label="Project Title"
             required
             value={formData.name}
-            onChange={e => setFormData({...formData, name: e.target.value})}
+            onChange={e => setFormData(prev => ({...prev, name: e.target.value}))}
             placeholder="e.g. Project Orion, Q4 Engineering"
           />
           <div className="space-y-2">
             <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Project Classification</label>
             <select 
               value={formData.project_type}
-              onChange={e => setFormData({...formData, project_type: e.target.value})}
+              onChange={e => setFormData(prev => ({...prev, project_type: e.target.value}))}
               className="w-full bg-[#0b1429] border border-white/5 rounded-2xl px-5 py-4 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500/40 appearance-none"
             >
               <option value="Software Development">Software Development</option>
@@ -152,7 +152,7 @@ export default function Projects() {
             <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Intelligence Overview</label>
             <textarea 
               value={formData.description}
-              onChange={e => setFormData({...formData, description: e.target.value})}
+              onChange={e => setFormData(prev => ({...prev, description: e.target.value}))}
               placeholder="Primary objectives and scope..."
               rows={4}
               className="w-full bg-[#0b1429] border border-white/5 rounded-2xl px-5 py-4 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500/40 resize-none" 
