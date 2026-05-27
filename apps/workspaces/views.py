@@ -21,7 +21,8 @@ class WorkspaceViewSet(viewsets.ModelViewSet):
         if self.action in ['update', 'partial_update']:
             return [permissions.IsAuthenticated(), HasWorkspaceRole(['owner', 'manager'])]
         if getattr(self, 'action', None) in ['members', 'add_member', 'invite', 'remove_member'] and self.request.method in ['POST', 'DELETE']:
-            return [permissions.IsAuthenticated(), HasWorkspaceRole(['owner', 'manager'])]
+            # Only workspace owners may add, invite, or remove members.
+            return [permissions.IsAuthenticated(), HasWorkspaceRole(['owner'])]
         return [permissions.IsAuthenticated()]
 
     def get_queryset(self):

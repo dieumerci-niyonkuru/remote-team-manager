@@ -1,6 +1,7 @@
 from typing import Any, Dict, Optional
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
+from django.db import IntegrityError
 from rest_framework.validators import UniqueValidator
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import User
@@ -53,7 +54,14 @@ class RegisterSerializer(serializers.ModelSerializer):
         # Use email as username automatically
         email = validated_data.get('email')
         validated_data['username'] = email
-        user = User.objects.create_user(**validated_data)
+        try:
+            user = User.objects.create_user(**validated_data)
+        except IntegrityError:
+            # Race condition: two simultaneous registrations with the same email,
+            # or the username/email unique constraint fires after UniqueValidator passed.
+            raise serializers.ValidationError({
+                "email": "An account with this email already exists. Please sign in instead."
+            })
         return user
 
 import logging

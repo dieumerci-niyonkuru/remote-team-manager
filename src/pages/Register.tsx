@@ -95,26 +95,45 @@ export default function Register() {
     } catch (err: any) {
       if (!err.response) {
         // Network error — backend unreachable
-        toast.error('Cannot connect to the server. Make sure the backend is running.');
+        toast.error('Cannot connect to the server. Please check your connection.');
         return;
       }
+
       const errData = err.response?.data;
       let msg = 'Registration failed. Please check your details.';
-      if (errData) {
-        if (errData.message) {
-          msg = errData.message;
-        } else if (typeof errData === 'object') {
-          // DRF field errors: { field: ["msg"] } or { field: "msg" }
-          const entries = Object.entries(errData);
-          if (entries.length > 0) {
-            const [field, val] = entries[0];
-            const text = Array.isArray(val) ? val[0] : val;
-            // Show field name only for non-technical fields
-            const skipField = ['non_field_errors', 'detail'];
-            msg = skipField.includes(field) ? String(text) : `${field}: ${text}`;
+
+      if (errData && typeof errData === 'object') {
+        // Priority 1: top-level "detail" or "message" (from custom exception handler or view)
+        if (errData.detail) {
+          msg = String(errData.detail);
+        } else if (errData.message) {
+          msg = String(errData.message);
+        } else {
+          // DRF field-level errors: { field: ["error text"] } or { field: "error text" }
+          // Push all field errors into the inline form so the user sees them next to the field.
+          const fieldErrs: Record<string, string> = {};
+          for (const [field, val] of Object.entries(errData)) {
+            fieldErrs[field] = Array.isArray(val) ? String((val as unknown[])[0]) : String(val);
+          }
+          // Show errors inline in the form
+          setErrors(prev => ({ ...prev, ...fieldErrs }));
+
+          // Derive a human-readable toast from the first field error
+          const systemFields = ['non_field_errors', 'detail', 'error', '__all__'];
+          const firstField = Object.keys(fieldErrs)[0];
+          if (firstField) {
+            const text = fieldErrs[firstField];
+            msg = systemFields.includes(firstField)
+              ? text
+              : `${firstField.replace(/_/g, ' ')}: ${text}`;
           }
         }
+      } else if (typeof errData === 'string' && errData && !errData.trimStart().startsWith('<')) {
+        // Plain-text error body (but NOT an HTML page — those become the generic message)
+        msg = errData;
       }
+      // If errData is HTML (a string starting with '<'), msg stays as the safe generic fallback
+
       toast.error(msg);
     } finally {
       setLoading(false);

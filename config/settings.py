@@ -219,6 +219,10 @@ REST_FRAMEWORK = {
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',
     ),
+    # Guarantee JSON for ALL errors — including unhandled Python exceptions.
+    # DRF's default handler only catches APIException; this one catches everything
+    # and prevents Django's HTML 500 page from leaking to the frontend.
+    'EXCEPTION_HANDLER': 'config.exception_handler.custom_exception_handler',
     'DEFAULT_THROTTLE_CLASSES': [
         'rest_framework.throttling.AnonRateThrottle',
         'rest_framework.throttling.UserRateThrottle'

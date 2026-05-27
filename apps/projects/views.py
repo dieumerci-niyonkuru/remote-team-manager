@@ -9,12 +9,14 @@ from apps.timetracking.serializers import TimeLogSerializer
 
 class ProjectViewSet(viewsets.ModelViewSet):
     serializer_class = ProjectSerializer
-    
+
     def get_permissions(self):
         if self.action == 'destroy':
             return [permissions.IsAuthenticated(), IsWorkspaceAdmin()]
         if self.action in ['create', 'update', 'partial_update']:
-            return [permissions.IsAuthenticated(), IsWorkspaceDeveloperOrAdmin()]
+            # Only workspace owners / managers may create or modify projects.
+            # Developers can create tasks within projects, but not the projects themselves.
+            return [permissions.IsAuthenticated(), IsWorkspaceAdmin()]
         return [permissions.IsAuthenticated(), IsWorkspaceMember()]
 
     queryset = Project.objects.none()

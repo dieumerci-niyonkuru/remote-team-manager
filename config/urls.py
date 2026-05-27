@@ -2,11 +2,35 @@ from django.contrib import admin
 from django.urls import path, include, re_path
 from django.conf import settings
 from django.conf.urls.static import static
-from django.http import FileResponse, HttpResponse
+from django.http import FileResponse, HttpResponse, JsonResponse
 from apps.workspaces.views import GlobalSearchView
 from apps.auth.health import HealthCheckView
 from apps.health.urls import health as health_check
 import os
+
+
+# ── JSON error handlers ───────────────────────────────────────────────────────
+# Override Django's default HTML 400/404/500 handlers so that ANY unhandled
+# exception returns machine-readable JSON instead of an HTML error page.
+# The custom DRF EXCEPTION_HANDLER covers API views; these cover anything that
+# escapes DRF (e.g. middleware errors, URL-resolution failures).
+
+def _json_400(request, exception=None, *args, **kwargs):
+    return JsonResponse({"detail": "Bad request."}, status=400)
+
+def _json_403(request, exception=None, *args, **kwargs):
+    return JsonResponse({"detail": "Forbidden."}, status=403)
+
+def _json_404(request, exception=None, *args, **kwargs):
+    return JsonResponse({"detail": "Not found."}, status=404)
+
+def _json_500(request, *args, **kwargs):
+    return JsonResponse({"detail": "Internal server error. Please try again."}, status=500)
+
+handler400 = _json_400
+handler403 = _json_403
+handler404 = _json_404
+handler500 = _json_500
 
 
 def serve_spa(request, path=''):

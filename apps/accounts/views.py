@@ -18,12 +18,15 @@ class RegisterView(generics.CreateAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-        
+
         refresh = RefreshToken.for_user(user)
-        
+
+        # Pass request so UserSerializer can build absolute avatar URLs
+        user_data = UserSerializer(user, context={'request': request}).data
+
         return Response({
             "data": {
-                "user": UserSerializer(user).data,
+                "user": user_data,
                 "access": str(refresh.access_token),
                 "refresh": str(refresh),
             },
