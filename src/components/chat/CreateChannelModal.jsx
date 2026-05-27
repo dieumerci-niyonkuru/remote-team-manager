@@ -36,7 +36,7 @@ export default function CreateChannelModal({ isOpen, onClose, onCreated }) {
         err.response?.data?.room_type?.[0] ||
         err.response?.data?.non_field_errors?.[0] ||
         (err.response?.status === 400 ? 'Validation error — check channel name.' : null) ||
-        (err.response?.status === 403 ? 'You don't have permission to create channels here.' : null) ||
+        (err.response?.status === 403 ? "You don't have permission to create channels here." : null) ||
         'Failed to create channel.';
       toast.error(msg);
     } finally {
