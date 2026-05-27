@@ -59,6 +59,52 @@ python manage.py ensure_schema --verbosity=1 2>/dev/null || {
   echo "  ensure_schema not available or failed — continuing..."
 }
 
+# ── Repair migration history inconsistencies ───────────────────────────────────
+# Problem: the production DB can end up with a higher-numbered migration recorded
+# (e.g. presence.0002_presence_availability) but its dependency (0001_initial)
+# missing from django_migrations. Django's migrate command raises
+# InconsistentMigrationHistory before --fake-initial can help.
+#
+# Fix: walk the migration dependency graph, find any applied migration whose
+# dependencies are NOT recorded, and fake-apply those missing records so that
+# the history is consistent before the real migrate run.
+echo "Repairing migration history inconsistencies..."
+python - <<'PYEOF' 2>&1 || echo "  Migration repair check skipped (non-fatal)"
+import os, django
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
+django.setup()
+
+from django.db import connection
+from django.db.migrations.loader import MigrationLoader
+from django.db.migrations.recorder import MigrationRecorder
+
+# Load the migration state without triggering the consistency check
+loader = MigrationLoader(connection, ignore_no_migrations=True)
+applied = set(loader.applied_migrations.keys())
+
+# Collect dependencies of applied migrations that are not themselves applied
+missing_deps = set()
+for key in applied:
+    node = loader.graph.nodes.get(key)
+    if node is None:
+        continue
+    for dep in node.dependencies:
+        # Only care about real app migrations, not Django's internal __setting__ deps
+        if (isinstance(dep, tuple) and len(dep) == 2
+                and dep[0] != '__setting__'
+                and dep not in applied):
+            missing_deps.add(dep)
+
+if not missing_deps:
+    print("  ✓ Migration history is consistent — nothing to repair")
+else:
+    recorder = MigrationRecorder(connection)
+    for app, name in sorted(missing_deps):
+        recorder.record_applied(app, name)
+        print(f"  ✓ Faked missing dependency: {app}.{name}")
+    print(f"  Repaired {len(missing_deps)} missing migration record(s)")
+PYEOF
+
 # ── Apply migrations ──────────────────────────────────────────────────────────
 echo "Running migrations..."
 python manage.py migrate --noinput --verbosity=1 --fake-initial
