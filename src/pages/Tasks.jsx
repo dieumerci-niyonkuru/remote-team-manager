@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { task, proj, unwrapData } from '../services/api';
+import { task, proj, ws, unwrapData } from '../services/api';
 import { useStore } from '../store';
 import toast from 'react-hot-toast';
 import { getT } from '../i18n';
@@ -37,13 +37,14 @@ const PRIORITY_VARIANT = {
 };
 
 export default function Tasks() {
-  const { activeWorkspace } = useStore();
+  const { activeWorkspace, workspaces, setActiveWorkspace } = useStore();
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('all');
   const [showCreate, setShowCreate] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [taskFilter, setTaskFilter] = useState({ workspace: '', project: '' });
 
   useEffect(() => {
     if (activeWorkspace) loadTasks();
@@ -61,7 +62,12 @@ export default function Tasks() {
     }
   };
 
-  const filtered = tasks.filter((t) => statusFilter === 'all' || t.status === statusFilter);
+  const filtered = tasks.filter((t) => {
+    if (statusFilter !== 'all' && t.status !== statusFilter) return false;
+    if (taskFilter.workspace && t.workspace?.id !== Number(taskFilter.workspace)) return false;
+    if (taskFilter.project && t.project?.id !== Number(taskFilter.project)) return false;
+    return true;
+  });
 
   const cycleStatus = async (t) => {
     const currentIndex = STATUS_CYCLE.indexOf(t.status);
@@ -69,6 +75,7 @@ export default function Tasks() {
     setTasks((prev) => prev.map((item) => item.id === t.id ? { ...item, status: nextStatus } : item));
     try {
       await task.update(activeWorkspace.id, t.project?.id, t.id, { status: nextStatus });
+      toast.success(`Status changed to ${STATUS_LABEL[nextStatus]}`);
     } catch {
       toast.error('Failed to update status');
       setTasks((prev) => prev.map((item) => item.id === t.id ? { ...item, status: t.status } : item));
@@ -91,16 +98,36 @@ export default function Tasks() {
   };
 
   return (
-    <div style={{ background: 'var(--bg)', minHeight: '100vh' }}>
+    <div style={{ background: 'var(--bg)', minHeight: '100vh', overflowY: 'auto' }}>
       <div style={{ padding: 'clamp(16px, 4vw, 24px)', display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 1200, margin: '0 auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
           <div>
             <h1 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text)', margin: 0 }}>Tasks</h1>
-            <p style={{ fontSize: 13, color: 'var(--text3)', margin: '4px 0 0' }}>{tasks.length} tasks</p>
+            <p style={{ fontSize: 13, color: 'var(--text3)', margin: '4px 0 0' }}>{tasks.length} tasks in {activeWorkspace?.name || 'workspace'}</p>
           </div>
           <Button variant="primary" leftIcon={<Plus size={14} />} onClick={() => setShowCreate(true)}>
             New Task
           </Button>
+        </div>
+
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+          <select
+            value={taskFilter.workspace}
+            onChange={(e) => setTaskFilter((prev) => ({ ...prev, workspace: e.target.value }))}
+            style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8, padding: '6px 10px', color: 'var(--text)', fontSize: 12, fontWeight: 600, cursor: 'pointer', outline: 'none' }}
+          >
+            <option value="">All Workspaces</option>
+            {(workspaces || []).map((w) => (
+              <option key={w.id} value={w.id}>{w.name}</option>
+            ))}
+          </select>
+          <select
+            value={taskFilter.project}
+            onChange={(e) => setTaskFilter((prev) => ({ ...prev, project: e.target.value }))}
+            style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8, padding: '6px 10px', color: 'var(--text)', fontSize: 12, fontWeight: 600, cursor: 'pointer', outline: 'none' }}
+          >
+            <option value="">All Projects</option>
+          </select>
         </div>
 
         <div style={{ display: 'flex', gap: 4, background: 'var(--bg3)', borderRadius: 8, padding: 3, alignSelf: 'flex-start' }}>
@@ -186,30 +213,9 @@ export default function Tasks() {
                 </div>
 
                 {t.project && (
-                  <span style={{ fontSize: 11, color: 'var(--text3)', flexShrink: 0 }}>
+                  <span style={{ fontSize: 11, color: 'var(--text3)', flexShrink: 0, padding: '2px 8px', background: 'var(--bg3)', borderRadius: 6 }}>
                     {t.project.name || t.project}
                   </span>
-                )}
-
-                {t.assignee && (
-                  <div
-                    title={t.assignee.name || t.assignee.username}
-                    style={{
-                      width: 24,
-                      height: 24,
-                      borderRadius: '50%',
-                      background: 'var(--brand)',
-                      color: '#fff',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: 10,
-                      fontWeight: 700,
-                      flexShrink: 0,
-                    }}
-                  >
-                    {(t.assignee.name || t.assignee.username || '?')[0].toUpperCase()}
-                  </div>
                 )}
 
                 {t.deadline && (
@@ -239,6 +245,7 @@ export default function Tasks() {
                     cursor: 'pointer',
                     fontFamily: 'inherit',
                   }}
+                  title={`Click to change to ${STATUS_LABEL[STATUS_CYCLE[(STATUS_CYCLE.indexOf(t.status) + 1) % STATUS_CYCLE.length]]}`}
                 >
                   <Badge variant={STATUS_VARIANT[t.status] || 'secondary'} size="xs">
                     {STATUS_LABEL[t.status] || t.status}
@@ -293,12 +300,12 @@ export default function Tasks() {
 }
 
 function CreateTaskModal({ isOpen, onClose, onCreated }) {
-  const { activeWorkspace } = useStore();
+  const { activeWorkspace, workspaces } = useStore();
+  const [selectedWs, setSelectedWs] = useState('');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState('todo');
   const [priority, setPriority] = useState('medium');
-  const [assignedTo, setAssignedTo] = useState('');
   const [deadline, setDeadline] = useState('');
   const [projectId, setProjectId] = useState('');
   const [projects, setProjects] = useState([]);
@@ -306,30 +313,38 @@ function CreateTaskModal({ isOpen, onClose, onCreated }) {
 
   useEffect(() => {
     if (isOpen && activeWorkspace) {
-      proj.list(activeWorkspace.id).then((res) => {
-        setProjects(unwrapData(res));
-      }).catch(() => {});
+      setSelectedWs(String(activeWorkspace.id));
     }
   }, [isOpen, activeWorkspace]);
+
+  useEffect(() => {
+    if (selectedWs) {
+      proj.list(Number(selectedWs)).then((res) => {
+        setProjects(unwrapData(res));
+        setProjectId('');
+      }).catch(() => {});
+    } else {
+      setProjects([]);
+      setProjectId('');
+    }
+  }, [selectedWs]);
 
   const resetForm = () => {
     setTitle('');
     setDescription('');
     setStatus('todo');
     setPriority('medium');
-    setAssignedTo('');
     setDeadline('');
     setProjectId('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!title.trim()) return;
+    if (!title.trim() || !selectedWs) return;
     setLoading(true);
     try {
       const payload = { title, description, status, priority, deadline: deadline || undefined };
-      if (assignedTo) payload.assigned_to = Number(assignedTo);
-      await task.create(activeWorkspace.id, projectId || undefined, payload);
+      await task.create(Number(selectedWs), projectId || undefined, payload);
       toast.success('Task created!');
       resetForm();
       onClose();
@@ -370,6 +385,15 @@ function CreateTaskModal({ isOpen, onClose, onCreated }) {
       }
     >
       <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label style={labelStyle}>Workspace *</label>
+          <select value={selectedWs} onChange={(e) => setSelectedWs(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }} required>
+            <option value="">Select workspace</option>
+            {(workspaces || []).map((w) => (
+              <option key={w.id} value={w.id}>{w.name}</option>
+            ))}
+          </select>
+        </div>
         <div>
           <label style={labelStyle}>Title *</label>
           <input
@@ -412,15 +436,6 @@ function CreateTaskModal({ isOpen, onClose, onCreated }) {
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           <div>
-            <label style={labelStyle}>Assignee ID</label>
-            <input
-              value={assignedTo}
-              onChange={(e) => setAssignedTo(e.target.value)}
-              placeholder="User ID"
-              style={inputStyle}
-            />
-          </div>
-          <div>
             <label style={labelStyle}>Due Date</label>
             <input
               type="date"
@@ -429,15 +444,15 @@ function CreateTaskModal({ isOpen, onClose, onCreated }) {
               style={inputStyle}
             />
           </div>
-        </div>
-        <div>
-          <label style={labelStyle}>Project</label>
-          <select value={projectId} onChange={(e) => setProjectId(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}>
-            <option value="">No project</option>
-            {projects.map((p) => (
-              <option key={p.id} value={p.id}>{p.name}</option>
-            ))}
-          </select>
+          <div>
+            <label style={labelStyle}>Project</label>
+            <select value={projectId} onChange={(e) => setProjectId(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}>
+              <option value="">No project</option>
+              {projects.map((p) => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
+          </div>
         </div>
       </form>
     </Modal>

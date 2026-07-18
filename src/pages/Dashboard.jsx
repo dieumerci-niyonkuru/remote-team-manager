@@ -89,6 +89,8 @@ export default function Dashboard() {
   const totalTasks = summary?.total ?? tasks.length;
   const doneTasks = summary?.done ?? tasks.filter(t => t.status === 'done').length;
   const inProgressTasks = summary?.in_progress ?? tasks.filter(t => t.status === 'in_progress').length;
+  const reviewTasks = tasks.filter(t => t.status === 'review').length;
+  const todoTasks = tasks.filter(t => t.status === 'todo').length;
   const projectCount = projects.length;
   const onlineMembers = members.filter(m => m.is_online);
 
@@ -118,8 +120,8 @@ export default function Dashboard() {
   }
 
   return (
-    <div style={{ padding: 'clamp(16px, 3vw, 24px)', background: 'var(--bg)', minHeight: '100vh' }}>
-      <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
+    <div style={{ background: 'var(--bg)', minHeight: '100vh', overflowY: 'auto' }}>
+      <div style={{ padding: 'clamp(16px, 3vw, 24px)', maxWidth: 1200, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
           <div>
@@ -135,21 +137,23 @@ export default function Dashboard() {
           </button>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 14 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12 }}>
           {[
             { label: 'Total Tasks', value: totalTasks, icon: CheckSquare, color: 'var(--brand)' },
             { label: 'Completed', value: doneTasks, icon: TrendingUp, color: 'var(--success)' },
             { label: 'In Progress', value: inProgressTasks, icon: Clock, color: 'var(--accent)' },
-            { label: 'Active Projects', value: projectCount, icon: FolderKanban, color: 'var(--warning)' },
+            { label: 'Review', value: reviewTasks, icon: Clock, color: 'var(--warning)' },
+            { label: 'To Do', value: todoTasks, icon: CheckSquare, color: 'var(--text3)' },
+            { label: 'Projects', value: projectCount, icon: FolderKanban, color: 'var(--brand)' },
           ].map(s => (
             <div key={s.label} style={card}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{s.label}</span>
-                <span style={{ width: 28, height: 28, borderRadius: 8, background: `${s.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: s.color }}>
-                  <s.icon size={15} />
+                <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{s.label}</span>
+                <span style={{ width: 26, height: 26, borderRadius: 7, background: `${s.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: s.color }}>
+                  <s.icon size={14} />
                 </span>
               </div>
-              <div style={{ fontSize: 26, fontWeight: 800, color: 'var(--text)', lineHeight: 1 }}>{s.value}</div>
+              <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--text)', lineHeight: 1 }}>{s.value}</div>
             </div>
           ))}
         </div>
@@ -168,10 +172,10 @@ export default function Dashboard() {
 
           <div style={{ ...card, display: 'flex', flexDirection: 'column' }}>
             <h3 style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)', margin: '0 0 12px' }}>Recent Activity</h3>
-            <div style={{ flex: 1, overflowY: 'auto', maxHeight: 280, display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div style={{ flex: 1, overflowY: 'auto', maxHeight: 300, display: 'flex', flexDirection: 'column', gap: 8 }}>
               {activity.length === 0 && <p style={{ fontSize: 12, color: 'var(--text3)' }}>No recent activity</p>}
-              {activity.slice(0, 8).map((a, i) => (
-                <div key={a.id || i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 0', borderBottom: i < activity.slice(0, 8).length - 1 ? '1px solid var(--border)' : 'none' }}>
+              {activity.slice(0, 10).map((a, i) => (
+                <div key={a.id || i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: '8px 0', borderBottom: i < activity.slice(0, 10).length - 1 ? '1px solid var(--border)' : 'none' }}>
                   <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--brand)', marginTop: 5, flexShrink: 0 }} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ fontSize: 12, color: 'var(--text2)', margin: 0, lineHeight: 1.5 }}>
@@ -203,6 +207,30 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
+
+        {tasks.length > 0 && (
+          <div style={card}>
+            <h3 style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)', margin: '0 0 12px' }}>Task Breakdown</h3>
+            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+              {[
+                { label: 'To Do', count: todoTasks, color: 'var(--text3)' },
+                { label: 'In Progress', count: inProgressTasks, color: 'var(--brand)' },
+                { label: 'Review', count: reviewTasks, color: 'var(--warning)' },
+                { label: 'Done', count: doneTasks, color: 'var(--success)' },
+              ].map(s => (
+                <div key={s.label} style={{ flex: '1 1 120px', padding: '10px 14px', borderRadius: 8, background: 'var(--bg)', border: '1px solid var(--border)' }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>{s.label}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: 20, fontWeight: 800, color: s.color }}>{s.count}</span>
+                    <div style={{ flex: 1, height: 4, borderRadius: 2, background: 'var(--bg3)' }}>
+                      <div style={{ height: '100%', width: `${totalTasks ? (s.count / totalTasks) * 100 : 0}%`, borderRadius: 2, background: s.color }} />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {insights && (
           <div style={card}>
@@ -246,6 +274,8 @@ export default function Dashboard() {
             </div>
           </div>
         )}
+
+        <div style={{ height: 40 }} />
       </div>
     </div>
   );
