@@ -1,175 +1,169 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import * as tokens from '../styles/tokens';
 import { useStore } from '../store';
-import { Briefcase, Plus, Users, ChevronRight, Globe } from 'lucide-react';
-import api from '../services/api';
-import Modal from '../components/common/Modal';
+import { useNavigate } from 'react-router-dom';
+import { ws, unwrapData } from '../services/api';
 import toast from 'react-hot-toast';
+import { getT } from '../i18n';
+import { Briefcase, Plus, ChevronRight, Users, CheckSquare, FolderKanban, Crown, Trash2 } from 'lucide-react';
+import LoadingSpinner from '../components/common/LoadingSpinner';
+import CreateWorkspaceModal from '../components/workspaces/CreateWorkspaceModal';
+import { Button } from '../components/common/Button';
+import { EmptyState } from '../components/common/EmptyState';
+import { Badge } from '../components/common/Badge';
+
+const cardBase = {
+  background: 'var(--bg2)',
+  border: '1px solid var(--border)',
+  borderRadius: tokens.radius.lg,
+  padding: 'clamp(16px,2vw,20px)',
+};
+
+const ROLE_VARIANT = {
+  owner: 'primary',
+  admin: 'warning',
+  member: 'secondary',
+};
 
 export default function Workspaces() {
+  const { user, workspaces, activeWorkspace, setActiveWorkspace, setWorkspaces, lang = 'en' } = useStore();
+  const t = getT(lang || 'en');
   const navigate = useNavigate();
-  const { setWorkspaces: setGlobalWorkspaces, setActiveWorkspace } = useStore();
-  const [workspaces, setWorkspaces] = useState([]);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [formData, setFormData] = useState({ name: '', description: '' });
-  const [creating, setCreating] = useState(false);
+  const [error, setError] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
 
-  useEffect(() => {
-    fetchWorkspaces();
-  }, []);
+  useEffect(() => { loadAll(); }, []);
 
-  const fetchWorkspaces = async () => {
+  const loadAll = async () => {
+    setLoading(true);
+    setError(null);
     try {
-      const res = await api.get('/workspaces/');
-      // After interceptor, res.data is the already-unwrapped array
-      const data = Array.isArray(res.data) ? res.data : [];
+      const res = await ws.list();
+      const data = unwrapData(res);
       setWorkspaces(data);
-      setGlobalWorkspaces(data);
-    } catch (err) {
-      console.error('Failed to fetch workspaces:', err);
+    } catch (e) {
+      setError(e.message || 'Failed to load workspaces');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCreate = async (e) => {
-    e.preventDefault();
-    if (!formData.name.trim()) return;
-    setCreating(true);
+  const handleSelect = (w) => {
+    setActiveWorkspace(w);
+    navigate(`/workspaces/${w.id}`);
+  };
+
+  const handleDelete = async (e, w) => {
+    e.stopPropagation();
+    if (!window.confirm(`Delete "${w.name}"? This cannot be undone.`)) return;
+    setDeletingId(w.id);
     try {
-      const res = await api.post('/workspaces/', formData);
-      // After interceptor, res.data is the workspace object
-      const newWs = res.data;
-      const updated = [newWs, ...workspaces];
-      setWorkspaces(updated);
-      setGlobalWorkspaces(updated);
-      if (!workspaces.length) setActiveWorkspace(newWs); // auto-set if first workspace
-      setIsModalOpen(false);
-      setFormData({ name: '', description: '' });
-      toast.success('Workspace created successfully! 🚀');
+      await ws.delete(w.id);
+      toast.success(t('workspaces.deleted', 'Workspace deleted'));
+      loadAll();
     } catch (err) {
-      const msg = err.response?.data?.detail || err.response?.data?.error || 'Failed to create workspace.';
-      toast.error(msg);
+      toast.error(err.response?.data?.detail || t('workspaces.delete_failed', 'Failed to delete'));
     } finally {
-      setCreating(false);
+      setDeletingId(null);
     }
   };
 
+  if (!user) return <div className="p-8"><LoadingSpinner /></div>;
+
   return (
-    <div className="p-8 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+    <div className="p-4 md:p-6 space-y-6" style={{ background: 'var(--bg)', minHeight: '100vh' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h1 className="text-4xl font-black text-white tracking-tight flex items-center gap-3">
-            <Briefcase className="text-blue-500" size={36} />
-            My Workspaces
-          </h1>
-          <p className="text-gray-400 mt-2 font-medium">Switch between your company and project environments.</p>
+          <h1 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text)' }}>{t('workspaces.title', 'Workspaces')}</h1>
+          <p style={{ fontSize: 13, color: 'var(--text3)', margin: '4px 0 0' }}>{workspaces.length} workspace{workspaces.length !== 1 ? 's' : ''}</p>
         </div>
-        <button 
-          onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-2xl font-bold transition-all shadow-lg shadow-blue-600/20 active:scale-95"
-        >
-          <Plus size={20} />
-          Create Workspace
-        </button>
+        <Button variant="primary" leftIcon={<Plus size={15} />} onClick={() => setShowCreateModal(true)}>New Workspace</Button>
       </div>
 
+      {error && (
+        <div style={{ ...cardBase, borderColor: 'rgba(239,68,68,0.2)', background: 'rgba(239,68,68,0.03)' }}>
+          <p style={{ fontSize: 12, color: 'var(--danger)', fontWeight: 700 }}>{error}</p>
+          <button onClick={loadAll} style={{ marginTop: 8, background: 'var(--danger-subtle)', border: '1px solid rgba(239,68,68,0.15)', borderRadius: 6, padding: '5px 10px', color: 'var(--danger)', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>Retry</button>
+        </div>
+      )}
+
       {loading ? (
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {[0, 1, 2].map(i => (
+            <div key={i} style={{ ...cardBase, minHeight: 160 }} className="animate-pulse">
+              <div style={{ height: 14, width: 100, background: 'var(--bg3)', borderRadius: 4, marginBottom: 12 }} />
+              <div style={{ height: 10, width: 60, background: 'var(--bg3)', borderRadius: 4 }} />
+            </div>
+          ))}
         </div>
       ) : workspaces.length === 0 ? (
-        <div className="bg-gray-800/30 border border-dashed border-gray-700 rounded-[40px] p-16 text-center">
-           <div className="w-20 h-20 bg-gray-800 rounded-[32px] flex items-center justify-center mx-auto mb-6 shadow-2xl">
-             <Briefcase className="text-gray-500" size={40} />
-           </div>
-           <h3 className="text-2xl font-black text-white mb-2">No workspaces found</h3>
-           <p className="text-gray-400 max-w-sm mx-auto mb-8 font-medium">Create your first workspace to start collaborating with your team.</p>
-           <button 
-             onClick={() => setIsModalOpen(true)}
-             className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-2xl font-bold transition-all"
-           >
-             Initialize Workspace
-           </button>
-        </div>
+        <EmptyState
+          icon={<Briefcase size={32} />}
+          title={t('workspaces.empty_title', 'No workspaces yet')}
+          description={t('workspaces.empty_desc', 'Create your first workspace to start collaborating.')}
+          actionLabel={t('workspaces.create', 'Create Workspace')}
+          onAction={() => setShowCreateModal(true)}
+        />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {workspaces.map(workspace => (
-            <WorkspaceCard key={workspace.id} workspace={workspace} onClick={() => navigate(`/workspaces/${workspace.id}`)} />
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {workspaces.map((w) => (
+            <div
+              key={w.id}
+              style={{ ...cardBase, cursor: 'pointer', transition: 'border-color 0.2s, box-shadow 0.2s' }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--brand)'; e.currentTarget.style.boxShadow = '0 0 0 1px var(--brand)'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.boxShadow = 'none'; }}
+              onClick={() => handleSelect(w)}
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div style={{ width: 36, height: 36, borderRadius: 10, background: 'var(--brand)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 800, fontSize: 13, flexShrink: 0 }}>
+                    {w.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', margin: 0, lineHeight: 1.2 }}>{w.name}</h3>
+                    <p style={{ fontSize: 11, color: 'var(--text3)', margin: '2px 0 0' }}>{w.member_count ?? '—'} members</p>
+                  </div>
+                </div>
+                <ChevronRight size={16} style={{ color: 'var(--text3)' }} />
+              </div>
+
+              <div className="flex gap-4 mb-3" style={{ fontSize: 10, color: 'var(--text3)' }}>
+                <span className="flex items-center gap-1"><FolderKanban size={11} /> {w.project_count ?? 0} projects</span>
+                <span className="flex items-center gap-1"><CheckSquare size={11} /> {w.task_count ?? 0} tasks</span>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <Badge variant={ROLE_VARIANT[w.role] || 'secondary'} size="xs">
+                  {w.role === 'owner' && <Crown size={9} className="mr-1" />}
+                  {w.role}
+                </Badge>
+                {w.role === 'owner' && (
+                  <button
+                    onClick={(e) => handleDelete(e, w)}
+                    disabled={deletingId === w.id}
+                    style={{ background: 'transparent', border: '1px solid transparent', borderRadius: 6, padding: '3px 6px', color: 'var(--text3)', cursor: 'pointer', transition: 'all 0.15s' }}
+                    onMouseEnter={e => { e.currentTarget.style.color = 'var(--danger)'; e.currentTarget.style.background = 'var(--danger-subtle)'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.15)'; }}
+                    onMouseLeave={e => { e.currentTarget.style.color = 'var(--text3)'; e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = 'transparent'; }}
+                  >
+                    {deletingId === w.id ? <LoadingSpinner size={12} /> : <Trash2 size={13} />}
+                  </button>
+                )}
+              </div>
+            </div>
           ))}
         </div>
       )}
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Create Workspace">
-        <form onSubmit={handleCreate} className="space-y-6">
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Workspace Name</label>
-            <input 
-              required
-              type="text" 
-              value={formData.name}
-              onChange={e => setFormData({...formData, name: e.target.value})}
-              placeholder="e.g. Acme Corp, Engineering, Marketing"
-              className="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500/50" 
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Description</label>
-            <textarea 
-              value={formData.description}
-              onChange={e => setFormData({...formData, description: e.target.value})}
-              placeholder="What is this workspace for?"
-              rows={3}
-              className="w-full bg-gray-900 border border-gray-800 rounded-xl px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500/50 resize-none" 
-            />
-          </div>
-          <button 
-            disabled={creating}
-            type="submit" 
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-2xl font-bold shadow-lg shadow-blue-600/20 transition-all active:scale-[0.98] disabled:opacity-50"
-          >
-            {creating ? 'Creating...' : 'Create Workspace'}
-          </button>
-        </form>
-      </Modal>
-    </div>
-  );
-}
-
-function WorkspaceCard({ workspace, onClick }) {
-  return (
-    <div 
-      onClick={onClick}
-      className="bg-gray-800/40 border border-gray-800 rounded-[32px] p-8 transition-all hover:border-blue-500/50 hover:translate-y-[-6px] hover:shadow-2xl hover:shadow-blue-600/10 cursor-pointer group"
-    >
-       <div className="flex items-start justify-between mb-8">
-          <div className="w-16 h-16 rounded-3xl bg-blue-600 flex items-center justify-center text-white text-2xl font-black shadow-2xl shadow-blue-600/20 group-hover:scale-110 transition-transform">
-             {workspace.name.charAt(0)}
-          </div>
-          <div className="p-2 bg-gray-900 border border-gray-800 rounded-xl text-gray-500 group-hover:text-blue-500 transition-colors">
-             <ChevronRight size={20} />
-          </div>
-       </div>
-
-       <div className="mb-8">
-          <h3 className="text-2xl font-black text-white mb-2 group-hover:text-blue-400 transition-colors">{workspace.name}</h3>
-          <p className="text-gray-400 text-sm font-medium line-clamp-2 leading-relaxed">
-            {workspace.description || 'Access projects, tasks, and team collaboration for this workspace.'}
-          </p>
-       </div>
-
-       <div className="grid grid-cols-2 gap-4 pt-6 border-t border-gray-800/50">
-          <div className="flex items-center gap-2">
-             <Users size={16} className="text-gray-600" />
-             <span className="text-xs font-bold text-gray-400">{workspace.member_count} Members</span>
-          </div>
-          <div className="flex items-center gap-2">
-             <Globe size={16} className="text-gray-600" />
-             <span className="text-xs font-bold text-gray-400">Active</span>
-          </div>
-       </div>
+      <CreateWorkspaceModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onCreated={(newWs) => {
+          setActiveWorkspace(newWs);
+          navigate(`/workspaces/${newWs.id}`);
+        }}
+      />
     </div>
   );
 }

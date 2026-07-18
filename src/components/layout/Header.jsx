@@ -60,7 +60,6 @@ export default function Header() {
 
   const ENTERPRISE_MENU = [
     { label: 'Security',           to: '/settings',    desc: 'SSO, 2FA, and access control',     icon: '07' },
-    { label: 'Compliance',         to: '/audit',       desc: 'Audit logs and compliance reports', icon: '08' },
     { label: t('nav.workspaces',   'Multi-workspace'), to: '/workspaces',  desc: 'Isolated project environments',   icon: '09' },
   ]
 
@@ -127,7 +126,7 @@ export default function Header() {
         
         {/* Brand */}
         <Link to="/" style={{ display:'flex', alignItems:'center', gap:12, textDecoration:'none' }}>
-           <div style={{ width:40, height:40, borderRadius:12, background:'linear-gradient(135deg, var(--brand), #8b5cf6)', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', boxShadow:'0 10px 20px -5px rgba(51,102,255,0.4)', overflow:'hidden', padding:8 }}>
+           <div style={{ width:40, height:40, borderRadius:12, background:'linear-gradient(135deg, var(--brand), var(--accent))', display:'flex', alignItems:'center', justifyContent:'center', color:'#fff', boxShadow:'0 10px 20px -5px rgba(51,102,255,0.4)', overflow:'hidden', padding:8 }}>
               <img src="/logo.png" alt="RemoteTeam" style={{ width:'100%', height:'100%', objectFit:'contain' }} />
            </div>
            <span style={{ fontSize:20, fontWeight:900, letterSpacing:'-0.03em', color:'var(--text)' }}>

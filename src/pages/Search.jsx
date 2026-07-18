@@ -1,176 +1,113 @@
-import { useState, useRef, useCallback } from 'react'
-import { useStore } from '../store'
-import { useNavigate } from 'react-router-dom'
-import api from '../services/api'
-import toast from 'react-hot-toast'
-import { Search as SearchIcon, FileText, FolderKanban, Users, X, Loader } from 'lucide-react'
+import { useState } from 'react';
+import * as tokens from '../styles/tokens';
+import { useStore } from '../store';
+import { search } from '../services/api';
+import { unwrapData } from '../services/api';
+import toast from 'react-hot-toast';
+import { getT } from '../i18n';
+import { Search as SearchIcon, FileText, Users, FolderKanban, CheckSquare, MessageSquare, Loader2 } from 'lucide-react';
+import { EmptyState } from '../components/common/EmptyState';
+import { Button } from '../components/common/Button';
 
-export default function Search() {
-  const { theme } = useStore()
-  const navigate = useNavigate()
-  const [query, setQuery] = useState('')
-  const [results, setResults] = useState({ tasks: [], projects: [], members: [], wikis: [] })
-  const [loading, setLoading] = useState(false)
-  const [searched, setSearched] = useState(false)
-  const debounceRef = useRef(null)
+const cardBase = { background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: tokens.radius.lg, padding: 'clamp(16px,2vw,20px)' };
 
-  const doSearch = useCallback(async (q) => {
-    if (!q.trim()) { setResults({ tasks: [], projects: [], members: [], wikis: [] }); setSearched(false); return }
-    setLoading(true)
-    setSearched(true)
+const SEARCH_TYPES = [
+  { id: 'all', label: 'All' },
+  { id: 'projects', label: 'Projects', icon: <FolderKanban size={12} /> },
+  { id: 'tasks', label: 'Tasks', icon: <CheckSquare size={12} /> },
+  { id: 'team', label: 'Team', icon: <Users size={12} /> },
+  { id: 'files', label: 'Files', icon: <FileText size={12} /> },
+  { id: 'messages', label: 'Messages', icon: <MessageSquare size={12} /> },
+];
+
+const resultIcon = (type) => ({
+  projects: <FolderKanban size={14} />,
+  tasks: <CheckSquare size={14} />,
+  team: <Users size={14} />,
+  files: <FileText size={14} />,
+  messages: <MessageSquare size={14} />,
+}[type] || <FileText size={14} />);
+
+export default function SearchPage() {
+  const { activeWorkspace, lang = 'en' } = useStore();
+  const t = getT(lang || 'en');
+  const [query, setQuery] = useState('');
+  const [type, setType] = useState('all');
+  const [results, setResults] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    if (!query.trim()) return;
+    setLoading(true);
     try {
-      const [globalRes, wikiRes] = await Promise.all([
-        api.get('/search/', { params: { q } }).catch(() => ({ data: {} })),
-        api.get('/wiki-articles/', { params: { q } }).catch(() => ({ data: [] })),
-      ])
-      const g = globalRes.data?.data || {}
-      setResults({
-        tasks:    Array.isArray(g.tasks)    ? g.tasks    : [],
-        projects: Array.isArray(g.projects) ? g.projects : [],
-        members:  Array.isArray(g.members)  ? g.members  : [],
-        wikis:    Array.isArray(wikiRes.data) ? wikiRes.data : (wikiRes.data?.data || []),
-      })
-    } catch {
-      toast.error('Search failed')
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+      const r = await search.global(query);
+      setResults(unwrapData(r));
+    } catch (e) { toast.error('Search failed'); } finally { setLoading(false); }
+  };
 
-  const handleChange = (e) => {
-    const q = e.target.value
-    setQuery(q)
-    clearTimeout(debounceRef.current)
-    debounceRef.current = setTimeout(() => doSearch(q), 400)
-  }
+  const filteredResults = results
+    ? Object.fromEntries(
+        Object.entries(results)
+          .filter(([k, v]) => {
+            if (!Array.isArray(v) || v.length === 0) return false;
+            if (type === 'all') return true;
+            return k === type;
+          })
+      )
+    : null;
 
-  const totalResults = results.tasks.length + results.projects.length + results.members.length + results.wikis.length
-
-  const Section = ({ icon, label, items, renderItem }) => items.length === 0 ? null : (
-    <div style={{ marginBottom: 32 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, padding: '0 4px' }}>
-        <span style={{ color: 'var(--brand)' }}>{icon}</span>
-        <span style={{ fontSize: 11, fontWeight: 900, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
-          {label} ({items.length})
-        </span>
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        {items.map(renderItem)}
-      </div>
-    </div>
-  )
+  const hasResults = filteredResults && Object.keys(filteredResults).length > 0;
 
   return (
-    <div style={{ background: 'var(--bg)', minHeight: '100%', padding: '40px 24px' }}>
-      <div style={{ maxWidth: 720, margin: '0 auto' }}>
+    <div className="p-4 md:p-6 space-y-5" style={{ background: 'var(--bg)', minHeight: '100vh' }}>
+      <h1 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text)' }}>{t('search.title', 'Search')}</h1>
 
-        {/* Header */}
-        <div style={{ marginBottom: 32, textAlign: 'center' }}>
-          <h1 style={{ fontSize: 'clamp(22px,3vw,34px)', fontWeight: 900, color: 'var(--text)', marginBottom: 8, letterSpacing: '-0.03em' }}>
-            Global Search
-          </h1>
-          <p style={{ color: 'var(--text3)', fontSize: 14 }}>Search across tasks, projects, members, and knowledge base.</p>
+      <form onSubmit={handleSearch} style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <div style={{ position: 'relative', flex: '1 1 300px' }}>
+          <SearchIcon size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text3)' }} />
+          <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search everything..."
+            style={{ width: '100%', background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 10, padding: '10px 14px 10px 36px', color: 'var(--text)', fontSize: 14, outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }} />
         </div>
+        <Button variant="primary" type="submit" loading={loading} leftIcon={loading ? <Loader2 size={14} /> : <SearchIcon size={14} />}>Search</Button>
+      </form>
 
-        {/* Search bar */}
-        <div style={{ position: 'relative', marginBottom: 32 }}>
-          <SearchIcon size={18} style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: 'var(--text3)' }} />
-          <input
-            autoFocus
-            value={query}
-            onChange={handleChange}
-            placeholder="Search anything..."
-            style={{
-              width: '100%', padding: '16px 48px 16px 48px',
-              fontSize: 16, borderRadius: 14, background: 'var(--bg3)',
-              border: '1px solid var(--border)', color: 'var(--text)',
-              outline: 'none', transition: '0.2s', fontFamily: 'var(--font-body)',
-              boxSizing: 'border-box'
-            }}
-            onFocus={e => e.target.style.borderColor = 'var(--brand)'}
-            onBlur={e => e.target.style.borderColor = 'var(--border)'}
-          />
-          {loading && <Loader size={16} style={{ position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)', color: 'var(--text3)', animation: 'spin 0.8s linear infinite' }} />}
-          {query && !loading && (
-            <button onClick={() => { setQuery(''); setResults({ tasks: [], projects: [], members: [], wikis: [] }); setSearched(false); }}
-              style={{ position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer', padding: 4 }}>
-              <X size={16} />
-            </button>
-          )}
-        </div>
-
-        {/* Results */}
-        {searched && !loading && (
-          <div>
-            {totalResults === 0 ? (
-              <div style={{ textAlign: 'center', padding: 60, color: 'var(--text3)' }}>
-                <SearchIcon size={48} style={{ margin: '0 auto 16px', opacity: 0.3, display: 'block' }} />
-                <p style={{ fontWeight: 700 }}>No results for "{query}"</p>
-                <p style={{ fontSize: 13, marginTop: 6 }}>Try a different search term.</p>
-              </div>
-            ) : (
-              <>
-                <p style={{ fontSize: 12, color: 'var(--text3)', marginBottom: 24, fontWeight: 700 }}>
-                  {totalResults} result{totalResults !== 1 ? 's' : ''} for "{query}"
-                </p>
-
-                <Section icon={<FileText size={14} />} label="Tasks" items={results.tasks}
-                  renderItem={t => (
-                    <div key={t.id} onClick={() => navigate('/tasks')}
-                      style={{ padding: '12px 16px', borderRadius: 10, background: 'var(--bg-card)', border: '1px solid var(--border)', cursor: 'pointer', transition: '0.2s' }}
-                      onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--brand)'}
-                      onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
-                    >
-                      <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', margin: 0 }}>{t.title}</p>
-                      {t.status && <span style={{ fontSize: 11, color: 'var(--text3)', marginTop: 4, display: 'block' }}>{t.status}</span>}
-                    </div>
-                  )}
-                />
-
-                <Section icon={<FolderKanban size={14} />} label="Projects" items={results.projects}
-                  renderItem={p => (
-                    <div key={p.id} onClick={() => navigate('/projects')}
-                      style={{ padding: '12px 16px', borderRadius: 10, background: 'var(--bg-card)', border: '1px solid var(--border)', cursor: 'pointer', transition: '0.2s' }}
-                      onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--brand)'}
-                      onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
-                    >
-                      <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', margin: 0 }}>{p.name}</p>
-                    </div>
-                  )}
-                />
-
-                <Section icon={<Users size={14} />} label="Members" items={results.members}
-                  renderItem={m => (
-                    <div key={m.id} style={{ padding: '12px 16px', borderRadius: 10, background: 'var(--bg-card)', border: '1px solid var(--border)' }}>
-                      <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', margin: 0 }}>{m.username}</p>
-                      <span style={{ fontSize: 12, color: 'var(--text3)' }}>{m.email}</span>
-                    </div>
-                  )}
-                />
-
-                <Section icon={<FileText size={14} />} label="Knowledge Base" items={results.wikis}
-                  renderItem={w => (
-                    <div key={w.id} onClick={() => navigate('/wiki')}
-                      style={{ padding: '12px 16px', borderRadius: 10, background: 'var(--bg-card)', border: '1px solid var(--border)', cursor: 'pointer', transition: '0.2s' }}
-                      onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--brand)'}
-                      onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
-                    >
-                      <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', margin: 0 }}>{w.title}</p>
-                    </div>
-                  )}
-                />
-              </>
-            )}
-          </div>
-        )}
-
-        {!searched && (
-          <div style={{ textAlign: 'center', color: 'var(--text3)', marginTop: 60 }}>
-            <SearchIcon size={40} style={{ margin: '0 auto 12px', opacity: 0.2, display: 'block' }} />
-            <p style={{ fontSize: 14 }}>Start typing to search across your workspace.</p>
-          </div>
-        )}
+      <div className="flex gap-2 flex-wrap">
+        {SEARCH_TYPES.map(s => (
+          <button key={s.id} onClick={() => setType(s.id)}
+            className="flex items-center gap-1"
+            style={{ background: type === s.id ? 'var(--brand-bg)' : 'var(--bg3)', border: type === s.id ? '1px solid rgba(51,102,255,0.2)' : '1px solid transparent', borderRadius: 8, padding: '5px 12px', fontSize: 12, fontWeight: 600, color: type === s.id ? 'var(--brand)' : 'var(--text3)', cursor: 'pointer' }}>
+            {s.icon} {s.label}
+          </button>
+        ))}
       </div>
+
+      {results && (
+        hasResults ? (
+          <div className="space-y-3">
+            {Object.entries(filteredResults).map(([category, items]) => (
+              <div key={category}>
+                <h3 style={{ fontSize: 11, fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>{category}</h3>
+                <div className="space-y-2">
+                  {items.map((item, i) => (
+                    <div key={item.id || i} style={{ ...cardBase, padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}
+                      onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--brand)'; }}
+                      onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; }}>
+                      <span style={{ color: 'var(--brand)' }}>{resultIcon(category)}</span>
+                      <div className="flex-1 min-w-0">
+                        <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{item.name || item.title || item.first_name || 'Result'}</span>
+                        {item.description && <p style={{ fontSize: 11, color: 'var(--text3)', margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.description}</p>}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <EmptyState icon={<SearchIcon size={24} />} title="No results" description={`No results found for "${query}"`} />
+        )
+      )}
     </div>
-  )
+  );
 }

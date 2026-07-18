@@ -1,106 +1,69 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import * as tokens from '../styles/tokens';
 import { useStore } from '../store';
-import { 
-  Activity as ActivityIcon, 
-  CheckCircle, 
-  MessageSquare, 
-  UserPlus, 
-  PlusCircle, 
-  RefreshCw, 
-  Clock,
-  ArrowUpRight
-} from 'lucide-react';
-import api from '../services/api';
+import { ws, unwrapData } from '../services/api';
 import toast from 'react-hot-toast';
+import { getT } from '../i18n';
+import { format } from 'date-fns';
+import { Activity as ActIcon, Clock, FileText, MessageSquare, CheckSquare, Users, GitBranch, Upload } from 'lucide-react';
+import LoadingSpinner from '../components/common/LoadingSpinner';
+import EmptyState from '../components/common/EmptyState';
+
+const cardBase = { background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: tokens.radius.lg, padding: 'clamp(16px,2vw,20px)' };
+
+const ACT_ICONS = {
+  task_created: <CheckSquare size={14} style={{ color: 'var(--brand)' }} />,
+  task_completed: <CheckSquare size={14} style={{ color: 'var(--success)' }} />,
+  comment_added: <MessageSquare size={14} style={{ color: 'var(--accent)' }} />,
+  file_uploaded: <Upload size={14} style={{ color: 'var(--warning)' }} />,
+  member_joined: <Users size={14} style={{ color: 'var(--success)' }} />,
+  project_updated: <GitBranch size={14} style={{ color: 'var(--info)' }} />,
+};
 
 export default function Activity() {
-  const { activeWorkspace } = useStore();
+  const { activeWorkspace, lang = 'en' } = useStore();
+  const t = getT(lang || 'en');
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (activeWorkspace) {
-      fetchActivity();
-    }
-  }, [activeWorkspace]);
+  useEffect(() => { if (activeWorkspace) load(); }, [activeWorkspace]);
 
-  const fetchActivity = async () => {
-    try {
-      const res = await api.get(`/workspaces/${activeWorkspace.id}/activity/`);
-      setActivities(res.data?.data || res.data || []);
-    } catch (err) {
-      console.error('Failed to fetch activity:', err);
-      // Fallback if backend doesn't support this yet
-      setActivities([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getIcon = (type) => {
-    switch (type) {
-      case 'task': return <CheckCircle className="text-green-500" size={18} />;
-      case 'comment': return <MessageSquare className="text-blue-500" size={18} />;
-      case 'project': return <PlusCircle className="text-purple-500" size={18} />;
-      case 'member': return <UserPlus className="text-orange-500" size={18} />;
-      default: return <ActivityIcon className="text-gray-500" size={18} />;
-    }
+  const load = async () => {
+    setLoading(true);
+    try { const r = await ws.activity(activeWorkspace.id); setActivities(unwrapData(r)); }
+    catch (e) { toast.error('Failed to load activity'); } finally { setLoading(false); }
   };
 
   return (
-    <div className="p-8 max-w-4xl mx-auto">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
-        <div>
-          <h1 className="text-4xl font-black text-white tracking-tight flex items-center gap-4">
-            <ActivityIcon className="text-blue-500" size={36} />
-            Activity Pulse
-          </h1>
-          <p className="text-gray-400 mt-2 font-medium">Tracking the real-time heartbeat of <span className="text-white font-bold">{activeWorkspace?.name}</span>.</p>
-        </div>
-        <button 
-          onClick={() => { fetchActivity(); toast.success('Feed updated'); }}
-          className="flex items-center gap-2 bg-gray-800/40 hover:bg-gray-800/80 text-gray-300 px-6 py-3 rounded-2xl font-bold transition-all border border-gray-800"
-        >
-          <RefreshCw size={18} />
-          Refresh
-        </button>
-      </div>
+    <div className="p-4 md:p-6 space-y-5" style={{ background: 'var(--bg)', minHeight: '100vh' }}>
+      <h1 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text)' }}>{t('activity.title', 'Activity')}</h1>
 
-      <div className="relative">
-        {/* Timeline Stem */}
-        <div className="absolute left-[27px] top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-500/50 via-gray-800 to-transparent" />
-
-        <div className="space-y-12 relative z-10">
-          {loading ? (
-            <div className="flex items-center justify-center py-20">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-            </div>
-          ) : activities.map((act) => (
-            <div key={act.id} className="flex gap-8 group">
-              <div className="w-14 h-14 rounded-2xl bg-[#0d1425] border border-gray-800 flex items-center justify-center shrink-0 shadow-2xl group-hover:border-blue-500/50 transition-all duration-500">
-                {getIcon(act.type)}
-              </div>
-              <div className="flex-1 bg-gray-800/20 border border-gray-800 rounded-[28px] p-6 hover:bg-gray-800/40 transition-all">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-3">
-                   <p className="text-sm font-medium text-gray-400">
-                     <span className="text-white font-black">{act.actor}</span> {act.verb} <span className="text-blue-400 font-bold">{act.target}</span>
-                   </p>
-                   <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest flex items-center gap-1">
-                     <Clock size={12} />
-                     {act.time}
-                   </span>
+      {loading ? (
+        <div className="flex items-center justify-center py-20"><LoadingSpinner size={28} /></div>
+      ) : activities.length === 0 ? (
+        <EmptyState icon={<ActIcon size={24} />} title="No activity yet" description="Activity will appear here as your team works." />
+      ) : (
+        <div style={cardBase}>
+          <div className="space-y-0">
+            {activities.map((a, i) => (
+              <div key={a.id || i} className="flex gap-3" style={{ padding: '12px 0', borderBottom: i < activities.length - 1 ? '1px solid var(--border)' : 'none' }}>
+                <div style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--bg3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  {ACT_ICONS[a.type] || <Clock size={14} style={{ color: 'var(--text3)' }} />}
                 </div>
-                <div className="flex items-center justify-end">
-                   <button className="text-[10px] font-black text-gray-500 hover:text-white uppercase tracking-widest flex items-center gap-1 transition-colors">
-                     View Details
-                     <ArrowUpRight size={12} />
-                   </button>
+                <div className="flex-1 min-w-0">
+                  <p style={{ fontSize: 13, color: 'var(--text)', margin: 0, lineHeight: 1.4 }}>
+                    <span style={{ fontWeight: 700 }}>{a.user?.first_name || a.actor?.first_name || 'Someone'}</span>
+                    {' '}<span style={{ color: 'var(--text3)' }}>{a.description || a.action || a.message || 'performed an action'}</span>
+                  </p>
+                  <p style={{ fontSize: 11, color: 'var(--text3)', margin: '3px 0 0' }}>
+                    {a.created_at ? format(new Date(a.created_at), 'MMM d, h:mm a') : ''}
+                  </p>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

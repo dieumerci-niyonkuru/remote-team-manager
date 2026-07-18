@@ -1,143 +1,122 @@
-import { useState, useEffect } from 'react'
-import { useStore } from '../store'
-import { hr, ws } from '../services/api'
-import toast from 'react-hot-toast'
+import { useState, useEffect } from 'react';
+import * as tokens from '../styles/tokens';
+import { useStore } from '../store';
+import { hr, unwrapData } from '../services/api';
+import toast from 'react-hot-toast';
+import { getT } from '../i18n';
+import { format } from 'date-fns';
+import { Users, Briefcase, Clock, TrendingUp, Award, UserCheck, Building2 } from 'lucide-react';
+import LoadingSpinner from '../components/common/LoadingSpinner';
+import { EmptyState } from '../components/common/EmptyState';
+import { Button } from '../components/common/Button';
+import Avatar from '../components/common/Avatar';
+import { Badge } from '../components/common/Badge';
+
+const cardBase = { background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: tokens.radius.lg, padding: 'clamp(16px,2vw,20px)' };
 
 export default function HR() {
-  const { theme } = useStore()
-  const [tab, setTab] = useState('jobs') // 'jobs' | 'employees'
-  const [jobs, setJobs] = useState([])
-  const [employees, setEmployees] = useState([])
-  const [workspaces, setWorkspaces] = useState([])
-  const [loading, setLoading] = useState(true)
+  const { activeWorkspace, lang = 'en' } = useStore();
+  const t = getT(lang || 'en');
+  const [employees, setEmployees] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Create Job Form
-  const [showCreate, setShowCreate] = useState(false)
-  const [form, setForm] = useState({ title: '', description: '', requirements: '', location: '', workspace: '' })
+  useEffect(() => { if (activeWorkspace) load(); }, [activeWorkspace]);
 
-  useEffect(() => {
-    Promise.all([hr.jobs(), hr.employees(), ws.list()])
-      .then(([jRes, eRes, wRes]) => {
-        setJobs(jRes.data)
-        setEmployees(eRes.data)
-        setWorkspaces(wRes.data.data || wRes.data)
-      })
-      .catch(() => toast.error('Failed to load HR data'))
-      .finally(() => setLoading(false))
-  }, [])
-
-  const handleCreateJob = async (e) => {
-    e.preventDefault()
-    if (!form.workspace) { toast.error('Select a workspace'); return }
+  const load = async () => {
+    setLoading(true);
     try {
-      const res = await hr.createJob({ ...form, deadline: new Date(Date.now() + 30*86400000).toISOString().split('T')[0] })
-      setJobs(prev => [...prev, res.data])
-      setShowCreate(false)
-      toast.success('Job posted!')
-    } catch { toast.error('Failed to post job') }
-  }
+      const res = await hr.employees();
+      setEmployees(unwrapData(res));
+    } catch (e) {
+      toast.error('Failed to load HR data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onlineCount = employees.filter(e => e.is_online).length;
+  const deptCount = new Set(employees.map(e => e.department).filter(Boolean)).size;
+  const stats = [
+    { label: 'Total Employees', value: employees.length, icon: <Users size={16} />, color: 'var(--brand)' },
+    { label: 'Online Now', value: onlineCount, icon: <UserCheck size={16} />, color: 'var(--success)' },
+    { label: 'Departments', value: deptCount || '—', icon: <Building2 size={16} />, color: 'var(--accent)' },
+    { label: 'Avg Tenure', value: employees.length ? Math.round(employees.reduce((a, e) => a + (e.tenure_months || 0), 0) / employees.length) + 'mo' : '—', icon: <TrendingUp size={16} />, color: 'var(--warning)' },
+  ];
 
   return (
-    <div className={theme} style={{ background: 'var(--bg)', minHeight: 'calc(100vh - 64px)', padding: '32px 24px' }}>
-      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(22px,3vw,32px)', fontWeight: 800, color: 'var(--text)' }}>
-            HR & Recruitment
-          </h1>
-          {tab === 'jobs' && (
-            <button className="btn btn-primary" onClick={() => setShowCreate(true)}>+ Post Job</button>
-          )}
+    <div className="p-4 md:p-6 space-y-5" style={{ background: 'var(--bg)', minHeight: '100vh' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+        <div>
+          <h1 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text)' }}>{t('hr.title', 'Human Resources')}</h1>
+          <p style={{ fontSize: 13, color: 'var(--text3)', margin: '4px 0 0' }}>{employees.length} employees</p>
         </div>
-
-        {/* Tabs */}
-        <div style={{ display: 'flex', gap: 16, marginBottom: 24, borderBottom: '1px solid var(--border)' }}>
-          <button 
-            onClick={() => setTab('jobs')}
-            style={{ padding: '12px 0', background: 'transparent', border: 'none', borderBottom: tab === 'jobs' ? '2px solid var(--brand)' : '2px solid transparent', color: tab === 'jobs' ? 'var(--brand)' : 'var(--text2)', fontWeight: 600, fontSize: 15, cursor: 'pointer', transition: 'var(--transition)' }}>
-            Job Postings
-          </button>
-          <button 
-            onClick={() => setTab('employees')}
-            style={{ padding: '12px 0', background: 'transparent', border: 'none', borderBottom: tab === 'employees' ? '2px solid var(--brand)' : '2px solid transparent', color: tab === 'employees' ? 'var(--brand)' : 'var(--text2)', fontWeight: 600, fontSize: 15, cursor: 'pointer', transition: 'var(--transition)' }}>
-            Employee Directory
-          </button>
-        </div>
-
-        {loading ? (
-          <div className="skeleton" style={{ height: 200, borderRadius: 12 }} />
-        ) : tab === 'jobs' ? (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16 }}>
-            {jobs.length === 0 ? (
-              <div style={{ gridColumn: '1 / -1', color: 'var(--text2)', textAlign: 'center', padding: 40 }}>No job postings active.</div>
-            ) : jobs.map(j => (
-              <div key={j.id} className="card card-hover" style={{ padding: 24 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-                  <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)' }}>{j.title}</h3>
-                  <span className="badge badge-green">Active</span>
-                </div>
-                <p style={{ fontSize: 13, color: 'var(--text2)', marginBottom: 16, lineHeight: 1.5 }}>{j.description}</p>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 12, color: 'var(--text3)' }}>
-                  <span>📍 {j.location}</span>
-                  <span>🕒 Due: {new Date(j.deadline).toLocaleDateString()}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: 16 }}>
-            {employees.length === 0 ? (
-              <div style={{ gridColumn: '1 / -1', color: 'var(--text2)', textAlign: 'center', padding: 40 }}>No employees found.</div>
-            ) : employees.map(e => (
-              <div key={e.id} className="card" style={{ padding: 20, display: 'flex', alignItems: 'center', gap: 16 }}>
-                <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'var(--brand-bg)', color: 'var(--brand)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, fontWeight: 700 }}>
-                  {e.user?.username?.[0]?.toUpperCase() || 'E'}
-                </div>
-                <div>
-                  <div style={{ fontWeight: 600, color: 'var(--text)', fontSize: 15 }}>{e.user?.username || 'Employee'}</div>
-                  <div style={{ color: 'var(--text2)', fontSize: 12 }}>{e.position || 'Staff'} • {e.department || 'General'}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        <Button variant="primary" leftIcon={<Users size={14} />}>Add Employee</Button>
       </div>
 
-      {showCreate && (
-        <div className="overlay" onClick={e => e.target === e.currentTarget && setShowCreate(false)}>
-          <div className="card scale-in" style={{ width: '100%', maxWidth: 500, padding: 36 }}>
-            <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 800, color: 'var(--text)', marginBottom: 24 }}>Post a Job</h3>
-            <form onSubmit={handleCreateJob} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div>
-                <label className="label">Workspace</label>
-                <select className="input" value={form.workspace} onChange={e => setForm({...form, workspace: e.target.value})} required>
-                  <option value="">Select Workspace</option>
-                  {workspaces.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
-                </select>
+      {loading ? (
+        <div className="flex items-center justify-center py-20"><LoadingSpinner size={28} /></div>
+      ) : (
+        <>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {stats.map((s, i) => (
+              <div key={i} style={cardBase}>
+                <div className="flex items-center justify-between mb-2">
+                  <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{s.label}</span>
+                  <span style={{ color: s.color }}>{s.icon}</span>
+                </div>
+                <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--text)' }}>{s.value}</div>
               </div>
-              <div>
-                <label className="label">Job Title</label>
-                <input className="input" value={form.title} onChange={e => setForm({...form, title: e.target.value})} required placeholder="e.g. Senior Frontend Engineer" />
-              </div>
-              <div>
-                <label className="label">Location</label>
-                <input className="input" value={form.location} onChange={e => setForm({...form, location: e.target.value})} required placeholder="e.g. Remote, US" />
-              </div>
-              <div>
-                <label className="label">Description</label>
-                <textarea className="input" rows={3} value={form.description} onChange={e => setForm({...form, description: e.target.value})} required placeholder="Job summary..." />
-              </div>
-              <div>
-                <label className="label">Requirements</label>
-                <textarea className="input" rows={3} value={form.requirements} onChange={e => setForm({...form, requirements: e.target.value})} required placeholder="Skills needed..." />
-              </div>
-              <div style={{ display: 'flex', gap: 10, marginTop: 8 }}>
-                <button type="button" className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setShowCreate(false)}>Cancel</button>
-                <button type="submit" className="btn btn-primary" style={{ flex: 1 }}>Post Job</button>
-              </div>
-            </form>
+            ))}
           </div>
-        </div>
+
+          <div style={cardBase}>
+            <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', margin: '0 0 16px' }}>Employees</h3>
+            {employees.length === 0 ? (
+              <EmptyState icon={<Users size={24} />} title="No employees" description="Add your first employee to get started." />
+            ) : (
+              <div className="overflow-x-auto">
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid var(--border)' }}>
+                      {['Employee', 'Role', 'Department', 'Status', 'Joined'].map(h => (
+                        <th key={h} style={{ textAlign: 'left', padding: '8px 12px', fontSize: 10, fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {employees.map((emp, i) => {
+                      const u = emp.user || {};
+                      const name = u.first_name ? `${u.first_name} ${u.last_name || ''}` : u.username || emp.name || '—';
+                      return (
+                        <tr key={emp.id || i} style={{ borderBottom: '1px solid var(--border)' }}>
+                          <td style={{ padding: '10px 12px' }}>
+                            <div className="flex items-center gap-3">
+                              <Avatar user={u} size={28} />
+                              <div>
+                                <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', margin: 0 }}>{name}</p>
+                                <p style={{ fontSize: 11, color: 'var(--text3)', margin: 0 }}>{u.email || emp.email}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td style={{ padding: '10px 12px' }}><Badge variant="secondary">{emp.job_title || emp.role || '—'}</Badge></td>
+                          <td style={{ padding: '10px 12px', fontSize: 12, color: 'var(--text3)' }}>{emp.department || '—'}</td>
+                          <td style={{ padding: '10px 12px' }}>
+                            <div className="flex items-center gap-1">
+                              <div style={{ width: 6, height: 6, borderRadius: '50%', background: emp.is_online ? 'var(--success)' : 'var(--text3)' }} />
+                              <span style={{ fontSize: 11, color: 'var(--text3)' }}>{emp.is_online ? 'Online' : 'Offline'}</span>
+                            </div>
+                          </td>
+                          <td style={{ padding: '10px 12px', fontSize: 12, color: 'var(--text3)' }}>{emp.joined_at ? format(new Date(emp.joined_at), 'MMM d, yyyy') : '—'}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </>
       )}
     </div>
-  )
+  );
 }

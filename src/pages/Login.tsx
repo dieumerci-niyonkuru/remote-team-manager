@@ -32,7 +32,7 @@ export default function Login() {
       localStorage.setItem('rtm_access', result.access);
       localStorage.setItem('rtm_refresh', result.refresh);
       setUser(result.user);
-      toast.success('Welcome back! 👋');
+      toast.success('Welcome back!');
       navigate(nextPath);
     } catch (err: any) {
       if (!err.response) {
@@ -51,10 +51,10 @@ export default function Login() {
   };
 
   const features = [
-    { icon: <Zap size={18} />, text: 'Real-time collaboration' },
-    { icon: <Shield size={18} />, text: 'Bank-grade security' },
-    { icon: <Globe size={18} />, text: '3 languages supported' },
-    { icon: <Users size={18} />, text: 'Built for remote teams' },
+    { icon: <Zap size={16} />, text: 'Real-time task collaboration' },
+    { icon: <Shield size={16} />, text: 'Secure & encrypted data' },
+    { icon: <Globe size={16} />, text: 'Multi-language support' },
+    { icon: <Users size={16} />, text: 'Built for remote teams' },
   ];
 
   return (
@@ -62,35 +62,34 @@ export default function Login() {
       minHeight: '100vh', display: 'flex', flexDirection: 'column',
       background: 'var(--bg)', fontFamily: 'var(--font-body)', overflow: 'hidden'
     }}>
-      {/* Top language bar */}
+      {/* Top bar */}
       <div style={{
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        padding: '14px 24px', borderBottom: '1px solid var(--border)',
-        background: 'rgba(6,11,24,0.8)', backdropFilter: 'blur(20px)',
-        position: 'sticky', top: 0, zIndex: 100
+        padding: '12px 24px', borderBottom: '1px solid var(--border)',
+        background: 'var(--bg)', position: 'sticky', top: 0, zIndex: 100
       }}>
         <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
-          <div style={{ width: 34, height: 34, borderRadius: 9, background: 'linear-gradient(135deg,var(--brand),#8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 6 }}>
+          <div style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--brand)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 5 }}>
             <img src="/logo.png" alt="RT" style={{ width: '100%', objectFit: 'contain' }} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
           </div>
-          <span style={{ fontSize: 17, fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.02em' }}>
+          <span style={{ fontSize: 16, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.02em' }}>
             Remote<span style={{ color: 'var(--brand)' }}>Team</span>
           </span>
         </Link>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <Globe size={14} style={{ color: 'var(--text3)', marginRight: 2 }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <Globe size={13} style={{ color: 'var(--text3)', marginRight: 4 }} />
           {LANGS.map(l => (
             <button
               key={l.code}
               onClick={() => setLang && setLang(l.code)}
               title={l.name}
               style={{
-                background: lang === l.code ? 'var(--brand)' : 'var(--bg3)',
+                background: lang === l.code ? 'var(--brand)' : 'transparent',
                 border: `1px solid ${lang === l.code ? 'var(--brand)' : 'var(--border)'}`,
                 color: lang === l.code ? '#fff' : 'var(--text3)',
-                borderRadius: 8, padding: '5px 10px', fontSize: 12, fontWeight: 800,
-                cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: 4
+                borderRadius: 6, padding: '4px 8px', fontSize: 11, fontWeight: 700,
+                cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: 3
               }}
             >
               <span>{l.flag}</span> {l.label}
@@ -100,60 +99,55 @@ export default function Login() {
       </div>
 
       {/* Main split layout */}
-      <div style={{ flex: 1, display: 'flex', minHeight: 'calc(100vh - 62px)' }}>
+      <div style={{ flex: 1, display: 'flex', minHeight: 'calc(100vh - 56px)' }}>
         {/* Left branding panel */}
         <div className="login-left-panel" style={{
           flex: '0 0 50%', display: 'none', flexDirection: 'column',
-          justifyContent: 'center', padding: '60px 70px',
-          background: 'linear-gradient(135deg, #07101f 0%, #0e1c38 50%, #0a1528 100%)',
-          borderRight: '1px solid rgba(255,255,255,0.06)', position: 'relative', overflow: 'hidden'
+          justifyContent: 'center', padding: '48px 56px',
+          background: 'var(--bg2)',
+          borderRight: '1px solid var(--border)',
         }}>
-          {/* Background orbs */}
-          <div style={{ position: 'absolute', top: '15%', left: '10%', width: 350, height: 350, background: 'radial-gradient(circle, rgba(51,102,255,0.18) 0%, transparent 70%)', borderRadius: '50%', filter: 'blur(50px)' }} />
-          <div style={{ position: 'absolute', bottom: '15%', right: '5%', width: 280, height: 280, background: 'radial-gradient(circle, rgba(139,92,246,0.15) 0%, transparent 70%)', borderRadius: '50%', filter: 'blur(50px)' }} />
-
           <div style={{ position: 'relative', zIndex: 1 }}>
             <div style={{
-              display: 'inline-flex', alignItems: 'center', gap: 8,
-              padding: '6px 14px', borderRadius: 20, marginBottom: 40,
-              background: 'rgba(51,102,255,0.12)', border: '1px solid rgba(51,102,255,0.25)',
-              fontSize: 11, fontWeight: 900, color: 'var(--brand)', textTransform: 'uppercase', letterSpacing: '0.15em'
+              display: 'inline-flex', alignItems: 'center', gap: 6,
+              padding: '5px 12px', borderRadius: 16, marginBottom: 32,
+              background: 'var(--brand-bg)', border: '1px solid rgba(51,102,255,0.15)',
+              fontSize: 11, fontWeight: 700, color: 'var(--brand)', textTransform: 'uppercase', letterSpacing: '0.1em'
             }}>
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--brand)', display: 'inline-block' }} />
-              Trusted by 1,000+ teams
+              <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--brand)', display: 'inline-block' }} />
+              Trusted by remote teams
             </div>
 
-            <h2 style={{ fontSize: 'clamp(30px,3.5vw,50px)', fontWeight: 900, color: '#fff', lineHeight: 1.1, letterSpacing: '-0.04em', marginBottom: 20 }}>
-              Your team's <br />
-              <span style={{ background: 'linear-gradient(135deg, var(--brand), #8b5cf6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>command center.</span>
+            <h2 style={{ fontSize: 'clamp(26px,3vw,44px)', fontWeight: 800, color: 'var(--text)', lineHeight: 1.15, letterSpacing: '-0.03em', marginBottom: 16 }}>
+              Your team's<br />
+              <span style={{ color: 'var(--brand)' }}>command center.</span>
             </h2>
 
-            <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.55)', lineHeight: 1.75, marginBottom: 44, maxWidth: 360 }}>
-              Everything your distributed team needs — projects, chat, analytics, and AI — unified in one intelligent workspace.
+            <p style={{ fontSize: 14, color: 'var(--text2)', lineHeight: 1.7, marginBottom: 36, maxWidth: 340 }}>
+              Projects, tasks, chat, analytics, and AI — unified in one intelligent workspace for distributed teams.
             </p>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 52 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 40 }}>
               {features.map((f, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                  <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(51,102,255,0.12)', border: '1px solid rgba(51,102,255,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--brand)', flexShrink: 0 }}>
+                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--brand-bg)', border: '1px solid rgba(51,102,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--brand)', flexShrink: 0 }}>
                     {f.icon}
                   </div>
-                  <span style={{ fontSize: 14, fontWeight: 700, color: 'rgba(255,255,255,0.75)' }}>{f.text}</span>
-                  <Check size={14} style={{ color: '#10b981', marginLeft: 'auto', flexShrink: 0 }} />
+                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text2)' }}>{f.text}</span>
+                  <Check size={13} style={{ color: 'var(--success)', marginLeft: 'auto', flexShrink: 0 }} />
                 </div>
               ))}
             </div>
 
-            {/* Testimonial */}
-            <div style={{ padding: '22px 26px', borderRadius: 18, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
-              <p style={{ fontSize: 14, fontStyle: 'italic', color: 'rgba(255,255,255,0.6)', marginBottom: 14, lineHeight: 1.65 }}>
-                "We ship 40% faster since moving to RemoteTeam. It's the first tool our engineers actually love."
+            <div style={{ padding: '18px 22px', borderRadius: 14, background: 'var(--bg3)', border: '1px solid var(--border)' }}>
+              <p style={{ fontSize: 13, fontStyle: 'italic', color: 'var(--text2)', marginBottom: 12, lineHeight: 1.65 }}>
+                "Our team went from scattered tools to full visibility in a week. It's the first platform engineers actually enjoy using."
               </p>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg,#3366ff,#8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 12, fontWeight: 900, flexShrink: 0 }}>S</div>
+                <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--brand)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 11, fontWeight: 800, flexShrink: 0 }}>DM</div>
                 <div>
-                  <p style={{ fontSize: 13, fontWeight: 800, color: '#fff', margin: 0 }}>Sarah Jenkins</p>
-                  <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', margin: 0 }}>VP Engineering, Acme Corp</p>
+                  <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)', margin: 0 }}>Dieu Merci N.</p>
+                  <p style={{ fontSize: 10, color: 'var(--text3)', margin: 0 }}>Founder & CEO, RemoteTeam</p>
                 </div>
               </div>
             </div>
@@ -163,37 +157,33 @@ export default function Login() {
         {/* Right form panel */}
         <div style={{
           flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
-          justifyContent: 'center', padding: '48px 24px', overflowY: 'auto',
+          justifyContent: 'center', padding: '40px 24px', overflowY: 'auto',
           background: 'var(--bg)'
         }}>
-          <div style={{ width: '100%', maxWidth: 440 }}>
-            {/* Heading */}
-            <div style={{ marginBottom: 36, textAlign: 'center' }}>
+          <div style={{ width: '100%', maxWidth: 400 }}>
+            <div style={{ marginBottom: 28, textAlign: 'center' }}>
               <div style={{
-                display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 14px',
-                borderRadius: 20, background: 'var(--brand-bg)', border: '1px solid rgba(51,102,255,0.25)',
-                fontSize: 12, fontWeight: 800, color: 'var(--brand)', marginBottom: 18
+                display: 'inline-flex', alignItems: 'center', gap: 5, padding: '4px 12px',
+                borderRadius: 16, background: 'var(--brand-bg)', border: '1px solid rgba(51,102,255,0.15)',
+                fontSize: 11, fontWeight: 700, color: 'var(--brand)', marginBottom: 16
               }}>
-                <Shield size={12} /> Secure Sign In
+                <Shield size={11} /> Secure Sign In
               </div>
-              <h1 style={{ fontSize: 'clamp(26px,4vw,34px)', fontWeight: 900, color: 'var(--text)', letterSpacing: '-0.03em', margin: '0 0 8px' }}>
+              <h1 style={{ fontSize: 'clamp(24px,3.5vw,30px)', fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.02em', margin: '0 0 6px' }}>
                 {t('auth.login.title', 'Welcome back')}
               </h1>
-              <p style={{ color: 'var(--text3)', fontSize: 15, margin: 0 }}>
+              <p style={{ color: 'var(--text3)', fontSize: 14, margin: 0 }}>
                 {t('auth.login.subtitle', 'Enter your credentials to access your workspace')}
               </p>
             </div>
 
-            {/* Form card */}
             <div style={{
               background: 'var(--bg2)', border: '1px solid var(--border)',
-              borderRadius: 20, padding: '36px 32px',
-              boxShadow: '0 20px 60px rgba(0,0,0,0.25)'
+              borderRadius: 16, padding: '28px 24px',
             }}>
-              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 22 }}>
-                {/* Email */}
+              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
+                  <label style={{ display: 'block', fontSize: 11, fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>
                     {t('common.email', 'Email')}
                   </label>
                   <input
@@ -202,22 +192,20 @@ export default function Login() {
                     onFocus={() => setFocused('email')} onBlur={() => setFocused(null)}
                     placeholder="name@company.com"
                     style={{
-                      width: '100%', padding: '13px 16px', borderRadius: 12, fontSize: 14,
-                      background: 'var(--bg3)', border: `2px solid ${focused === 'email' ? 'var(--brand)' : 'var(--border)'}`,
+                      width: '100%', padding: '11px 14px', borderRadius: 10, fontSize: 14,
+                      background: 'var(--bg3)', border: `1.5px solid ${focused === 'email' ? 'var(--brand)' : 'var(--border)'}`,
                       color: 'var(--text)', outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.2s',
                       fontFamily: 'var(--font-body)',
-                      boxShadow: focused === 'email' ? '0 0 0 3px rgba(51,102,255,0.12)' : 'none'
                     }}
                   />
                 </div>
 
-                {/* Password */}
                 <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                    <label style={{ fontSize: 11, fontWeight: 800, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                    <label style={{ fontSize: 11, fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                       {t('auth.login.password', 'Password')}
                     </label>
-                    <Link to="/forgot-password" style={{ fontSize: 12, color: 'var(--brand)', textDecoration: 'none', fontWeight: 700 }}>
+                    <Link to="/forgot-password" style={{ fontSize: 12, color: 'var(--brand)', textDecoration: 'none', fontWeight: 600 }}>
                       {t('auth.login.forgot', 'Forgot password?')}
                     </Link>
                   </div>
@@ -226,36 +214,31 @@ export default function Login() {
                       type={showPass ? 'text' : 'password'} required value={form.password}
                       onChange={e => setForm({ ...form, password: e.target.value })}
                       onFocus={() => setFocused('password')} onBlur={() => setFocused(null)}
-                      placeholder="••••••••••"
+                      placeholder="Enter your password"
                       style={{
-                        width: '100%', padding: '13px 48px 13px 16px', borderRadius: 12, fontSize: 14,
-                        background: 'var(--bg3)', border: `2px solid ${focused === 'password' ? 'var(--brand)' : 'var(--border)'}`,
+                        width: '100%', padding: '11px 40px 11px 14px', borderRadius: 10, fontSize: 14,
+                        background: 'var(--bg3)', border: `1.5px solid ${focused === 'password' ? 'var(--brand)' : 'var(--border)'}`,
                         color: 'var(--text)', outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.2s',
                         fontFamily: 'var(--font-body)',
-                        boxShadow: focused === 'password' ? '0 0 0 3px rgba(51,102,255,0.12)' : 'none'
                       }}
                     />
                     <button type="button" onClick={() => setShowPass(!showPass)}
-                      style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer', padding: 4, display: 'flex' }}>
-                      {showPass ? <EyeOff size={17} /> : <Eye size={17} />}
+                      style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer', padding: 4, display: 'flex' }}>
+                      {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
                   </div>
                 </div>
 
-                {/* Submit */}
                 <button type="submit" disabled={loading}
                   style={{
-                    width: '100%', padding: '14px', borderRadius: 12, fontSize: 15, fontWeight: 800,
-                    background: loading ? 'var(--bg3)' : 'linear-gradient(135deg, var(--brand) 0%, #7c3aed 100%)',
+                    width: '100%', padding: '12px', borderRadius: 10, fontSize: 14, fontWeight: 700,
+                    background: loading ? 'var(--bg3)' : 'var(--brand)',
                     color: loading ? 'var(--text3)' : '#fff', border: 'none',
                     cursor: loading ? 'default' : 'pointer',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                    boxShadow: loading ? 'none' : '0 6px 20px rgba(51,102,255,0.38)',
-                    transition: 'all 0.2s', fontFamily: 'var(--font-body)',
-                    marginTop: 4
+                    fontFamily: 'var(--font-body)',
+                    marginTop: 2
                   }}
-                  onMouseEnter={e => { if (!loading) (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-1px)'; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)'; }}
                 >
                   {loading ? (
                     <>
@@ -263,15 +246,15 @@ export default function Login() {
                       {t('auth.login.authorizing', 'Signing in...')}
                     </>
                   ) : (
-                    <>{t('auth.login.submit', 'Sign In')} <ArrowRight size={16} /></>
+                    <>{t('auth.login.submit', 'Sign In')} <ArrowRight size={15} /></>
                   )}
                 </button>
               </form>
             </div>
 
-            <p style={{ textAlign: 'center', fontSize: 14, color: 'var(--text3)', marginTop: 24 }}>
+            <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--text3)', marginTop: 20 }}>
               {t('auth.login.no_account', "Don't have an account?")}{' '}
-              <Link to="/register" style={{ color: 'var(--brand)', fontWeight: 800, textDecoration: 'none' }}>
+              <Link to="/register" style={{ color: 'var(--brand)', fontWeight: 700, textDecoration: 'none' }}>
                 {t('auth.login.sign_up', 'Sign up free')}
               </Link>
             </p>

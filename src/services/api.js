@@ -132,6 +132,9 @@ export const files = {
 
 export const ai = {
   suggestTasks: prompt => api.post('/ai-suggestions/', { prompt }),
+  summary: () => api.get('/ai-suggestions/summary/'),
+  write: d => api.post('/ai-suggestions/write/', d),
+  insights: () => api.get('/ai-suggestions/insights/'),
 };
 
 export const automation = {
@@ -160,6 +163,13 @@ export const wiki = {
 
 export const calls = {
   initiate: (room_id, user_ids = []) => api.post('/calls/initiate/', { room_id, user_ids }),
+};
+
+export const presence = {
+  onlineUsers: () => api.get('/presence/online_users/'),
+  heartbeat: () => api.post('/presence/heartbeat/'),
+  setStatus: status => api.post('/presence/set_status/', { status }),
+  myStatus: () => api.get('/presence/my_status/'),
 };
 
 export const invites = {

@@ -1,154 +1,97 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import * as tokens from '../styles/tokens';
 import { useStore } from '../store';
-import { invites } from '../services/api';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { invites, unwrapData } from '../services/api';
 import toast from 'react-hot-toast';
-import { CheckCircle2, XCircle, Loader, ArrowRight, Shield } from 'lucide-react';
+import { getT } from '../i18n';
+import { Briefcase, CheckCircle2, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
+import { Button } from '../components/common/Button';
 
-const C = { brand: '#3366ff', violet: '#8b5cf6', emerald: '#10b981', rose: '#ef4444' };
+const cardBase = { background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: tokens.radius.lg, padding: 'clamp(24px,4vw,40px)' };
 
 export default function JoinWorkspace() {
-  const { token } = useParams();
-  const navigate  = useNavigate();
-  const { isAuth } = useStore();
-
-  const [state, setState] = useState('idle'); // idle | loading | success | error | needs_auth
-  const [info,  setInfo ] = useState(null);
-  const [error, setError] = useState('');
+  const { user, setActiveWorkspace, lang = 'en' } = useStore();
+  const t = getT(lang || 'en');
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get('token');
+  const [loading, setLoading] = useState(true);
+  const [workspace, setWorkspace] = useState(null);
+  const [error, setError] = useState(null);
+  const [joining, setJoining] = useState(false);
+  const [joined, setJoined] = useState(false);
 
   useEffect(() => {
-    if (!token) { setState('error'); setError('No token provided.'); return; }
-    if (!isAuth) { setState('needs_auth'); return; }
-    joinWorkspace();
-    // eslint-disable-next-line
-  }, [token, isAuth]);
+    if (!token) { setError('No invitation token found.'); setLoading(false); return; }
+    verifyToken();
+  }, [token]);
 
-  const joinWorkspace = async () => {
-    setState('loading');
+  const verifyToken = async () => {
+    setLoading(true);
     try {
-      const res = await invites.joinByToken(token);
-      const data = res.data?.data || res.data;
-      setInfo(data);
-      setState('success');
-      toast.success(`Joined ${data.workspace_name || 'workspace'} 🎉`);
-      setTimeout(() => navigate('/dashboard'), 2500);
-    } catch (err) {
-      setState('error');
-      setError(err.response?.data?.error || 'This invite link is invalid or has expired.');
-    }
+      const r = await invites.joinByToken(token);
+      const data = unwrapData(r);
+      setWorkspace(data.workspace || data);
+    } catch (e) { setError(e.response?.data?.detail || 'Invalid or expired invitation.'); } finally { setLoading(false); }
   };
 
-  /* ── needs_auth: prompt login → come back ── */
-  if (state === 'needs_auth') {
-    return (
-      <div style={pageStyle}>
-        <div style={cardStyle}>
-          <div style={{ ...iconWrap, background: 'rgba(51,102,255,0.12)', border: '1px solid rgba(51,102,255,0.3)' }}>
-            <Shield size={28} color={C.brand} />
-          </div>
-          <h1 style={h1}>Sign in to join</h1>
-          <p style={sub}>
-            You need an account to accept this workspace invitation.
-          </p>
-          <div style={{ display: 'flex', gap: 10, flexDirection: 'column' }}>
-            <Link
-              to={`/login?next=/join/${token}`}
-              style={{ ...primaryBtn, textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
-            >
-              <ArrowRight size={15} /> Sign In
-            </Link>
-            <Link
-              to={`/register?next=/join/${token}`}
-              style={{ ...secondaryBtn, textDecoration: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
-            >
-              Create an Account
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const handleJoin = async () => {
+    setJoining(true);
+    try {
+      const r = await invites.joinByToken(token);
+      const data = unwrapData(r);
+      if (data.workspace) setActiveWorkspace(data.workspace);
+      setJoined(true);
+      toast.success('Welcome to the team!');
+    } catch (e) { toast.error(e.response?.data?.detail || 'Failed to join'); } finally { setJoining(false); }
+  };
 
-  /* ── loading ── */
-  if (state === 'loading' || state === 'idle') {
-    return (
-      <div style={pageStyle}>
-        <div style={cardStyle}>
-          <div style={{ ...iconWrap, background: 'rgba(51,102,255,0.08)' }}>
-            <Loader size={28} color={C.brand} style={{ animation: 'spin 1s linear infinite' }} />
-          </div>
-          <h1 style={h1}>Joining workspace…</h1>
-          <p style={sub}>Please wait while we add you to the workspace.</p>
-          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-        </div>
-      </div>
-    );
-  }
-
-  /* ── success ── */
-  if (state === 'success') {
-    return (
-      <div style={pageStyle}>
-        <div style={cardStyle}>
-          <div style={{ ...iconWrap, background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)' }}>
-            <CheckCircle2 size={32} color={C.emerald} />
-          </div>
-          <h1 style={{ ...h1, color: C.emerald }}>Welcome!</h1>
-          <p style={sub}>
-            {info?.already_member
-              ? `You're already a member of ${info?.workspace_name || 'this workspace'}.`
-              : `You've successfully joined ${info?.workspace_name || 'the workspace'} as ${info?.role || 'a member'}.`
-            }
-          </p>
-          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', margin: 0 }}>Redirecting to dashboard…</p>
-        </div>
-      </div>
-    );
-  }
-
-  /* ── error ── */
   return (
-    <div style={pageStyle}>
-      <div style={cardStyle}>
-        <div style={{ ...iconWrap, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)' }}>
-          <XCircle size={28} color={C.rose} />
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'var(--bg)' }}>
+      <div style={{ maxWidth: 420, width: '100%' }}>
+        <div style={cardBase}>
+          {loading ? (
+            <div className="text-center py-8">
+              <Loader2 size={28} className="animate-spin" style={{ color: 'var(--brand)', margin: '0 auto 12px' }} />
+              <p style={{ fontSize: 13, color: 'var(--text3)' }}>Verifying invitation...</p>
+            </div>
+          ) : error ? (
+            <div className="text-center py-8">
+              <div style={{ width: 48, height: 48, borderRadius: 14, background: 'var(--danger-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+                <AlertCircle size={22} style={{ color: 'var(--danger)' }} />
+              </div>
+              <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', margin: '0 0 8px' }}>Invitation Error</h2>
+              <p style={{ fontSize: 13, color: 'var(--text3)', marginBottom: 20 }}>{error}</p>
+              <Button variant="secondary" onClick={() => navigate('/login')}>Go to Login</Button>
+            </div>
+          ) : joined ? (
+            <div className="text-center py-8">
+              <div style={{ width: 56, height: 56, borderRadius: 14, background: 'var(--success-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+                <CheckCircle2 size={28} style={{ color: 'var(--success)' }} />
+              </div>
+              <h2 style={{ fontSize: 18, fontWeight: 800, color: 'var(--text)', margin: '0 0 8px' }}>Welcome aboard!</h2>
+              <p style={{ fontSize: 13, color: 'var(--text3)', marginBottom: 20 }}>You've joined the workspace successfully.</p>
+              <Button variant="primary" rightIcon={<ArrowRight size={14} />} onClick={() => navigate('/dashboard')}>Go to Dashboard</Button>
+            </div>
+          ) : workspace ? (
+            <div className="text-center py-4">
+              <div style={{ width: 56, height: 56, borderRadius: 14, background: 'var(--brand-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+                <Briefcase size={24} style={{ color: 'var(--brand)' }} />
+              </div>
+              <h2 style={{ fontSize: 18, fontWeight: 800, color: 'var(--text)', margin: '0 0 4px' }}>Join Workspace</h2>
+              <p style={{ fontSize: 13, color: 'var(--text3)', marginBottom: 16 }}>You've been invited to join:</p>
+              <div style={{ padding: '12px 16px', background: 'var(--bg3)', borderRadius: 10, marginBottom: 20 }}>
+                <p style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', margin: 0 }}>{workspace.name}</p>
+                {workspace.description && <p style={{ fontSize: 12, color: 'var(--text3)', margin: '4px 0 0' }}>{workspace.description}</p>}
+              </div>
+              <Button variant="primary" fullWidth loading={joining} rightIcon={<ArrowRight size={14} />} onClick={handleJoin}>
+                Join Workspace
+              </Button>
+            </div>
+          ) : null}
         </div>
-        <h1 style={{ ...h1, color: C.rose }}>Invalid Link</h1>
-        <p style={sub}>{error}</p>
-        <Link to="/dashboard" style={{ ...primaryBtn, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 7 }}>
-          Go to Dashboard
-        </Link>
       </div>
     </div>
   );
 }
-
-/* ── styles ── */
-const pageStyle = {
-  minHeight: '100vh', background: '#060b18',
-  display: 'flex', alignItems: 'center', justifyContent: 'center',
-  padding: 24,
-};
-const cardStyle = {
-  background: '#0d1425', border: '1px solid rgba(255,255,255,0.08)',
-  borderRadius: 24, padding: '48px 36px',
-  maxWidth: 420, width: '100%', textAlign: 'center',
-};
-const iconWrap = {
-  width: 64, height: 64, borderRadius: 20,
-  display: 'flex', alignItems: 'center', justifyContent: 'center',
-  margin: '0 auto 20px',
-};
-const h1 = { fontSize: 26, fontWeight: 900, color: '#fff', margin: '0 0 10px', letterSpacing: '-0.03em' };
-const sub = { fontSize: 14, color: 'rgba(255,255,255,0.4)', lineHeight: 1.6, margin: '0 0 24px' };
-const primaryBtn = {
-  width: '100%', padding: '12px', borderRadius: 12,
-  background: `linear-gradient(90deg,#3366ff,#8b5cf6)`,
-  color: '#fff', border: 'none', cursor: 'pointer',
-  fontSize: 14, fontWeight: 800, boxShadow: '0 4px 16px rgba(51,102,255,0.3)',
-};
-const secondaryBtn = {
-  width: '100%', padding: '12px', borderRadius: 12,
-  background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
-  color: 'rgba(255,255,255,0.7)', cursor: 'pointer', fontSize: 14, fontWeight: 700,
-};

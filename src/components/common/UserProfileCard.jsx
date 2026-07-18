@@ -4,13 +4,13 @@ import { MessageSquare, Mail, ExternalLink, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const ROLE_COLORS = {
-  owner: { bg:'rgba(245,158,11,0.15)', text:'#f59e0b', label:'Owner' },
-  admin: { bg:'rgba(239,68,68,0.15)', text:'#ef4444', label:'Admin' },
-  manager: { bg:'rgba(139,92,246,0.15)', text:'#8b5cf6', label:'Manager' },
+  owner: { bg:'rgba(245,158,11,0.15)', text:'var(--warning)', label:'Owner' },
+  admin: { bg:'rgba(239,68,68,0.15)', text:'var(--danger)', label:'Admin' },
+  manager: { bg:'rgba(139,92,246,0.15)', text:'var(--accent)', label:'Manager' },
   developer: { bg:'rgba(51,102,255,0.15)', text:'var(--brand)', label:'Developer' },
   designer: { bg:'rgba(236,72,153,0.15)', text:'#ec4899', label:'Designer' },
   viewer: { bg:'rgba(100,116,139,0.15)', text:'var(--text3)', label:'Viewer' },
-  member: { bg:'rgba(16,185,129,0.15)', text:'#10b981', label:'Member' },
+  member: { bg:'rgba(16,185,129,0.15)', text:'var(--success)', label:'Member' },
 };
 
 export default function UserProfileCard({ user, role, onClose, onDM }) {

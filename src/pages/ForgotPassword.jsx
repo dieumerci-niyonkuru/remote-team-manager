@@ -28,56 +28,55 @@ export default function ForgotPassword() {
       minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
       background: 'var(--bg)', fontFamily: 'var(--font-body)', padding: '24px'
     }}>
-      <div style={{ width: '100%', maxWidth: 420 }}>
+      <div style={{ width: '100%', maxWidth: 400 }}>
         <Link to="/login" style={{
-          display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--text3)',
-          textDecoration: 'none', fontSize: 13, fontWeight: 600, marginBottom: 32
+          display: 'inline-flex', alignItems: 'center', gap: 5, color: 'var(--text3)',
+          textDecoration: 'none', fontSize: 13, fontWeight: 600, marginBottom: 28
         }}>
-          <ArrowLeft size={15} /> Back to login
+          <ArrowLeft size={14} /> Back to login
         </Link>
 
         {sent ? (
           <div style={{
-            background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 20,
-            padding: '48px 32px', textAlign: 'center',
-            boxShadow: '0 20px 60px rgba(0,0,0,0.25)'
+            background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 16,
+            padding: '40px 28px', textAlign: 'center',
           }}>
             <div style={{
-              width: 64, height: 64, borderRadius: '50%',
-              background: 'rgba(16,185,129,0.1)', border: '2px solid rgba(16,185,129,0.3)',
+              width: 56, height: 56, borderRadius: '50%',
+              background: 'var(--success-subtle)', border: '1.5px solid rgba(16,185,129,0.2)',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              margin: '0 auto 20px'
+              margin: '0 auto 16px'
             }}>
-              <CheckCircle size={30} color="#10b981" />
+              <CheckCircle size={26} color="var(--success)" />
             </div>
-            <h2 style={{ fontSize: 22, fontWeight: 900, color: 'var(--text)', marginBottom: 10 }}>
+            <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text)', marginBottom: 8 }}>
               Check your inbox
             </h2>
-            <p style={{ color: 'var(--text3)', fontSize: 14, lineHeight: 1.7, marginBottom: 28 }}>
+            <p style={{ color: 'var(--text3)', fontSize: 14, lineHeight: 1.7, marginBottom: 24 }}>
               If an account with <strong style={{ color: 'var(--text)' }}>{email}</strong> exists,
               we've sent a password reset link.
             </p>
             <Link to="/login" style={{
               display: 'inline-flex', alignItems: 'center', gap: 6,
-              padding: '11px 24px', borderRadius: 12,
-              background: 'linear-gradient(135deg, var(--brand), #7c3aed)',
-              color: '#fff', textDecoration: 'none', fontWeight: 800, fontSize: 14
+              padding: '10px 22px', borderRadius: 10,
+              background: 'var(--brand)',
+              color: '#fff', textDecoration: 'none', fontWeight: 700, fontSize: 14
             }}>
               Return to login
             </Link>
           </div>
         ) : (
           <>
-            <div style={{ marginBottom: 32, textAlign: 'center' }}>
+            <div style={{ marginBottom: 28, textAlign: 'center' }}>
               <div style={{
-                width: 56, height: 56, borderRadius: 16,
-                background: 'rgba(51,102,255,0.1)', border: '1px solid rgba(51,102,255,0.25)',
+                width: 52, height: 52, borderRadius: 14,
+                background: 'var(--brand-bg)', border: '1px solid rgba(51,102,255,0.15)',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                margin: '0 auto 16px', color: 'var(--brand)'
+                margin: '0 auto 14px', color: 'var(--brand)'
               }}>
-                <Mail size={24} />
+                <Mail size={22} />
               </div>
-              <h1 style={{ fontSize: 28, fontWeight: 900, color: 'var(--text)', margin: '0 0 8px', letterSpacing: '-0.02em' }}>
+              <h1 style={{ fontSize: 26, fontWeight: 800, color: 'var(--text)', margin: '0 0 6px', letterSpacing: '-0.02em' }}>
                 Reset password
               </h1>
               <p style={{ color: 'var(--text3)', fontSize: 14, margin: 0 }}>
@@ -87,14 +86,13 @@ export default function ForgotPassword() {
 
             <div style={{
               background: 'var(--bg2)', border: '1px solid var(--border)',
-              borderRadius: 20, padding: '32px',
-              boxShadow: '0 20px 60px rgba(0,0,0,0.25)'
+              borderRadius: 16, padding: '28px',
             }}>
-              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 <div>
                   <label style={{
-                    display: 'block', fontSize: 11, fontWeight: 800, color: 'var(--text3)',
-                    textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8
+                    display: 'block', fontSize: 10, fontWeight: 700, color: 'var(--text3)',
+                    textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6
                   }}>
                     Email address
                   </label>
@@ -103,10 +101,10 @@ export default function ForgotPassword() {
                     onChange={e => setEmail(e.target.value)}
                     placeholder="name@company.com"
                     style={{
-                      width: '100%', padding: '13px 16px', borderRadius: 12, fontSize: 14,
-                      background: 'var(--bg3)', border: '2px solid var(--border)',
+                      width: '100%', padding: '11px 14px', borderRadius: 10, fontSize: 14,
+                      background: 'var(--bg3)', border: '1.5px solid var(--border)',
                       color: 'var(--text)', outline: 'none', boxSizing: 'border-box',
-                      fontFamily: 'var(--font-body)'
+                      fontFamily: 'var(--font-body)', transition: 'border-color 0.2s'
                     }}
                     onFocus={e => e.target.style.borderColor = 'var(--brand)'}
                     onBlur={e => e.target.style.borderColor = 'var(--border)'}
@@ -114,8 +112,8 @@ export default function ForgotPassword() {
                 </div>
 
                 <button type="submit" disabled={loading} style={{
-                  width: '100%', padding: '14px', borderRadius: 12, fontSize: 15, fontWeight: 800,
-                  background: loading ? 'var(--bg3)' : 'linear-gradient(135deg, var(--brand), #7c3aed)',
+                  width: '100%', padding: '12px', borderRadius: 10, fontSize: 14, fontWeight: 700,
+                  background: loading ? 'var(--bg3)' : 'var(--brand)',
                   color: loading ? 'var(--text3)' : '#fff', border: 'none',
                   cursor: loading ? 'default' : 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,

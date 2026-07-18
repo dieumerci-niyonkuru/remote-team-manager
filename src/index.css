@@ -345,7 +345,7 @@ h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: -0.02em; line
   font-family: 'Outfit', sans-serif;
   font-weight: 900;
   font-size: 26px;
-  background: linear-gradient(135deg, #fff 0%, #3366ff 100%);
+  background: linear-gradient(135deg, #fff 0%, var(--brand) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   letter-spacing: -1px;
@@ -364,8 +364,8 @@ h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: -0.02em; line
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #10b981;
-  box-shadow: 0 0 10px #10b981;
+  background: var(--success);
+  box-shadow: 0 0 10px var(--success);
   animation: pulse-dot 2s infinite;
 }
 
@@ -419,7 +419,7 @@ h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: -0.02em; line
   box-shadow: 0 0 100px -30px var(--brand);
 }
 
-.text-gradient { background: linear-gradient(135deg, #fff 0%, #3366ff 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.text-gradient { background: linear-gradient(135deg, #fff 0%, var(--brand) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
 /* ============================================================
    PRODUCTION HARDENING — Responsive, A11y, Performance
@@ -744,7 +744,7 @@ img, video, canvas, svg { transition: none !important; }
 
 /* ── Gradient text ───────────────────────────────────────── */
 .gradient-text {
-  background: linear-gradient(135deg, var(--brand), #8b5cf6);
+  background: linear-gradient(135deg, var(--brand), var(--accent));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -815,7 +815,7 @@ img, video, canvas, svg { transition: none !important; }
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: #10b981;
+  background: var(--success);
   border: 2px solid var(--bg);
   box-shadow: 0 0 6px rgba(16,185,129,0.6);
 }
@@ -845,7 +845,7 @@ img, video, canvas, svg { transition: none !important; }
 .progress-fill {
   height: 100%;
   border-radius: 3px;
-  background: linear-gradient(90deg, var(--brand), #8b5cf6);
+  background: linear-gradient(90deg, var(--brand), var(--accent));
   transition: width 0.8s var(--ease-smooth);
   position: relative;
   overflow: hidden;
@@ -901,7 +901,7 @@ img, video, canvas, svg { transition: none !important; }
 }
 .dropdown-item.danger:hover {
   background: rgba(239,68,68,0.1);
-  color: #ef4444;
+  color: var(--danger);
 }
 
 /* ── Tag / chip ──────────────────────────────────────────── */
@@ -949,7 +949,7 @@ img, video, canvas, svg { transition: none !important; }
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--brand), #8b5cf6);
+  background: linear-gradient(135deg, var(--brand), var(--accent));
   color: #fff;
   border: none;
   cursor: pointer;

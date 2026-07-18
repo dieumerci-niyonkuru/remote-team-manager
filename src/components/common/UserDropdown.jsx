@@ -28,7 +28,7 @@ export default function UserDropdown({ user, mobile }) {
       <div className="mobile-user-menu">
         <div className="mobile-user-title">Account</div>
         {items.map(item => (
-          <button key={item.label} onClick={item.onClick} className="mobile-user-btn" style={{ color: item.danger ? '#ef4444' : 'inherit' }}>
+          <button key={item.label} onClick={item.onClick} className="mobile-user-btn" style={{ color: item.danger ? 'var(--danger)' : 'inherit' }}>
             <span>{item.icon}</span> {item.label}
           </button>
         ))}
@@ -44,7 +44,7 @@ export default function UserDropdown({ user, mobile }) {
       {open && (
         <div className="user-dropdown-menu">
           {items.map(item => (
-            <div key={item.label} className="user-dropdown-item" style={{ color: item.danger ? '#ef4444' : 'inherit' }} onClick={() => { setOpen(false); item.onClick() }}>
+            <div key={item.label} className="user-dropdown-item" style={{ color: item.danger ? 'var(--danger)' : 'inherit' }} onClick={() => { setOpen(false); item.onClick() }}>
               <span>{item.icon}</span> {item.label}
             </div>
           ))}

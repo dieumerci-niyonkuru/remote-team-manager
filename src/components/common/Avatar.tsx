@@ -19,7 +19,9 @@ export const Avatar: React.FC<AvatarProps> = ({
   status = 'none',
   className = '',
 }) => {
-  const initials = user?.initials || user?.full_name?.split(' ').map(n => n[0]).join('').toUpperCase() || user?.username?.[0]?.toUpperCase() || '?';
+  const name = user?.full_name || [user?.first_name, user?.last_name].filter(Boolean).join(' ') || '';
+  const initials = user?.initials || name.split(' ').map(n => n[0]).join('').toUpperCase() || user?.username?.[0]?.toUpperCase() || '?';
+  const avatarSrc = user?.avatar || user?.avatar_url || null;
   
   const statusColors = {
     online: 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]',
@@ -36,10 +38,10 @@ export const Avatar: React.FC<AvatarProps> = ({
       className={`relative flex-shrink-0 ${radiusClass('md')} overflow-visible ${className}`}
       style={{ width: size, height: size }}
     >
-      {user?.avatar ? (
+      {avatarSrc ? (
         <img 
-          src={user.avatar} 
-          alt={user.username || 'User'} 
+          src={avatarSrc} 
+          alt={user?.username || 'User'} 
           className={`w-full h-full object-cover ${radiusClass('md')} border border-white/10`}
         />
       ) : (

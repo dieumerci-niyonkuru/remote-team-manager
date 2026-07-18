@@ -34,7 +34,6 @@ const Search        = React.lazy(() => import('./pages/Search'))
 const Integrations  = React.lazy(() => import('./pages/Integrations'))
 const Settings      = React.lazy(() => import('./pages/Settings'))
 const Notifications = React.lazy(() => import('./pages/Notifications'))
-const AuditLogs     = React.lazy(() => import('./pages/AuditLogs'))
 const About         = React.lazy(() => import('./pages/About'))
 const Onboarding    = React.lazy(() => import('./pages/Onboarding'))
 const VideoCall     = React.lazy(() => import('./pages/VideoCall'))
@@ -96,12 +95,11 @@ function RouterContent() {
             <Route path="/automations" element={<Protected><Automations /></Protected>} />
             <Route path="/wiki" element={<Protected><Wiki /></Protected>} />
             <Route path="/okr" element={<Protected><OKR /></Protected>} />
-            <Route path="/analytics" element={<ProtectedRoute requiredRoles={['admin','workspace_owner','super_admin']}><Analytics /></ProtectedRoute>} />
+            <Route path="/analytics" element={<Protected><Analytics /></Protected>} />
             <Route path="/search" element={<Protected><Search /></Protected>} />
             <Route path="/integrations" element={<Protected><Integrations /></Protected>} />
             <Route path="/notifications" element={<Protected><Notifications /></Protected>} />
-            <Route path="/audit" element={<ProtectedRoute requiredRoles={['admin','workspace_owner','super_admin']}><AuditLogs /></ProtectedRoute>} />
-            <Route path="/settings" element={<ProtectedRoute requiredRoles={['member','project_manager','admin','workspace_owner','super_admin']}><Settings /></ProtectedRoute>} />
+            <Route path="/settings" element={<Protected><Settings /></Protected>} />
             <Route path="/profile" element={<Protected><Settings /></Protected>} />
           </Route>
           <Route path="/call" element={<Protected><VideoCall /></Protected>} />

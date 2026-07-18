@@ -53,11 +53,11 @@ export default function FloatingAI() {
         <div className="card scale-in" style={{ width: 340, marginBottom: 12, overflow: 'hidden', boxShadow: '0 16px 48px rgba(0,0,0,0.3)', border: '1px solid var(--border2)' }}>
           {/* Header */}
           <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--border)', background: 'linear-gradient(135deg, rgba(51,102,255,0.15), rgba(139,92,246,0.15))', display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 10, background: 'linear-gradient(135deg,#3366ff,#8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>🧠</div>
+            <div style={{ width: 32, height: 32, borderRadius: 10, background: 'linear-gradient(135deg,var(--brand),var(--accent))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>🧠</div>
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--text)' }}>AI Productivity Assistant</div>
-              <div style={{ fontSize: 11, color: '#10b981', display: 'flex', alignItems: 'center', gap: 4 }}>
-                <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981' }} /> Online
+              <div style={{ fontSize: 11, color: 'var(--success)', display: 'flex', alignItems: 'center', gap: 4 }}>
+                <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--success)' }} /> Online
               </div>
             </div>
             <button onClick={() => setOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer', fontSize: 18 }}>×</button>
@@ -67,7 +67,7 @@ export default function FloatingAI() {
           <div style={{ height: 280, overflowY: 'auto', padding: '12px', display: 'flex', flexDirection: 'column', gap: 10 }}>
             {messages.map((m, i) => (
               <div key={i} style={{ display: 'flex', gap: 8, flexDirection: m.role === 'user' ? 'row-reverse' : 'row' }}>
-                <div style={{ width: 28, height: 28, borderRadius: 8, background: m.role === 'ai' ? 'linear-gradient(135deg,#3366ff,#8b5cf6)' : 'var(--brand)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, flexShrink: 0 }}>
+                <div style={{ width: 28, height: 28, borderRadius: 8, background: m.role === 'ai' ? 'linear-gradient(135deg,var(--brand),var(--accent))' : 'var(--brand)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, flexShrink: 0 }}>
                   {m.role === 'ai' ? '🧠' : '👤'}
                 </div>
                 <div style={{ maxWidth: '75%', padding: '8px 12px', borderRadius: m.role === 'ai' ? '4px 12px 12px 12px' : '12px 4px 12px 12px', background: m.role === 'ai' ? 'var(--bg2)' : 'var(--brand)', color: m.role === 'ai' ? 'var(--text)' : '#fff', fontSize: 12, lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
@@ -77,7 +77,7 @@ export default function FloatingAI() {
             ))}
             {loading && (
               <div style={{ display: 'flex', gap: 8 }}>
-                <div style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg,#3366ff,#8b5cf6)', display:'flex', alignItems:'center', justifyContent:'center', fontSize: 12 }}>🧠</div>
+                <div style={{ width: 28, height: 28, borderRadius: 8, background: 'linear-gradient(135deg,var(--brand),var(--accent))', display:'flex', alignItems:'center', justifyContent:'center', fontSize: 12 }}>🧠</div>
                 <div style={{ padding: '8px 12px', background: 'var(--bg2)', borderRadius: '4px 12px 12px 12px', display: 'flex', gap: 4, alignItems: 'center' }}>
                   {[0,1,2].map(i => <div key={i} style={{ width:6, height:6, borderRadius:'50%', background:'var(--text3)', animation:`pulse-dot 1.2s ease ${i*0.2}s infinite` }} />)}
                 </div>
@@ -109,7 +109,7 @@ export default function FloatingAI() {
 
       {/* FAB Button */}
       <button onClick={() => setOpen(o => !o)}
-        style={{ width: 52, height: 52, borderRadius: '50%', background: 'linear-gradient(135deg,#3366ff,#8b5cf6)', border: 'none', cursor: 'pointer', boxShadow: '0 4px 24px rgba(51,102,255,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, transition: 'all 0.3s', transform: open ? 'scale(0.95)' : 'scale(1)' }}
+        style={{ width: 52, height: 52, borderRadius: '50%', background: 'linear-gradient(135deg,var(--brand),var(--accent))', border: 'none', cursor: 'pointer', boxShadow: '0 4px 24px rgba(51,102,255,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, transition: 'all 0.3s', transform: open ? 'scale(0.95)' : 'scale(1)' }}
         title="AI Assistant (always available)">
         {open ? '×' : '🧠'}
       </button>

@@ -1,307 +1,252 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import * as tokens from '../styles/tokens';
 import { useStore } from '../store';
-import { ai as aiApi, proj, task, ws as wsApi } from '../services/api';
-import { Sparkles, Send, RefreshCw, RotateCcw, Zap, Target, BarChart2, Users, CheckSquare } from 'lucide-react';
+import { ai, task, unwrapData } from '../services/api';
+import toast from 'react-hot-toast';
+import { getT } from '../i18n';
+import { Sparkles, Send, Brain, BarChart2, PenTool, Plus } from 'lucide-react';
+import { Button } from '../components/common/Button';
+import LoadingSpinner from '../components/common/LoadingSpinner';
 
-const C = { brand: '#3366ff', violet: '#8b5cf6', emerald: '#10b981', amber: '#f59e0b', rose: '#ef4444' };
+const cardBase = { background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: tokens.radius.lg, padding: 'clamp(16px,2vw,20px)' };
+const sectionTitle = { fontSize: 14, fontWeight: 700, color: 'var(--text)', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 };
+const statBox = { flex: '1 1 100px', textAlign: 'center', padding: '12px 8px', background: 'var(--bg3)', borderRadius: tokens.radius.md };
+const statValue = { fontSize: 22, fontWeight: 800, color: 'var(--brand)' };
+const statLabel = { fontSize: 11, color: 'var(--text3)', marginTop: 2 };
 
-const QUICK_PROMPTS = [
-  { icon: <Target size={14} />,    text: 'Break down this week\'s sprint into tasks', color: C.brand },
-  { icon: <BarChart2 size={14} />, text: 'Analyze team productivity and bottlenecks', color: C.violet },
-  { icon: <Users size={14} />,     text: 'Suggest workload distribution for the team', color: C.emerald },
-  { icon: <CheckSquare size={14} />, text: 'List high-priority tasks due this week',   color: C.amber },
-  { icon: <Zap size={14} />,       text: 'Generate a weekly summary for stakeholders', color: C.rose },
-];
-
-/* ── Format AI message (bold, bullets) ─────────────────────── */
-function FormattedMessage({ content }) {
-  const lines = content.split('\n');
-  return (
-    <div style={{ fontSize: 14, lineHeight: 1.65, color: 'rgba(255,255,255,0.85)' }}>
-      {lines.map((line, i) => {
-        if (line.startsWith('• ') || line.startsWith('- ')) {
-          return (
-            <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 4 }}>
-              <span style={{ color: C.brand, flexShrink: 0, marginTop: 2 }}>•</span>
-              <span dangerouslySetInnerHTML={{ __html: formatInline(line.replace(/^[•\-] /, '')) }} />
-            </div>
-          );
-        }
-        if (/^\*\*(.+)\*\*/.test(line)) {
-          return <p key={i} style={{ fontWeight: 800, color: '#fff', margin: '8px 0 4px' }} dangerouslySetInnerHTML={{ __html: formatInline(line) }} />;
-        }
-        return line ? <p key={i} style={{ margin: '3px 0' }} dangerouslySetInnerHTML={{ __html: formatInline(line) }} /> : <br key={i} />;
-      })}
-    </div>
-  );
-}
-
-function formatInline(text) {
-  return text
-    .replace(/\*\*(.+?)\*\*/g, '<strong style="color:#fff;font-weight:800">$1</strong>')
-    .replace(/`(.+?)`/g, '<code style="background:rgba(255,255,255,0.1);padding:1px 6px;border-radius:4px;font-family:monospace;font-size:12px">$1</code>');
-}
-
-/* ── Typing indicator ───────────────────────────────────────── */
-function TypingDots() {
-  return (
-    <div style={{ display: 'flex', gap: 4, alignItems: 'center', padding: '12px 16px' }}>
-      {[0, 1, 2].map(i => (
-        <div key={i} style={{
-          width: 7, height: 7, borderRadius: '50%', background: 'rgba(255,255,255,0.4)',
-          animation: `typingBounce 1.2s ease-in-out ${i * 0.2}s infinite`,
-        }} />
-      ))}
-    </div>
-  );
-}
-
-/* ── MAIN COMPONENT ────────────────────────────────────────── */
 export default function AIAssistant() {
-  const { user, activeWorkspace } = useStore();
-  const name = user?.first_name || user?.username || 'there';
+  const { activeWorkspace, lang = 'en' } = useStore();
+  const t = getT(lang || 'en');
 
-  const [messages, setMessages] = useState([
-    {
-      role: 'ai',
-      content: `Hello ${name}! I'm your AI productivity co-pilot. 🧠\n\nI can help you:\n• **Break down tasks** from a high-level goal\n• **Analyze team velocity** and bottlenecks\n• **Generate summaries** for stakeholders\n• **Suggest workload distribution** across team members\n\nWhat would you like to explore today?`,
-    }
-  ]);
-  const [input, setInput]   = useState('');
-  const [loading, setLoading] = useState(false);
-  const bottomRef = useRef(null);
-  const inputRef  = useRef(null);
+  const [prompt, setPrompt] = useState('');
+  const [suggestedTasks, setSuggestedTasks] = useState([]);
+  const [suggestingLoading, setSuggestingLoading] = useState(false);
+  const [addedIds, setAddedIds] = useState(new Set());
 
-  // Auto-scroll to latest message
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, loading]);
+  const [insights, setInsights] = useState(null);
+  const [insightsLoading, setInsightsLoading] = useState(true);
 
-  const sendMessage = useCallback(async (text) => {
-    const msg = text.trim();
-    if (!msg || loading) return;
+  const [summary, setSummary] = useState(null);
+  const [summaryLoading, setSummaryLoading] = useState(true);
 
-    setMessages(prev => [...prev, { role: 'user', content: msg }]);
-    setInput('');
-    setLoading(true);
+  const [writeContent, setWriteContent] = useState('');
+  const [writeResult, setWriteResult] = useState('');
+  const [writeLoading, setWriteLoading] = useState(false);
 
+  const loadInsights = useCallback(async () => {
+    setInsightsLoading(true);
     try {
-      const res = await aiApi.suggestTasks(msg);
-      const data = res.data;
-      let aiContent = '';
-
-      if (data?.command_type === 'breakdown' && Array.isArray(data.tasks)) {
-        aiContent = `Here's a task breakdown for your request:\n\n${
-          data.tasks.map(t =>
-            `• **${t.title}** [${(t.priority || 'medium').toUpperCase()}]\n  ${t.description || ''}`
-          ).join('\n\n')
-        }`;
-      } else if (data?.tasks && Array.isArray(data.tasks)) {
-        aiContent = data.tasks.map(t => `• **${t.title}** — ${t.description || ''}`).join('\n');
-      } else if (data?.message) {
-        aiContent = data.message;
-      } else if (typeof data === 'string') {
-        aiContent = data;
-      } else {
-        aiContent = "I've processed your request. Try asking me to break down a specific goal, analyze your team's workload, or generate a summary.";
-      }
-
-      setMessages(prev => [...prev, { role: 'ai', content: aiContent }]);
-    } catch (err) {
-      const msg = err.response?.status === 429
-        ? "You've hit the rate limit. Please wait a moment before sending another request."
-        : "I'm having trouble connecting to the AI core. Please try again in a moment.";
-      setMessages(prev => [...prev, { role: 'ai', content: msg }]);
+      const res = await ai.insights();
+      setInsights(unwrapData(res));
+    } catch {
+      toast.error('Failed to load insights');
     } finally {
-      setLoading(false);
-      setTimeout(() => inputRef.current?.focus(), 100);
+      setInsightsLoading(false);
     }
-  }, [loading]);
+  }, []);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    sendMessage(input);
+  const loadSummary = useCallback(async () => {
+    setSummaryLoading(true);
+    try {
+      const res = await ai.summary();
+      setSummary(unwrapData(res));
+    } catch {
+      toast.error('Failed to load summary');
+    } finally {
+      setSummaryLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadInsights();
+    loadSummary();
+  }, [loadInsights, loadSummary]);
+
+  const handleSuggest = async () => {
+    if (!prompt.trim() || suggestingLoading) return;
+    setSuggestingLoading(true);
+    setSuggestedTasks([]);
+    setAddedIds(new Set());
+    try {
+      const res = await ai.suggestTasks(prompt);
+      const data = unwrapData(res);
+      const tasks = data?.tasks || data?.suggestions || (Array.isArray(data) ? data : []);
+      setSuggestedTasks(tasks.map((s, i) => ({ id: i, title: s.title || s.name || s.text || String(s), description: s.description || s.details || '' })));
+    } catch {
+      toast.error('Failed to get suggestions');
+    } finally {
+      setSuggestingLoading(false);
+    }
   };
 
-  const clearChat = () => {
-    setMessages([{
-      role: 'ai',
-      content: `Chat cleared! How can I help you, ${name}?`,
-    }]);
+  const handleAddTask = async (suggestedTask) => {
+    if (!activeWorkspace) return;
+    try {
+      await task.create(activeWorkspace.id, null, { title: suggestedTask.title, description: suggestedTask.description });
+      setAddedIds(prev => new Set([...prev, suggestedTask.id]));
+      toast.success('Task added');
+    } catch {
+      toast.error('Failed to add task');
+    }
   };
+
+  const handleWrite = async () => {
+    if (!writeContent.trim() || writeLoading) return;
+    setWriteLoading(true);
+    setWriteResult('');
+    try {
+      const res = await ai.write({ content: writeContent, action: 'improve' });
+      const data = unwrapData(res);
+      setWriteResult(data?.result || data?.content || data?.text || (typeof data === 'string' ? data : ''));
+    } catch {
+      toast.error('Failed to improve writing');
+    } finally {
+      setWriteLoading(false);
+    }
+  };
+
+  const completionRate = summary ? (summary.total > 0 ? Math.round((summary.done / summary.total) * 100) : 0) : 0;
 
   return (
-    <div style={{
-      height: '100%', display: 'flex', flexDirection: 'column',
-      background: 'var(--bg,#060b18)',
-    }}>
-      {/* ── Header ── */}
-      <div style={{
-        padding: '20px 24px', borderBottom: '1px solid rgba(255,255,255,0.07)',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        background: '#0a1020', flexShrink: 0,
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <div style={{
-            width: 44, height: 44, borderRadius: 14,
-            background: 'linear-gradient(135deg,#3366ff,#8b5cf6)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 4px 14px rgba(51,102,255,0.4)',
-          }}>
-            <Sparkles size={22} color="#fff" />
-          </div>
-          <div>
-            <h1 style={{ fontSize: 18, fontWeight: 900, color: '#fff', margin: 0, letterSpacing: '-0.02em' }}>
-              AI Productivity Co-pilot
-            </h1>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
-              <div style={{ width: 6, height: 6, borderRadius: '50%', background: C.emerald, boxShadow: `0 0 6px ${C.emerald}` }} />
-              <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>
-                Online · {activeWorkspace?.name || 'No workspace selected'}
-              </span>
+    <div className="p-4 md:p-6" style={{ background: 'var(--bg)', minHeight: '100vh' }}>
+      <h1 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text)', marginBottom: 20 }}>
+        <span className="flex items-center gap-2"><Sparkles size={20} style={{ color: 'var(--brand)' }} /> {t('ai.title', 'AI Assistant')}</span>
+      </h1>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: 16 }}>
+
+        <div style={{ ...cardBase, gridColumn: 'span 1 / -1' }}>
+          <div style={sectionTitle}><Brain size={16} style={{ color: 'var(--brand)' }} /> AI Task Suggestions</div>
+          <form onSubmit={e => { e.preventDefault(); handleSuggest(); }} className="flex gap-2" style={{ marginBottom: 12 }}>
+            <input
+              value={prompt}
+              onChange={e => setPrompt(e.target.value)}
+              placeholder="Describe what tasks you need..."
+              style={{ flex: 1, background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 14px', color: 'var(--text)', fontSize: 13, outline: 'none', fontFamily: 'inherit' }}
+              disabled={suggestingLoading}
+            />
+            <Button type="submit" variant="primary" size="md" leftIcon={<Send size={14} />} loading={suggestingLoading} disabled={!prompt.trim() || suggestingLoading}>
+              Suggest
+            </Button>
+          </form>
+          {suggestedTasks.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {suggestedTasks.map(st => (
+                <div key={st.id} className="flex items-center gap-3" style={{ padding: '10px 14px', background: 'var(--bg3)', borderRadius: tokens.radius.md, border: '1px solid var(--border)' }}>
+                  <div className="flex-1">
+                    <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)' }}>{st.title}</div>
+                    {st.description && <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 2 }}>{st.description}</div>}
+                  </div>
+                  <Button
+                    variant={addedIds.has(st.id) ? 'secondary' : 'primary'}
+                    size="sm"
+                    leftIcon={<Plus size={14} />}
+                    disabled={addedIds.has(st.id)}
+                    onClick={() => handleAddTask(st)}
+                  >
+                    {addedIds.has(st.id) ? 'Added' : 'Add'}
+                  </Button>
+                </div>
+              ))}
             </div>
-          </div>
+          )}
         </div>
 
-        <button
-          onClick={clearChat}
-          style={{
-            display: 'flex', alignItems: 'center', gap: 6,
-            padding: '8px 14px', borderRadius: 10,
-            background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)',
-            color: 'rgba(255,255,255,0.45)', cursor: 'pointer', fontSize: 12, fontWeight: 700, transition: 'all 0.15s',
-          }}
-          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.09)'; e.currentTarget.style.color = '#fff'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.color = 'rgba(255,255,255,0.45)'; }}
-        >
-          <RotateCcw size={12} /> Clear Chat
-        </button>
-      </div>
-
-      {/* ── Message list ── */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '24px 20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-
-        {messages.map((m, i) => (
-          <div key={i} style={{
-            display: 'flex', gap: 12,
-            alignSelf: m.role === 'user' ? 'flex-end' : 'flex-start',
-            maxWidth: '82%', animation: 'fadeInUp 0.25s ease',
-          }}>
-            {m.role === 'ai' && (
-              <div style={{
-                width: 34, height: 34, borderRadius: 10, flexShrink: 0,
-                background: 'linear-gradient(135deg,#3366ff,#8b5cf6)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                boxShadow: '0 2px 8px rgba(51,102,255,0.35)', marginTop: 2,
-              }}>
-                <Sparkles size={15} color="#fff" />
+        <div style={cardBase}>
+          <div style={sectionTitle}><BarChart2 size={16} style={{ color: 'var(--brand)' }} /> {t('ai.insights', 'Workspace Insights')}</div>
+          {insightsLoading ? (
+            <div className="flex justify-center py-8"><LoadingSpinner size={24} /></div>
+          ) : insights ? (
+            <div>
+              <div style={{ fontSize: 13, color: 'var(--text)', marginBottom: 8 }}>
+                Productivity Score: <span style={{ fontWeight: 800, color: 'var(--brand)', fontSize: 18 }}>{insights.productivity_score ?? insights.productivity ?? '—'}</span>
               </div>
-            )}
-            <div style={{
-              padding: m.role === 'user' ? '12px 16px' : '14px 18px',
-              borderRadius: 16,
-              borderTopRightRadius: m.role === 'user' ? 4 : 16,
-              borderTopLeftRadius: m.role === 'ai' ? 4 : 16,
-              background: m.role === 'user'
-                ? 'linear-gradient(135deg,#3366ff,#8b5cf6)'
-                : 'rgba(255,255,255,0.06)',
-              border: m.role === 'ai' ? '1px solid rgba(255,255,255,0.09)' : 'none',
-              maxWidth: '100%',
-            }}>
-              {m.role === 'user'
-                ? <p style={{ fontSize: 14, color: '#fff', margin: 0, lineHeight: 1.55, fontWeight: 500 }}>{m.content}</p>
-                : <FormattedMessage content={m.content} />
-              }
+              <div className="flex gap-3" style={{ marginBottom: 12 }}>
+                <div style={statBox}>
+                  <div style={statValue}>{insights.task_count ?? insights.total_tasks ?? 0}</div>
+                  <div style={statLabel}>Tasks</div>
+                </div>
+                <div style={statBox}>
+                  <div style={statValue}>{insights.completed_count ?? insights.completed ?? 0}</div>
+                  <div style={statLabel}>Completed</div>
+                </div>
+              </div>
+              {insights.recommendations && insights.recommendations.length > 0 && (
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text3)', marginBottom: 6 }}>Recommendations</div>
+                  <ul style={{ margin: 0, paddingLeft: 16 }}>
+                    {insights.recommendations.map((rec, i) => (
+                      <li key={i} style={{ fontSize: 12, color: 'var(--text)', lineHeight: 1.6 }}>{typeof rec === 'string' ? rec : rec.text || rec.message || JSON.stringify(rec)}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
-          </div>
-        ))}
-
-        {loading && (
-          <div style={{ display: 'flex', gap: 12, alignSelf: 'flex-start', animation: 'fadeInUp 0.2s ease' }}>
-            <div style={{ width: 34, height: 34, borderRadius: 10, flexShrink: 0, background: 'linear-gradient(135deg,#3366ff,#8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Sparkles size={15} color="#fff" />
-            </div>
-            <div style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.09)', borderRadius: 16, borderTopLeftRadius: 4 }}>
-              <TypingDots />
-            </div>
-          </div>
-        )}
-
-        <div ref={bottomRef} />
-      </div>
-
-      {/* ── Quick prompts ── */}
-      <div style={{ padding: '0 20px 12px', flexShrink: 0, overflowX: 'auto' }}>
-        <div style={{ display: 'flex', gap: 8, paddingBottom: 4 }}>
-          {QUICK_PROMPTS.map((q, i) => (
-            <button key={i} onClick={() => sendMessage(q.text)} disabled={loading}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap',
-                padding: '7px 13px', borderRadius: 20, flexShrink: 0,
-                background: `${q.color}10`, border: `1px solid ${q.color}25`,
-                color: q.color, fontSize: 11, fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer',
-                opacity: loading ? 0.5 : 1, transition: 'all 0.15s',
-              }}
-              onMouseEnter={e => !loading && (e.currentTarget.style.background = `${q.color}20`)}
-              onMouseLeave={e => (e.currentTarget.style.background = `${q.color}10`)}
-            >
-              {q.icon} {q.text}
-            </button>
-          ))}
+          ) : (
+            <div style={{ fontSize: 12, color: 'var(--text3)', textAlign: 'center', padding: 16 }}>No insights available</div>
+          )}
         </div>
-      </div>
 
-      {/* ── Input bar ── */}
-      <div style={{ padding: '0 20px 20px', flexShrink: 0 }}>
-        <form onSubmit={handleSubmit} style={{ display: 'flex', gap: 10, padding: '12px 14px 12px 18px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 16, transition: 'border-color 0.2s' }}
-          onFocusCapture={e => e.currentTarget.style.borderColor = 'rgba(51,102,255,0.5)'}
-          onBlurCapture={e => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'}
-        >
-          <input
-            ref={inputRef}
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            placeholder="Ask about tasks, velocity, workload, summaries…"
-            disabled={loading}
-            style={{
-              flex: 1, background: 'none', border: 'none', outline: 'none',
-              color: '#fff', fontSize: 14, fontWeight: 500,
-            }}
+        <div style={cardBase}>
+          <div style={sectionTitle}><BarChart2 size={16} style={{ color: 'var(--brand)' }} /> {t('ai.summary', 'Task Summary')}</div>
+          {summaryLoading ? (
+            <div className="flex justify-center py-8"><LoadingSpinner size={24} /></div>
+          ) : summary ? (
+            <div>
+              <div className="flex gap-3" style={{ marginBottom: 12 }}>
+                <div style={statBox}>
+                  <div style={statValue}>{summary.total ?? 0}</div>
+                  <div style={statLabel}>Total</div>
+                </div>
+                <div style={statBox}>
+                  <div style={statValue}>{summary.done ?? 0}</div>
+                  <div style={statLabel}>Done</div>
+                </div>
+                <div style={statBox}>
+                  <div style={statValue}>{summary.in_progress ?? summary.inProgress ?? 0}</div>
+                  <div style={statLabel}>In Progress</div>
+                </div>
+                <div style={statBox}>
+                  <div style={statValue}>{summary.todo ?? 0}</div>
+                  <div style={statLabel}>To Do</div>
+                </div>
+                <div style={{ ...statBox, background: 'rgba(239,68,68,0.1)' }}>
+                  <div style={{ ...statValue, color: '#ef4444' }}>{summary.overdue ?? 0}</div>
+                  <div style={statLabel}>Overdue</div>
+                </div>
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--text3)', marginBottom: 6 }}>Completion Rate: {completionRate}%</div>
+              <div style={{ width: '100%', height: 8, background: 'var(--bg3)', borderRadius: 4, overflow: 'hidden' }}>
+                <div style={{ width: `${completionRate}%`, height: '100%', background: 'var(--brand)', borderRadius: 4, transition: 'width 0.4s ease' }} />
+              </div>
+            </div>
+          ) : (
+            <div style={{ fontSize: 12, color: 'var(--text3)', textAlign: 'center', padding: 16 }}>No summary available</div>
+          )}
+        </div>
+
+        <div style={{ ...cardBase, gridColumn: 'span 1 / -1' }}>
+          <div style={sectionTitle}><PenTool size={16} style={{ color: 'var(--brand)' }} /> {t('ai.writing', 'AI Writing Assistant')}</div>
+          <textarea
+            value={writeContent}
+            onChange={e => setWriteContent(e.target.value)}
+            placeholder="Paste or type content to improve..."
+            rows={5}
+            style={{ width: '100%', background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8, padding: '10px 14px', color: 'var(--text)', fontSize: 13, outline: 'none', fontFamily: 'inherit', resize: 'vertical', marginBottom: 10 }}
+            disabled={writeLoading}
           />
-          <button
-            type="submit"
-            disabled={loading || !input.trim()}
-            style={{
-              width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-              background: input.trim() && !loading ? `linear-gradient(135deg,${C.brand},${C.violet})` : 'rgba(255,255,255,0.07)',
-              border: 'none', cursor: input.trim() && !loading ? 'pointer' : 'not-allowed',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: input.trim() && !loading ? '#fff' : 'rgba(255,255,255,0.3)',
-              transition: 'all 0.2s', boxShadow: input.trim() && !loading ? '0 2px 8px rgba(51,102,255,0.4)' : 'none',
-            }}
-          >
-            {loading
-              ? <div style={{ width: 14, height: 14, border: '2px solid rgba(255,255,255,0.3)', borderTop: '2px solid #fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} />
-              : <Send size={14} />
-            }
-          </button>
-        </form>
-        <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.2)', textAlign: 'center', marginTop: 8, fontWeight: 500 }}>
-          AI suggestions are generated to assist planning. Always verify with your team.
-        </p>
-      </div>
+          <Button variant="primary" size="md" leftIcon={<Sparkles size={14} />} loading={writeLoading} disabled={!writeContent.trim() || writeLoading} onClick={handleWrite}>
+            Improve Writing
+          </Button>
+          {writeResult && (
+            <div style={{ marginTop: 12, padding: 14, background: 'var(--bg3)', borderRadius: tokens.radius.md, border: '1px solid var(--border)' }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--text3)', marginBottom: 6 }}>Improved Version</div>
+              <div style={{ fontSize: 13, color: 'var(--text)', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{writeResult}</div>
+            </div>
+          )}
+        </div>
 
-      <style>{`
-        @keyframes typingBounce {
-          0%, 80%, 100% { transform: scale(1); opacity: 0.4; }
-          40% { transform: scale(1.3); opacity: 1; }
-        }
-        @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(8px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-      `}</style>
+      </div>
     </div>
   );
 }

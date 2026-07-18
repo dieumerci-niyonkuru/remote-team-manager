@@ -1,282 +1,371 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { proj, task, unwrapData } from '../services/api';
 import { useStore } from '../store';
-import { FolderKanban, Plus, MoreVertical, LayoutGrid, List as ListIcon, Clock, CheckCircle2, AlertCircle, Search } from 'lucide-react';
-import api from '../services/api';
-import Modal from '../components/common/Modal';
-import { Button } from '../components/common/Button';
-import { Card } from '../components/common/Card';
-import { Input } from '../components/common/Input';
 import toast from 'react-hot-toast';
+import { getT } from '../i18n';
+import { format } from 'date-fns';
+import { FolderKanban, Plus, Trash2, ChevronDown, ChevronRight, Loader2 } from 'lucide-react';
+import LoadingSpinner from '../components/common/LoadingSpinner';
+import { EmptyState } from '../components/common/EmptyState';
+import { Button } from '../components/common/Button';
+import { Badge } from '../components/common/Badge';
+import { Modal } from '../components/common/Modal';
+
+const STATUS_VARIANT = {
+  active: 'success',
+  completed: 'primary',
+  on_hold: 'warning',
+  archived: 'ghost',
+};
+
+const STATUS_LABEL = {
+  active: 'Active',
+  completed: 'Completed',
+  on_hold: 'On Hold',
+  archived: 'Archived',
+};
+
+const TASK_STATUS_VARIANT = {
+  todo: 'secondary',
+  in_progress: 'primary',
+  review: 'warning',
+  done: 'success',
+};
+
+const TASK_STATUS_LABEL = {
+  todo: 'To Do',
+  in_progress: 'In Progress',
+  review: 'Review',
+  done: 'Done',
+};
 
 export default function Projects() {
   const { activeWorkspace } = useStore();
-  const [projects, setProjects] = React.useState([]);
-  const [loading, setLoading] = React.useState(true);
-  const [viewMode, setViewMode] = React.useState('grid');
-  const [isModalOpen, setIsModalOpen] = React.useState(false);
-  const [formData, setFormData] = React.useState({ name: '', description: '', project_type: 'Software Development' });
-  const [creating, setCreating] = React.useState(false);
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showCreate, setShowCreate] = useState(false);
+  const [expandedId, setExpandedId] = useState(null);
+  const [projectTasks, setProjectTasks] = useState({});
+  const [loadingTasks, setLoadingTasks] = useState({});
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
-  React.useEffect(() => {
-    if (activeWorkspace) {
-      fetchProjects();
-    }
+  useEffect(() => {
+    if (activeWorkspace) loadProjects();
   }, [activeWorkspace]);
 
-  const fetchProjects = async () => {
+  const loadProjects = async () => {
+    setLoading(true);
     try {
-      const res = await api.get(`/projects/?workspace=${activeWorkspace.id}`);
-      const list = Array.isArray(res.data) ? res.data : (Array.isArray(res.data?.data) ? res.data.data : []);
-      setProjects(list);
-    } catch (err) {
-      console.error('Failed to fetch projects:', err);
+      const res = await proj.list(activeWorkspace.id);
+      setProjects(unwrapData(res));
+    } catch {
+      toast.error('Failed to load projects');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleCreate = async (e) => {
-    e.preventDefault();
-    if (!formData.name.trim()) return;
-    if (!activeWorkspace?.id) {
-      toast.error('Please select a workspace first');
+  const toggleExpand = async (p) => {
+    if (expandedId === p.id) {
+      setExpandedId(null);
       return;
     }
-    setCreating(true);
-    try {
-      const res = await api.post('/projects/', { ...formData, workspace: activeWorkspace.id });
-      const created = Array.isArray(res.data) ? res.data[0] : (res.data?.data || res.data);
-      setProjects([created, ...projects]);
-      setIsModalOpen(false);
-      setFormData({ name: '', description: '', project_type: 'Software Development' });
-      toast.success('Project created! 🚀');
-    } catch (err) {
-      toast.error('Failed to create project.');
-    } finally {
-      setCreating(false);
+    setExpandedId(p.id);
+    if (!projectTasks[p.id]) {
+      setLoadingTasks((prev) => ({ ...prev, [p.id]: true }));
+      try {
+        const res = await task.list(activeWorkspace.id, p.id);
+        setProjectTasks((prev) => ({ ...prev, [p.id]: unwrapData(res) }));
+      } catch {
+        toast.error('Failed to load tasks');
+      } finally {
+        setLoadingTasks((prev) => ({ ...prev, [p.id]: false }));
+      }
     }
   };
 
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'active': return <Clock size={16} className="text-blue-500" />;
-      case 'completed': return <CheckCircle2 size={16} className="text-emerald-500" />;
-      case 'on_hold': return <AlertCircle size={16} className="text-amber-500" />;
-      default: return <Clock size={16} className="text-gray-500" />;
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    try {
+      await proj.delete(activeWorkspace.id, deleteTarget.id);
+      toast.success('Project deleted');
+      setProjects((prev) => prev.filter((p) => p.id !== deleteTarget.id));
+      setDeleteTarget(null);
+      if (expandedId === deleteTarget.id) setExpandedId(null);
+    } catch {
+      toast.error('Failed to delete project');
+    } finally {
+      setDeleting(false);
     }
   };
 
   return (
-    <div className="h-full overflow-y-auto custom-scrollbar p-6 md:p-10 max-w-7xl mx-auto bg-[#060b18]">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12 animate-in fade-in slide-in-from-top-4 duration-500">
+    <div className="p-4 md:p-6 space-y-5" style={{ background: 'var(--bg)', minHeight: '100vh' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h1 className="text-4xl font-black text-white tracking-tighter flex items-center gap-4">
-            <FolderKanban className="text-blue-500" size={36} />
-            Projects
-          </h1>
-          <p className="text-gray-400 mt-2 font-medium">Manage and track your team's initiatives in {activeWorkspace?.name}</p>
+          <h1 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text)', margin: 0 }}>Projects</h1>
+          <p style={{ fontSize: 13, color: 'var(--text3)', margin: '4px 0 0' }}>{projects.length} projects</p>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="bg-white/5 p-1 rounded-xl flex items-center border border-white/5 backdrop-blur-xl">
-            <button 
-              onClick={() => setViewMode('grid')}
-              className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-500 hover:text-white'}`}
-            >
-              <LayoutGrid size={20} />
-            </button>
-            <button 
-              onClick={() => setViewMode('list')}
-              className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-blue-600 text-white shadow-lg' : 'text-gray-500 hover:text-white'}`}
-            >
-              <ListIcon size={20} />
-            </button>
-          </div>
-          <Button 
-            onClick={() => setIsModalOpen(true)}
-            variant="primary"
-            className="px-6 py-3 font-black text-sm uppercase tracking-widest"
-            leftIcon={<Plus size={18} />}
-          >
-            New Project
-          </Button>
-        </div>
+        <Button variant="primary" leftIcon={<Plus size={14} />} onClick={() => setShowCreate(true)}>
+          Create Project
+        </Button>
       </div>
 
       {loading ? (
-        <div className="flex flex-col items-center justify-center h-96 animate-pulse">
-          <div className="w-16 h-16 rounded-3xl border-2 border-blue-500/20 border-t-blue-500 animate-spin mb-4" />
-          <p className="text-gray-500 font-black uppercase tracking-widest text-[10px]">Syncing Projects...</p>
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '60px 0' }}>
+          <LoadingSpinner size={28} />
         </div>
       ) : projects.length === 0 ? (
-        <Card variant="glass" className="border-dashed border-white/10 p-20 text-center flex flex-col items-center">
-          <div className="w-20 h-20 bg-white/5 rounded-3xl flex items-center justify-center mb-6 text-gray-500">
-            <FolderKanban size={40} />
-          </div>
-          <h3 className="text-2xl font-black text-white mb-2 tracking-tight">Zero Projects Found</h3>
-          <p className="text-gray-400 max-w-sm mx-auto mb-10 font-medium">Start by creating your first project to organize your team's workspace intelligence.</p>
-          <Button variant="outline" onClick={() => setIsModalOpen(true)}>Initialize Project Node</Button>
-        </Card>
+        <EmptyState
+          icon={<FolderKanban size={24} />}
+          title="No projects yet"
+          description="Create your first project to get started."
+          actionLabel="Create Project"
+          onAction={() => setShowCreate(true)}
+        />
       ) : (
-        <div className={viewMode === 'grid' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8' : 'space-y-4'}>
-          {projects.map(project => (
-            <ProjectCard key={project.id} project={project} viewMode={viewMode} getStatusIcon={getStatusIcon} />
+        <div className="space-y-3">
+          {projects.map((p) => (
+            <div
+              key={p.id}
+              style={{
+                background: 'var(--bg2)',
+                border: '1px solid var(--border)',
+                borderRadius: 12,
+                overflow: 'hidden',
+              }}
+            >
+              <div
+                onClick={() => toggleExpand(p)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  padding: '14px 16px',
+                  cursor: 'pointer',
+                  transition: 'border-color 0.2s',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--brand)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'transparent'; }}
+              >
+                <div
+                  style={{
+                    width: 10,
+                    height: 10,
+                    borderRadius: '50%',
+                    background: p.status === 'active' ? 'var(--success)' : p.status === 'completed' ? 'var(--brand)' : p.status === 'on_hold' ? 'var(--warning)' : 'var(--text3)',
+                    flexShrink: 0,
+                  }}
+                />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)' }}>{p.name}</span>
+                    <Badge variant={STATUS_VARIANT[p.status] || 'ghost'} size="xs">
+                      {STATUS_LABEL[p.status] || p.status}
+                    </Badge>
+                  </div>
+                  {p.description && (
+                    <p style={{
+                      fontSize: 12,
+                      color: 'var(--text3)',
+                      margin: '2px 0 0',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}>
+                      {p.description}
+                    </p>
+                  )}
+                </div>
+                <span style={{ fontSize: 11, color: 'var(--text3)', flexShrink: 0 }}>
+                  {p.task_count ?? 0} tasks
+                </span>
+                <span style={{ fontSize: 11, color: 'var(--text3)', flexShrink: 0 }}>
+                  {format(new Date(p.created_at), 'MMM d, yyyy')}
+                </span>
+                <button
+                  onClick={(e) => { e.stopPropagation(); setDeleteTarget(p); }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    padding: 4,
+                    cursor: 'pointer',
+                    color: 'var(--text3)',
+                    borderRadius: 6,
+                    display: 'flex',
+                    alignItems: 'center',
+                    transition: 'color 0.15s',
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--danger)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text3)'; }}
+                >
+                  <Trash2 size={14} />
+                </button>
+                {expandedId === p.id ? <ChevronDown size={14} style={{ color: 'var(--text3)', flexShrink: 0 }} /> : <ChevronRight size={14} style={{ color: 'var(--text3)', flexShrink: 0 }} />}
+              </div>
+
+              {expandedId === p.id && (
+                <div style={{ borderTop: '1px solid var(--border)', padding: '12px 16px' }}>
+                  {loadingTasks[p.id] ? (
+                    <div style={{ display: 'flex', justifyContent: 'center', padding: '20px 0' }}>
+                      <LoadingSpinner size={20} />
+                    </div>
+                  ) : (projectTasks[p.id] || []).length === 0 ? (
+                    <p style={{ fontSize: 12, color: 'var(--text3)', textAlign: 'center', padding: '16px 0', margin: 0 }}>
+                      No tasks in this project
+                    </p>
+                  ) : (
+                    <div className="space-y-2">
+                      {(projectTasks[p.id] || []).map((t) => (
+                        <div
+                          key={t.id}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 10,
+                            padding: '8px 12px',
+                            background: 'var(--bg3)',
+                            borderRadius: 8,
+                          }}
+                        >
+                          <Badge variant={TASK_STATUS_VARIANT[t.status] || 'secondary'} size="xs">
+                            {TASK_STATUS_LABEL[t.status] || t.status}
+                          </Badge>
+                          <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {t.title}
+                          </span>
+                          <Badge variant={t.priority === 'urgent' ? 'danger' : t.priority === 'high' ? 'warning' : t.priority === 'medium' ? 'primary' : 'ghost'} size="xs">
+                            {t.priority}
+                          </Badge>
+                          {t.deadline && (
+                            <span style={{ fontSize: 11, color: 'var(--text3)', flexShrink: 0 }}>
+                              {format(new Date(t.deadline), 'MMM d')}
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           ))}
         </div>
       )}
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="New Project Node">
-        <form onSubmit={handleCreate} className="space-y-8 py-4">
-          <Input 
-            label="Project Title"
-            required
-            value={formData.name}
-            onChange={e => setFormData(prev => ({...prev, name: e.target.value}))}
-            placeholder="e.g. Project Orion, Q4 Engineering"
-          />
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Project Classification</label>
-            <select 
-              value={formData.project_type}
-              onChange={e => setFormData(prev => ({...prev, project_type: e.target.value}))}
-              className="w-full bg-[#0b1429] border border-white/5 rounded-2xl px-5 py-4 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500/40 appearance-none"
-            >
-              <option value="Software Development">Software Development</option>
-              <option value="Marketing">Marketing</option>
-              <option value="Design">Design</option>
-              <option value="Business Strategy">Business Strategy</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Intelligence Overview</label>
-            <textarea 
-              value={formData.description}
-              onChange={e => setFormData(prev => ({...prev, description: e.target.value}))}
-              placeholder="Primary objectives and scope..."
-              rows={4}
-              className="w-full bg-[#0b1429] border border-white/5 rounded-2xl px-5 py-4 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500/40 resize-none" 
-            />
-          </div>
-          <Button 
-            disabled={creating}
-            type="submit" 
-            fullWidth
-            className="py-4 font-black"
-            loading={creating}
-          >
-            Create Project
-          </Button>
-        </form>
-      </Modal>
+      <CreateProjectModal isOpen={showCreate} onClose={() => setShowCreate(false)} onCreated={loadProjects} />
+
+      {deleteTarget && (
+        <Modal
+          isOpen
+          onClose={() => setDeleteTarget(null)}
+          title="Delete Project"
+          footer={
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+              <Button variant="ghost" onClick={() => setDeleteTarget(null)}>Cancel</Button>
+              <Button variant="danger" onClick={handleDelete} loading={deleting}>Delete</Button>
+            </div>
+          }
+        >
+          <p style={{ fontSize: 13, color: 'var(--text2)', margin: 0 }}>
+            Are you sure you want to delete <strong>{deleteTarget.name}</strong>? This action cannot be undone.
+          </p>
+        </Modal>
+      )}
     </div>
   );
 }
 
-function ProjectCard({ project, viewMode, getStatusIcon }) {
-  if (viewMode === 'list') {
-    return (
-      <div className="bg-[#0d1425]/40 border border-white/5 hover:border-blue-500/30 rounded-[24px] p-5 transition-all flex items-center gap-6 group backdrop-blur-xl">
-        <div className="w-12 h-12 rounded-2xl bg-blue-600/10 flex items-center justify-center text-blue-500 border border-blue-500/20 group-hover:bg-blue-600 group-hover:text-white transition-all duration-500">
-          <FolderKanban size={24} />
-        </div>
-        <div className="flex-1 min-w-0">
-          <h3 className="text-lg font-black text-white truncate group-hover:text-blue-400 transition-colors tracking-tight leading-none mb-2">{project.name}</h3>
-          <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">{project.project_type}</p>
-        </div>
-        <div className="hidden md:flex flex-col items-end px-6 border-r border-white/5">
-          <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-gray-400">
-            {getStatusIcon(project.status)}
-            <span>{project.status}</span>
-          </div>
-        </div>
-        <div className="w-64 hidden lg:block px-6 border-r border-white/5">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-black text-gray-500 uppercase tracking-tighter">Progress</span>
-            <span className="text-[10px] font-black text-white">{project.progress || 0}%</span>
-          </div>
-          <div className="w-full bg-white/5 rounded-full h-2 overflow-hidden border border-white/5">
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 h-full rounded-full shadow-[0_0_8px_rgba(59,130,246,0.5)]" style={{ width: `${project.progress || 0}%` }}></div>
-          </div>
-        </div>
-        <div className="flex items-center gap-6 text-gray-500 px-6">
-          <div className="flex flex-col items-center">
-            <span className="text-lg font-black text-white">{project.task_count || 0}</span>
-            <span className="text-[10px] uppercase font-black tracking-tighter">Tasks</span>
-          </div>
-        </div>
-        <button className="p-3 hover:bg-white/5 rounded-xl text-gray-600 hover:text-white transition-colors">
-          <MoreVertical size={20} />
-        </button>
-      </div>
-    );
-  }
+function CreateProjectModal({ isOpen, onClose, onCreated }) {
+  const { activeWorkspace } = useStore();
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [status, setStatus] = useState('active');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!name.trim()) return;
+    setLoading(true);
+    try {
+      await proj.create(activeWorkspace.id, { name, description, status });
+      toast.success('Project created!');
+      setName('');
+      setDescription('');
+      setStatus('active');
+      onClose();
+      onCreated?.();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Failed to create project');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const inputStyle = {
+    width: '100%',
+    background: 'var(--bg3)',
+    border: '1px solid var(--border)',
+    borderRadius: 8,
+    padding: '9px 12px',
+    color: 'var(--text)',
+    fontSize: 13,
+    outline: 'none',
+    fontFamily: 'inherit',
+    boxSizing: 'border-box',
+  };
+
+  const labelStyle = { fontSize: 12, fontWeight: 700, color: 'var(--text2)', marginBottom: 6, display: 'block' };
 
   return (
-    <Card 
-      variant="glass" 
-      className="flex flex-col group h-full !p-0 overflow-hidden border-white/5 hover:border-blue-500/30 transition-all duration-500"
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Create Project"
+      footer={
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+          <Button variant="ghost" onClick={onClose}>Cancel</Button>
+          <Button variant="primary" onClick={handleSubmit} loading={loading}>Create Project</Button>
+        </div>
+      }
     >
-      <div className="p-8 flex-1 flex flex-col relative overflow-hidden">
-        <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none group-hover:scale-150 transition-transform duration-1000">
-          <FolderKanban size={100} />
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label style={labelStyle}>Project Name *</label>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Project name"
+            required
+            style={inputStyle}
+          />
         </div>
-        
-        <div className="flex items-start justify-between mb-8 relative z-10">
-          <div className="w-14 h-14 rounded-2xl bg-blue-600/10 flex items-center justify-center text-blue-500 border border-blue-500/20 group-hover:bg-blue-600 group-hover:text-white transition-all duration-500 shadow-xl">
-            <FolderKanban size={28} />
-          </div>
-          <button className="p-2 hover:bg-white/5 rounded-xl text-gray-500 hover:text-white transition-colors">
-            <MoreVertical size={22} />
-          </button>
+        <div>
+          <label style={labelStyle}>Description</label>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={3}
+            placeholder="Project description"
+            style={{ ...inputStyle, resize: 'vertical' }}
+          />
         </div>
-        
-        <div className="mb-8 flex-1 relative z-10">
-          <div className="flex items-center gap-3 mb-4">
-            <span className="px-2 py-1 rounded-lg bg-white/5 text-[10px] font-black text-gray-500 uppercase tracking-widest border border-white/5">
-              {project.project_type}
-            </span>
-            <div className="flex items-center gap-2 px-2 py-1 rounded-lg bg-white/5 text-[10px] font-black text-gray-500 border border-white/5 uppercase tracking-widest">
-              {getStatusIcon(project.status)}
-              <span>{project.status}</span>
-            </div>
-          </div>
-          <h3 className="text-2xl font-black text-white mb-3 group-hover:text-blue-400 transition-colors tracking-tighter leading-tight">{project.name}</h3>
-          <p className="text-gray-400 text-sm font-medium line-clamp-3 leading-relaxed">{project.description || 'No detailed intelligence overview provided for this project.'}</p>
+        <div>
+          <label style={labelStyle}>Status</label>
+          <select
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+            style={{ ...inputStyle, cursor: 'pointer' }}
+          >
+            <option value="active">Active</option>
+            <option value="on_hold">On Hold</option>
+            <option value="completed">Completed</option>
+            <option value="archived">Archived</option>
+          </select>
         </div>
-
-        <div className="space-y-6 pt-8 border-t border-white/5 relative z-10">
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Intelligence Velocity</span>
-              <span className="text-sm font-black text-white">{project.progress || 0}%</span>
-            </div>
-            <div className="w-full bg-white/5 rounded-full h-2.5 overflow-hidden border border-white/5">
-              <div 
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 h-full rounded-full shadow-[0_0_12px_rgba(59,130,246,0.6)] transition-all duration-1000 ease-out" 
-                style={{ width: `${project.progress || 0}%` }}
-              ></div>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between pt-2">
-            <div className="flex -space-x-3">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="w-9 h-9 rounded-2xl border-4 border-[#0b1429] bg-gray-800 flex items-center justify-center text-[10px] font-black text-white shadow-lg">
-                  {i}
-                </div>
-              ))}
-              <div className="w-9 h-9 rounded-2xl border-4 border-[#0b1429] bg-white/5 backdrop-blur-xl flex items-center justify-center text-[10px] font-black text-gray-400">
-                +{project.member_count || 0}
-              </div>
-            </div>
-            <div className="text-right">
-              <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Trajectory Units</p>
-              <p className="text-2xl font-black text-white tracking-tighter">{project.task_count || 0}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </Card>
+      </form>
+    </Modal>
   );
 }
