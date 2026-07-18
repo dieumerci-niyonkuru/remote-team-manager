@@ -109,14 +109,14 @@ export default function Sidebar() {
         {showWorkspaceMenu && !collapsed && (
           <div 
             className="absolute top-full left-3 right-3 mt-1 overflow-hidden py-1"
-            style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: tokens.radius.md, boxShadow: 'var(--shadow-lg)', zIndex: 50 }}
+            style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: tokens.radius.md, boxShadow: 'var(--shadow-lg)', zIndex: 150 }}
           >
             {workspaces.map(ws => (
               <button
                 key={ws.id}
                 onClick={() => { setActiveWorkspace(ws); setShowWorkspaceMenu(false); }}
                 className="flex items-center gap-3 w-full px-3 py-2 text-left transition-colors"
-                style={{ background: activeWorkspace?.id === ws.id ? 'var(--brand-bg)' : 'transparent', color: activeWorkspace?.id === ws.id ? 'var(--brand)' : 'var(--text2)' }}
+                style={{ background: activeWorkspace?.id === ws.id ? 'var(--brand-bg)' : 'transparent', color: activeWorkspace?.id === ws.id ? 'var(--brand)' : 'var(--text2)', minHeight: 36 }}
               >
                 <div style={{ width: 24, height: 24, borderRadius: 6, background: 'var(--bg3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700 }}>
                   {ws.name.charAt(0)}
@@ -128,7 +128,7 @@ export default function Sidebar() {
               <button 
                 onClick={() => { setShowCreateWsModal(true); setShowWorkspaceMenu(false); }}
                 className="w-full px-3 py-2 text-left transition-colors"
-                style={{ fontSize: 12, fontWeight: 700, color: 'var(--brand)' }}
+                style={{ fontSize: 12, fontWeight: 700, color: 'var(--brand)', minHeight: 36 }}
               >
                 + Create New Workspace
               </button>
@@ -286,7 +286,7 @@ function NavGroup({ links, collapsed }) {
           to={link.to}
           style={{ borderRadius: tokens.radius.md }}
           className={({ isActive }) => `
-            flex items-center gap-3 px-3 py-2 transition-all duration-200 group relative
+            flex items-center gap-3 px-3 py-2 transition-all duration-200 group relative min-h-[36px]
             ${isActive ? 'font-bold' : 'hover:opacity-90'}
             ${collapsed ? 'justify-center' : ''}
           `}

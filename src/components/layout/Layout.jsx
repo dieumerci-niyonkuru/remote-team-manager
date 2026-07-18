@@ -63,7 +63,7 @@ export default function Layout({ showFooter = true }) {
                   onClick={() => setShowWsMenu(v => !v)}
                   style={{
                     display: 'flex', alignItems: 'center', gap: 8, width: '100%',
-                    padding: '6px 16px', background: 'var(--bg2)', borderBottom: '1px solid var(--border)',
+                    padding: 'clamp(5px, 1vw, 6px) clamp(10px, 2vw, 16px)', background: 'var(--bg2)', borderBottom: '1px solid var(--border)',
                     border: 'none', cursor: 'pointer', textAlign: 'left',
                   }}
                 >
@@ -74,7 +74,7 @@ export default function Layout({ showFooter = true }) {
                   }}>
                     {activeWorkspace?.name?.charAt(0) || 'W'}
                   </div>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <span style={{ fontSize: 'clamp(11px, 1.8vw, 12)', fontWeight: 700, color: 'var(--text)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {activeWorkspace?.name || 'Select Workspace'}
                   </span>
                   <ChevronDown size={14} style={{ color: 'var(--text3)', transition: 'transform 0.2s', transform: showWsMenu ? 'rotate(180deg)' : 'none', flexShrink: 0 }} />
@@ -92,7 +92,7 @@ export default function Layout({ showFooter = true }) {
                         onClick={() => { setActiveWorkspace(w); setShowWsMenu(false); }}
                         style={{
                           display: 'flex', alignItems: 'center', gap: 10, width: '100%',
-                          padding: '8px 16px', border: 'none', cursor: 'pointer', textAlign: 'left',
+                          padding: 'clamp(7px, 1.5vw, 8px) clamp(10px, 2vw, 16px)', border: 'none', cursor: 'pointer', textAlign: 'left',
                           background: activeWorkspace?.id === w.id ? 'var(--brand-bg)' : 'transparent',
                           color: activeWorkspace?.id === w.id ? 'var(--brand)' : 'var(--text2)',
                           transition: '0.15s',
@@ -107,7 +107,7 @@ export default function Layout({ showFooter = true }) {
                         }}>
                           {w.name.charAt(0)}
                         </div>
-                        <span style={{ fontSize: 13, fontWeight: 600, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{w.name}</span>
+                        <span style={{ fontSize: 'clamp(12px, 1.8vw, 13)', fontWeight: 600, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{w.name}</span>
                         {activeWorkspace?.id === w.id && <Check size={14} style={{ color: 'var(--brand)', flexShrink: 0 }} />}
                       </button>
                     ))}

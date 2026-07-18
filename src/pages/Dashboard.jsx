@@ -136,7 +136,7 @@ export default function Dashboard() {
           </button>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 'clamp(8px, 1.5vw, 12)' }}>
           {[
             { label: 'Total Tasks', value: totalTasks, icon: CheckSquare, color: 'var(--brand)' },
             { label: 'Completed', value: doneTasks, icon: TrendingUp, color: 'var(--success)' },
@@ -146,13 +146,13 @@ export default function Dashboard() {
             { label: 'Projects', value: projectCount, icon: FolderKanban, color: 'var(--brand)' },
           ].map(s => (
             <div key={s.label} style={card}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-                <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{s.label}</span>
-                <span style={{ width: 26, height: 26, borderRadius: 7, background: `${s.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: s.color }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'clamp(6px, 1.5vw, 10)' }}>
+                <span style={{ fontSize: 'clamp(9px, 1.2vw, 10)', fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{s.label}</span>
+                <span style={{ width: 'clamp(22px, 3vw, 26)', height: 'clamp(22px, 3vw, 26)', borderRadius: 7, background: `${s.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: s.color }}>
                   <s.icon size={14} />
                 </span>
               </div>
-              <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--text)', lineHeight: 1 }}>{s.value}</div>
+              <div style={{ fontSize: 'clamp(18px, 3vw, 24)', fontWeight: 800, color: 'var(--text)', lineHeight: 1 }}>{s.value}</div>
             </div>
           ))}
         </div>
@@ -167,7 +167,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 14 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 'clamp(10px, 2vw, 14)' }}>
 
           <div style={{ ...card, display: 'flex', flexDirection: 'column' }}>
             <h3 style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)', margin: '0 0 12px' }}>Recent Activity</h3>
@@ -193,9 +193,9 @@ export default function Dashboard() {
 
           <div style={{ ...card, display: 'flex', flexDirection: 'column' }}>
             <h3 style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)', margin: '0 0 12px' }}>Quick Actions</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, flex: 1 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(72px, 1fr))', gap: 'clamp(6px, 1.2vw, 10)', flex: 1 }}>
               {quickActions.map(a => (
-                <Link key={a.label} to={a.to} style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '14px 6px', borderRadius: 10, background: 'var(--bg)', border: '1px solid var(--border)', cursor: 'pointer', transition: 'border-color 0.15s' }}
+                <Link key={a.label} to={a.to} style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'clamp(4px, 0.8vw, 6)', padding: 'clamp(10px, 2vw, 14px) clamp(4px, 0.8vw, 6px)', borderRadius: 10, background: 'var(--bg)', border: '1px solid var(--border)', cursor: 'pointer', transition: 'border-color 0.15s' }}
                   onMouseEnter={e => e.currentTarget.style.borderColor = a.color}
                   onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
                 >
@@ -210,17 +210,17 @@ export default function Dashboard() {
         {tasks.length > 0 && (
           <div style={card}>
             <h3 style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)', margin: '0 0 12px' }}>Task Breakdown</h3>
-            <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: 'clamp(6px, 1.2vw, 12)' }}>
               {[
                 { label: 'To Do', count: todoTasks, color: 'var(--text3)' },
                 { label: 'In Progress', count: inProgressTasks, color: 'var(--brand)' },
                 { label: 'Review', count: reviewTasks, color: 'var(--warning)' },
                 { label: 'Done', count: doneTasks, color: 'var(--success)' },
               ].map(s => (
-                <div key={s.label} style={{ flex: '1 1 120px', padding: '10px 14px', borderRadius: 8, background: 'var(--bg)', border: '1px solid var(--border)' }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>{s.label}</div>
+                <div key={s.label} style={{ padding: 'clamp(8px, 1.5vw, 10px) clamp(10px, 2vw, 14px)', borderRadius: 8, background: 'var(--bg)', border: '1px solid var(--border)' }}>
+                  <div style={{ fontSize: 'clamp(9px, 1.2vw, 10)', fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>{s.label}</div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ fontSize: 20, fontWeight: 800, color: s.color }}>{s.count}</span>
+                    <span style={{ fontSize: 'clamp(16px, 2.5vw, 20)', fontWeight: 800, color: s.color }}>{s.count}</span>
                     <div style={{ flex: 1, height: 4, borderRadius: 2, background: 'var(--bg3)' }}>
                       <div style={{ height: '100%', width: `${totalTasks ? (s.count / totalTasks) * 100 : 0}%`, borderRadius: 2, background: s.color }} />
                     </div>
@@ -261,9 +261,9 @@ export default function Dashboard() {
             <h3 style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)', margin: '0 0 12px' }}>
               Team Online ({onlineMembers.length})
             </h3>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'clamp(6px, 1.2vw, 10)' }}>
               {onlineMembers.map(m => (
-                <div key={m.id || m.user} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px', borderRadius: 8, background: 'var(--bg)' }}>
+                <div key={m.id || m.user} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: 'clamp(4px, 0.8vw, 6px) clamp(8px, 1.5vw, 10px)', borderRadius: 8, background: 'var(--bg)' }}>
                   <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--success)' }} />
                   <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text2)' }}>
                     {m.user_name || m.first_name || m.name || `User ${m.id}`}
