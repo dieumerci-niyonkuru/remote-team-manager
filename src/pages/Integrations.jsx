@@ -5,7 +5,7 @@ import { integrations } from '../services/api';
 import { unwrapData } from '../services/api';
 import toast from 'react-hot-toast';
 import { getT } from '../i18n';
-import { Check, Plus, Search } from 'lucide-react';
+import { Check, Plus, Search, Unplug } from 'lucide-react';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { EmptyState } from '../components/common/EmptyState';
 import { Button } from '../components/common/Button';
@@ -48,6 +48,15 @@ export default function Integrations() {
     finally { setConnecting(null); }
   };
 
+  const disconnect = async (id, name) => {
+    if (!confirm(`Disconnect ${name}?`)) return;
+    try {
+      await integrations.delete(id);
+      toast.success(`${name} disconnected`);
+      load();
+    } catch (e) { toast.error(e.response?.data?.detail || 'Failed to disconnect'); }
+  };
+
   const connectedNames = new Set(connected.map(c => c.name?.toLowerCase()));
   const filtered = AVAILABLE_INTEGRATIONS.filter(i => i.name.toLowerCase().includes(search.toLowerCase()));
 
@@ -76,6 +85,9 @@ export default function Integrations() {
                       <p style={{ fontSize: 11, color: 'var(--text3)', margin: '1px 0 0' }}>Connected</p>
                     </div>
                     <Badge variant="success">Active</Badge>
+                    <button onClick={() => disconnect(c.id, c.name || c.integration_name)} style={{ background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer', padding: 4, display: 'flex' }} title="Disconnect">
+                      <Unplug size={14} />
+                    </button>
                   </div>
                 ))}
               </div>
@@ -106,8 +118,8 @@ export default function Integrations() {
                     {isConn ? (
                       <Badge variant="success">Connected</Badge>
                     ) : (
-                      <Button variant="primary" size="sm" loading={connecting === int.name} onClick={() => connect(int.name)}>
-                        <Plus size={12} /> Connect
+                      <Button variant="primary" size="sm" loading={connecting === int.name} onClick={() => connect(int.name)} leftIcon={<Plus size={12} />}>
+                        Connect
                       </Button>
                     )}
                   </div>
