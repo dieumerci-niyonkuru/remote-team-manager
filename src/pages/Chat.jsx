@@ -4,7 +4,7 @@ import { useStore } from '../store';
 import api, { chat, ws as wsApi, presence, calls, unwrapData } from '../services/api';
 import toast from 'react-hot-toast';
 import { getT } from '../i18n';
-import { Hash, Send, Plus, MessageSquare, X, Users, Search, Reply, ChevronLeft, Video, Menu } from 'lucide-react';
+import { Hash, Send, Plus, MessageSquare, X, Users, Search, Reply, ChevronLeft, Video, Trash2 } from 'lucide-react';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { Avatar } from '../components/common/Avatar';
 
@@ -244,16 +244,37 @@ export default function Chat() {
     }
   };
 
+  const handleDeleteMessage = async (msgId) => {
+    if (!confirm('Delete this message?')) return;
+    try {
+      await chat.deleteMessage(msgId);
+      setMessages(prev => prev.filter(m => m.id !== msgId));
+      toast.success('Message deleted');
+    } catch {
+      toast.error('Failed to delete message');
+    }
+  };
+
   const openDm = async (dm) => {
-    const name = dm.name || dm.participants?.map(p => p.first_name || p.username).join(', ') || 'Direct Message';
-    setActiveChannel({ id: dm.id, name, description: 'Direct Message', is_dm: true });
+    const other = dm.participants?.find(p => p.id !== user?.id) || dm.participants?.[0];
+    const name = other?.full_name || [other?.first_name, other?.last_name].filter(Boolean).join(' ') || other?.username || dm.name || 'Direct Message';
+    setActiveChannel({ id: dm.id, name, description: 'Direct Message', is_dm: true, dm_user: other });
+  };
+
+  const getDmName = (dm) => {
+    const other = dm.participants?.find(p => p.id !== user?.id) || dm.participants?.[0];
+    return other?.full_name || [other?.first_name, other?.last_name].filter(Boolean).join(' ') || other?.username || dm.name || 'Direct Message';
+  };
+
+  const getDmUser = (dm) => {
+    return dm.participants?.find(p => p.id !== user?.id) || dm.participants?.[0] || {};
   };
 
   const joinedIds = new Set(channels.map(c => c.id));
   const filteredJoined = channels.filter(c => c.name?.toLowerCase().includes(channelSearch.toLowerCase()));
   const filteredAll = allChannels.filter(c => !joinedIds.has(c.id) && c.name?.toLowerCase().includes(channelSearch.toLowerCase()));
   const filteredDms = dms.filter(dm => {
-    const label = dm.name || dm.participants?.map(p => p.first_name || p.username).join(', ') || '';
+    const label = getDmName(dm);
     return label.toLowerCase().includes(channelSearch.toLowerCase());
   });
 
@@ -298,16 +319,19 @@ export default function Chat() {
           )}
           {filteredDms.length > 0 && (
             <div>
-              <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '4px 8px', marginTop: 4 }}>Direct Messages</div>
-              {filteredDms.map(dm => (
-                <button key={dm.id} onClick={() => { setThreadMsg(null); openDm(dm); }}
-                  style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: isMobile ? '10px 8px' : '7px 8px', borderRadius: 6, border: 'none', cursor: 'pointer', textAlign: 'left', background: activeChannel?.id === dm.id && !threadMsg ? 'var(--brand-bg)' : 'transparent', color: activeChannel?.id === dm.id && !threadMsg ? 'var(--brand)' : 'var(--text3)' }}>
-                  <MessageSquare size={13} />
-                  <span style={{ fontSize: isMobile ? 13 : 12, fontWeight: 500, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {dm.name || dm.participants?.map(p => p.first_name || p.username).join(', ') || 'Direct Message'}
-                  </span>
-                </button>
-              ))}
+              <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '4px 8px', marginTop: 4 }}>DMs</div>
+              {filteredDms.map(dm => {
+                const dmUser = getDmUser(dm);
+                return (
+                  <button key={dm.id} onClick={() => { setThreadMsg(null); openDm(dm); }}
+                    style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: isMobile ? '10px 8px' : '7px 8px', borderRadius: 6, border: 'none', cursor: 'pointer', textAlign: 'left', background: activeChannel?.id === dm.id && !threadMsg ? 'var(--brand-bg)' : 'transparent', color: activeChannel?.id === dm.id && !threadMsg ? 'var(--brand)' : 'var(--text3)' }}>
+                    <Avatar user={dmUser} size={isMobile ? 24 : 20} />
+                    <span style={{ fontSize: isMobile ? 13 : 12, fontWeight: 500, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {getDmName(dm)}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           )}
           {filteredJoined.length === 0 && filteredAll.length === 0 && (
@@ -334,18 +358,26 @@ export default function Chat() {
           <div style={{ padding: isMobile ? '7px 10px' : '8px 12px', borderRadius: 12, fontSize: isMobile ? 14 : 13, lineHeight: 1.5, background: isMe ? 'var(--brand)' : 'var(--bg3)', color: isMe ? '#fff' : 'var(--text)', borderTopRightRadius: isMe ? 4 : 12, borderTopLeftRadius: isMe ? 12 : 4, wordBreak: 'break-word' }}>
             {msg.content}
           </div>
-          {!isThread && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4, justifyContent: isMe ? 'flex-end' : 'flex-start' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4, justifyContent: isMe ? 'flex-end' : 'flex-start' }}>
+            {!isThread && (
               <button onClick={() => openThread(msg)} style={{ background: 'none', border: 'none', color: 'var(--brand)', cursor: 'pointer', padding: '2px 4px', display: 'flex', alignItems: 'center', gap: 3, fontSize: 11, fontWeight: 600 }}>
                 <Reply size={12} /> Reply
               </button>
-              {replyCount > 0 && (
-                <button onClick={() => openThread(msg)} style={{ background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer', padding: '2px 4px', fontSize: 11 }}>
-                  {replyCount} {replyCount === 1 ? 'reply' : 'replies'}
-                </button>
-              )}
-            </div>
-          )}
+            )}
+            {!isThread && replyCount > 0 && (
+              <button onClick={() => openThread(msg)} style={{ background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer', padding: '2px 4px', fontSize: 11 }}>
+                {replyCount} {replyCount === 1 ? 'reply' : 'replies'}
+              </button>
+            )}
+            {isMe && !isThread && (
+              <button onClick={() => handleDeleteMessage(msg.id)} style={{ background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer', padding: '2px 4px', display: 'flex', alignItems: 'center', fontSize: 11 }}
+                onMouseEnter={e => e.currentTarget.style.color = 'var(--danger)'}
+                onMouseLeave={e => e.currentTarget.style.color = 'var(--text3)'}
+                title="Delete message">
+                <Trash2 size={12} />
+              </button>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -396,7 +428,11 @@ export default function Chat() {
                   <ChevronLeft size={16} />
                 </button>
               )}
-              <Hash size={isMobile ? 14 : 16} style={{ color: 'var(--brand)', flexShrink: 0 }} />
+              {activeChannel?.is_dm && activeChannel?.dm_user ? (
+                <Avatar user={activeChannel.dm_user} size={isMobile ? 24 : 28} style={{ flexShrink: 0 }} />
+              ) : (
+                <Hash size={isMobile ? 14 : 16} style={{ color: 'var(--brand)', flexShrink: 0 }} />
+              )}
               <div style={{ flex: 1, minWidth: 0 }}>
                 <h2 style={{ fontSize: isMobile ? 13 : 14, fontWeight: 700, color: 'var(--text)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {threadMsg ? `Thread` : activeChannel?.name || 'Select a channel'}
