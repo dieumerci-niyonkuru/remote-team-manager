@@ -18,19 +18,33 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
+  // Never intercept non-GET requests (POST login/register go straight to network)
   if (e.request.method !== 'GET') return;
-  if (e.request.url.includes('/api/')) return; // Never cache API
+  // Never cache API calls — always hit the network
+  if (e.request.url.includes('/api/')) return;
 
   e.respondWith(
     caches.match(e.request).then(cached => {
       if (cached) return cached;
-      return fetch(e.request).then(response => {
-        if (response && response.status === 200 && response.type === 'basic') {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(e.request, clone));
-        }
-        return response;
-      }).catch(() => caches.match('/index.html'));
+
+      return fetch(e.request)
+        .then(response => {
+          if (response && response.status === 200 && response.type === 'basic') {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(e.request, clone));
+          }
+          return response;
+        })
+        .catch(async () => {
+          // Network failed — try to serve /index.html from cache as offline fallback.
+          // Guard against caches.match returning undefined (empty cache on first load)
+          // to avoid "Failed to convert value to 'Response'" TypeError.
+          const fallback = await caches.match('/index.html');
+          return fallback || new Response(
+            '<html><body><h2>You are offline</h2><p>Please check your connection.</p></body></html>',
+            { status: 200, headers: { 'Content-Type': 'text/html' } }
+          );
+        });
     })
   );
 });

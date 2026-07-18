@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
-import api, { chat, ws as wsApi, presence, unwrapData } from '../services/api';
+import api, { chat, ws as wsApi, presence, calls, unwrapData } from '../services/api';
 import toast from 'react-hot-toast';
 import { getT } from '../i18n';
-import { Hash, Send, Plus, MessageSquare, X, Users, Search, Reply, ChevronLeft, Circle } from 'lucide-react';
+import { Hash, Send, Plus, MessageSquare, X, Users, Search, Reply, ChevronLeft, Circle, Video } from 'lucide-react';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { Avatar } from '../components/common/Avatar';
 
@@ -11,6 +12,7 @@ const inputStyle = { width: '100%', background: 'var(--bg3)', border: '1px solid
 
 export default function Chat() {
   const { activeWorkspace, user, lang = 'en' } = useStore();
+  const navigate = useNavigate();
   const t = getT(lang);
   const [channels, setChannels] = useState([]);
   const [allChannels, setAllChannels] = useState([]);
@@ -209,6 +211,18 @@ export default function Chat() {
     if (next) loadMembers();
   };
 
+  const handleStartCall = async () => {
+    if (!activeChannel) return;
+    const roomId = `channel-${activeChannel.id}-${Date.now()}`;
+    try {
+      const userIds = members.map(m => m.id).filter(id => id !== user?.id);
+      await calls.initiate(roomId, userIds);
+      navigate(`/call/${roomId}`);
+    } catch {
+      toast.error('Failed to start call');
+    }
+  };
+
   const openDm = async (dm) => {
     const name = dm.name || dm.participants?.map(p => p.first_name || p.username).join(', ') || 'Direct Message';
     setActiveChannel({ id: dm.id, name, description: 'Direct Message', is_dm: true });
@@ -312,6 +326,11 @@ export default function Chat() {
               {!threadMsg && activeChannel?.description && <p style={{ fontSize: 11, color: 'var(--text3)', margin: '1px 0 0' }}>{activeChannel.description}</p>}
               {threadMsg && <p style={{ fontSize: 11, color: 'var(--text3)', margin: '1px 0 0' }}>{threadReplies.length} replies</p>}
             </div>
+            {!threadMsg && activeChannel && (
+              <button onClick={handleStartCall} title="Start video call" style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--bg3)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text3)' }}>
+                <Video size={15} />
+              </button>
+            )}
             {!threadMsg && (
               <button onClick={toggleMembers} style={{ width: 32, height: 32, borderRadius: 8, background: showMembers ? 'var(--brand)' : 'var(--bg3)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: showMembers ? '#fff' : 'var(--text3)' }}>
                 <Users size={15} />

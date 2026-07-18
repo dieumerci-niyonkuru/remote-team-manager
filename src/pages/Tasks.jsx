@@ -320,8 +320,9 @@ function CreateTaskModal({ isOpen, onClose, onCreated }) {
   useEffect(() => {
     if (selectedWs) {
       proj.list(Number(selectedWs)).then((res) => {
-        setProjects(unwrapData(res));
-        setProjectId('');
+        const list = unwrapData(res) || [];
+        setProjects(list);
+        if (list.length > 0 && !projectId) setProjectId(String(list[0].id));
       }).catch(() => {});
     } else {
       setProjects([]);
@@ -340,11 +341,11 @@ function CreateTaskModal({ isOpen, onClose, onCreated }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!title.trim() || !selectedWs) return;
+    if (!title.trim() || !selectedWs || !projectId) return;
     setLoading(true);
     try {
       const payload = { title, description, status, priority, deadline: deadline || undefined };
-      await task.create(Number(selectedWs), projectId || undefined, payload);
+      await task.create(Number(selectedWs), Number(projectId), payload);
       toast.success('Task created!');
       resetForm();
       onClose();
@@ -445,9 +446,9 @@ function CreateTaskModal({ isOpen, onClose, onCreated }) {
             />
           </div>
           <div>
-            <label style={labelStyle}>Project</label>
-            <select value={projectId} onChange={(e) => setProjectId(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}>
-              <option value="">No project</option>
+            <label style={labelStyle}>Project *</label>
+            <select value={projectId} onChange={(e) => setProjectId(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }} required>
+              <option value="">Select project</option>
               {projects.map((p) => (
                 <option key={p.id} value={p.id}>{p.name}</option>
               ))}
