@@ -1,4 +1,4 @@
-# =============================================================================
+# ==========================================================================
 # RemoteTeam Manager — Development Dockerfile
 # Used by docker-compose.yml for the backend service.
 # For production use Dockerfile.prod (multi-stage, builds React frontend too).
