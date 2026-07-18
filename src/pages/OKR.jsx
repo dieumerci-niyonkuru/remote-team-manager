@@ -70,7 +70,7 @@ export default function OKR() {
     if (!objForm.title.trim()) return;
     setCreatingObj(true);
     try {
-      await okr.createObjective({ title: objForm.title.trim(), description: objForm.description.trim() });
+      await okr.createObjective({ title: objForm.title.trim(), description: objForm.description.trim(), workspace: activeWorkspace.id });
       toast.success('Objective created');
       setShowObjModal(false);
       setObjForm({ title: '', description: '' });
