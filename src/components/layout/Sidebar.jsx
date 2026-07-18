@@ -9,7 +9,7 @@ import {
   LayoutDashboard, Briefcase, FolderKanban, CheckSquare, Hash,
   MessageSquare, Calendar, CalendarDays, FolderOpen, BookOpen,
   Bell, Blocks, Settings, Menu, X, ChevronLeft, ChevronDown,
-  Users, Mail, PieChart, LogOut, Sparkles, Target,
+  Users, Mail, PieChart, LogOut, Target,
 } from 'lucide-react';
 import ThemeSwitcher from './ThemeSwitcher';
 import { Tooltip } from '../common/Tooltip';
@@ -58,7 +58,6 @@ export default function Sidebar() {
     { to: '/wiki', label: t('nav.wiki', 'Wiki'), icon: <BookOpen size={18} /> },
     { to: '/okr', label: 'OKRs', icon: <Target size={18} /> },
     { to: '/integrations', label: t('nav.integrations', 'Integrations'), icon: <Blocks size={18} /> },
-    { to: '/ai', label: t('nav.ai_assistant', 'AI Assistant'), icon: <Sparkles size={18} /> },
   ];
 
   const bottomLinks = [

@@ -8,7 +8,7 @@ import { format } from 'date-fns';
 import {
   CheckSquare, FolderKanban, Users, TrendingUp, Clock,
   ArrowRight, MessageSquare, LayoutDashboard, RefreshCw,
-  BarChart3, Lightbulb, Zap
+  BarChart3, Lightbulb
 } from 'lucide-react';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 
@@ -32,7 +32,6 @@ const quickActions = [
   { label: 'Chat', to: '/chat', icon: MessageSquare, color: 'var(--success)' },
   { label: 'Team', to: '/team', icon: Users, color: 'var(--warning)' },
   { label: 'Analytics', to: '/analytics', icon: BarChart3, color: 'var(--brand)' },
-  { label: 'AI Tools', to: '/ai', icon: Zap, color: 'var(--accent)' },
 ];
 
 export default function Dashboard() {

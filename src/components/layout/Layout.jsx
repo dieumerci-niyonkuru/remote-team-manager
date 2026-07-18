@@ -5,8 +5,7 @@ import Header from './Header'
 import Footer from './Footer'
 import Sidebar from './Sidebar'
 import CommandPalette from '../common/CommandPalette'
-import FloatingAI from '../FloatingAI'
-import FeedbackButton from '../common/FeedbackButton'
+
 import ErrorBoundary from '../ErrorBoundary'
 import { ws } from '../../services/api'
 import { a11yStyles } from '../../styles/a11y'
@@ -44,8 +43,6 @@ export default function Layout({ showFooter = true }) {
           
           <main className="flex-1 flex flex-col min-h-0 overflow-hidden relative">
             <CommandPalette />
-            <FloatingAI />
-            <FeedbackButton />
             
             {/* Main Content Area */}
             <div className="flex-1 overflow-hidden relative">

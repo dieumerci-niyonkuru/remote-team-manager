@@ -66,7 +66,6 @@ export default function Header() {
   const PLATFORM_MENU = [
     { label: 'API',                to: '/integrations', desc: 'REST API and webhooks',             icon: '10' },
     { label: t('nav.integrations', 'Integrations'),    to: '/integrations', desc: 'Connect your favourite tools',   icon: '11' },
-    { label: t('nav.ai_assistant', 'AI Assistant'),    to: '/ai',          desc: 'AI-powered task intelligence',    icon: '12' },
   ]
 
   const NavItem = ({ label, items, to }) => {
