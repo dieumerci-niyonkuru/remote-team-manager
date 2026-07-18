@@ -67,7 +67,7 @@ export const ws = {
   update: (id, d) => api.patch(`/workspaces/${id}/`, d),
   delete: id => api.delete(`/workspaces/${id}/`),
   members: id => api.get(`/workspaces/${id}/members/`),
-  invite: (id, d) => api.post(`/workspaces/${id}/add_member/`, d),
+  invite: (id, d) => api.post(`/workspaces/${id}/invite/`, d),
   removeMember: (id, uid) => api.delete(`/workspaces/${id}/members/${uid}/`),
   activity: id => api.get(`/workspaces/${id}/activity/`),
 };

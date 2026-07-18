@@ -43,11 +43,15 @@ function formatSize(bytes) {
 
 function getFileUrl(f) {
   if (f.file_url) return f.file_url;
-  if (f.file) {
-    if (f.file.startsWith('http')) return f.file;
-    return f.file;
-  }
-  return null;
+  const path = f.file || f.url;
+  if (!path) return null;
+  if (path.startsWith('http')) return path;
+  const base = import.meta.env.VITE_API_URL || '';
+  return base + path;
+}
+
+function getFileName(f) {
+  return f.filename || f.name || 'Untitled';
 }
 
 function isPreviewable(name) {
@@ -139,10 +143,10 @@ export default function Files() {
 
   const openPreview = (f) => {
     const url = getFileUrl(f);
-    if (url) setPreviewFile({ ...f, url });
+    if (url) setPreviewFile({ ...f, url, display_name: getFileName(f) });
   };
 
-  const filtered = filesList.filter(f => f.name?.toLowerCase().includes(search.toLowerCase()));
+  const filtered = filesList.filter(f => getFileName(f).toLowerCase().includes(search.toLowerCase()));
 
   return (
     <div className="p-4 md:p-6 space-y-5" style={{ background: 'var(--bg)', minHeight: '100vh' }}>
@@ -180,17 +184,17 @@ export default function Files() {
             <div key={f.id || i} style={{ ...cardBase, padding: 12, textAlign: 'center', cursor: 'pointer', transition: 'border-color 0.2s', position: 'relative' }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--brand)'; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; }}>
-              <button onClick={(e) => { e.stopPropagation(); handleDelete(f.id, f.name); }}
+              <button onClick={(e) => { e.stopPropagation(); handleDelete(f.id, getFileName(f)); }}
                 style={{ position: 'absolute', top: 6, right: 6, background: 'var(--bg3)', border: 'none', borderRadius: 4, padding: 3, cursor: 'pointer', color: 'var(--text3)', display: 'flex', opacity: 0.7 }}>
                 <Trash2 size={11} />
               </button>
-              <div className="flex justify-center mb-2">{getFileIcon(f.name)}</div>
-              <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.name}</p>
-              <p style={{ fontSize: 10, color: 'var(--text3)', margin: '3px 0 0' }}>{formatSize(f.file_size || f.size)}</p>
+              <div className="flex justify-center mb-2">{getFileIcon(getFileName(f))}</div>
+              <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{getFileName(f)}</p>
+              <p style={{ fontSize: 10, color: 'var(--text3)', margin: '3px 0 0' }}>{formatSize(f.file_size)}</p>
               <div className="flex gap-1 justify-center mt-2">
-                {isPreviewable(f.name) && <button onClick={(e) => { e.stopPropagation(); openPreview(f); }}
+                {isPreviewable(getFileName(f)) && <button onClick={(e) => { e.stopPropagation(); openPreview(f); }}
                   style={{ background: 'var(--bg3)', border: 'none', borderRadius: 4, padding: 3, cursor: 'pointer', color: 'var(--brand)', display: 'flex' }}><Eye size={12} /></button>}
-                <a href={getFileUrl(f)} download={f.name} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()}
+                <a href={getFileUrl(f)} download={getFileName(f)} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()}
                   style={{ background: 'var(--bg3)', border: 'none', borderRadius: 4, padding: 3, cursor: 'pointer', color: 'var(--text3)', display: 'flex' }}><Download size={12} /></a>
               </div>
             </div>
@@ -202,17 +206,17 @@ export default function Files() {
             <div key={f.id || i} style={{ ...cardBase, padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 12, transition: 'border-color 0.2s' }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--brand)'; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; }}>
-              {getFileIcon(f.name)}
+              {getFileIcon(getFileName(f))}
               <div className="flex-1 min-w-0">
-                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{f.name}</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{getFileName(f)}</span>
               </div>
-              <span style={{ fontSize: 11, color: 'var(--text3)' }}>{formatSize(f.file_size || f.size)}</span>
+              <span style={{ fontSize: 11, color: 'var(--text3)' }}>{formatSize(f.file_size)}</span>
               <span style={{ fontSize: 11, color: 'var(--text3)' }}>{f.uploaded_by?.first_name || 'Unknown'}</span>
               <span style={{ fontSize: 11, color: 'var(--text3)' }}>{f.uploaded_at || f.created_at ? format(new Date(f.uploaded_at || f.created_at), 'MMM d, yyyy') : '—'}</span>
               <div className="flex gap-1">
-                {isPreviewable(f.name) && <button onClick={() => openPreview(f)} style={{ background: 'transparent', border: 'none', color: 'var(--brand)', cursor: 'pointer', padding: 4, display: 'flex' }}><Eye size={13} /></button>}
-                <a href={getFileUrl(f)} download={f.name} target="_blank" rel="noreferrer" style={{ background: 'transparent', border: 'none', color: 'var(--text3)', cursor: 'pointer', padding: 4, display: 'flex', textDecoration: 'none' }}><Download size={13} /></a>
-                <button onClick={() => handleDelete(f.id, f.name)} style={{ background: 'transparent', border: 'none', color: 'var(--text3)', cursor: 'pointer', padding: 4, display: 'flex' }}><Trash2 size={13} /></button>
+                {isPreviewable(getFileName(f)) && <button onClick={() => openPreview(f)} style={{ background: 'transparent', border: 'none', color: 'var(--brand)', cursor: 'pointer', padding: 4, display: 'flex' }}><Eye size={13} /></button>}
+                <a href={getFileUrl(f)} download={getFileName(f)} target="_blank" rel="noreferrer" style={{ background: 'transparent', border: 'none', color: 'var(--text3)', cursor: 'pointer', padding: 4, display: 'flex', textDecoration: 'none' }}><Download size={13} /></a>
+                <button onClick={() => handleDelete(f.id, getFileName(f))} style={{ background: 'transparent', border: 'none', color: 'var(--text3)', cursor: 'pointer', padding: 4, display: 'flex' }}><Trash2 size={13} /></button>
               </div>
             </div>
           ))}
@@ -277,20 +281,20 @@ export default function Files() {
         <div onClick={() => setPreviewFile(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100 }}>
           <div onClick={e => e.stopPropagation()} style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 12, maxWidth: '90vw', maxHeight: '85vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             <div style={{ padding: '12px 16px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{previewFile.name}</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{previewFile.display_name || getFileName(previewFile)}</span>
               <button onClick={() => setPreviewFile(null)} style={{ background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer', padding: 4, display: 'flex' }}><X size={16} /></button>
             </div>
             <div style={{ flex: 1, overflow: 'auto', padding: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 200 }}>
               {previewFile.url?.match(/\.(png|jpg|jpeg|gif|svg|webp)$/i) ? (
-                <img src={previewFile.url} alt={previewFile.name} style={{ maxWidth: '100%', maxHeight: '70vh', objectFit: 'contain', borderRadius: 8 }} />
-              ) : previewFile.url?.endsWith('.pdf') || previewFile.url?.includes('.pdf') ? (
-                <iframe src={previewFile.url} style={{ width: '100%', height: '70vh', border: 'none', borderRadius: 8 }} title={previewFile.name} />
+                <img src={previewFile.url} alt={previewFile.display_name || getFileName(previewFile)} style={{ maxWidth: '100%', maxHeight: '70vh', objectFit: 'contain', borderRadius: 8 }} />
+              ) : previewFile.url?.includes('.pdf') ? (
+                <iframe src={previewFile.url} style={{ width: '100%', height: '70vh', border: 'none', borderRadius: 8 }} title={previewFile.display_name || getFileName(previewFile)} />
               ) : (
                 <div style={{ textAlign: 'center', padding: 32 }}>
-                  {getFileIcon(previewFile.name)}
-                  <p style={{ fontSize: 13, color: 'var(--text)', marginTop: 8 }}>{previewFile.name}</p>
+                  {getFileIcon(previewFile.display_name || getFileName(previewFile))}
+                  <p style={{ fontSize: 13, color: 'var(--text)', marginTop: 8 }}>{previewFile.display_name || getFileName(previewFile)}</p>
                   <p style={{ fontSize: 12, color: 'var(--text3)', marginTop: 4 }}>Preview not available for this file type</p>
-                  <a href={previewFile.url} download={previewFile.name} target="_blank" rel="noreferrer" style={{ display: 'inline-block', marginTop: 12 }}>
+                  <a href={previewFile.url} download={previewFile.display_name || getFileName(previewFile)} target="_blank" rel="noreferrer" style={{ display: 'inline-block', marginTop: 12 }}>
                     <Button variant="primary" size="sm" leftIcon={<Download size={12} />}>Download</Button>
                   </a>
                 </div>
