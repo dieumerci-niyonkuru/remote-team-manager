@@ -102,7 +102,7 @@ function RouterContent() {
             <Route path="/settings" element={<Protected><Settings /></Protected>} />
             <Route path="/profile" element={<Protected><Settings /></Protected>} />
           </Route>
-          <Route path="/call" element={<Protected><VideoCall /></Protected>} />
+          <Route path="/call/:roomId" element={<Protected><VideoCall /></Protected>} />
           <Route path="/join/:token" element={<JoinWorkspace />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
