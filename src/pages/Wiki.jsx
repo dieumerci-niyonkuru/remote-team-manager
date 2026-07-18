@@ -26,7 +26,7 @@ export default function Wiki() {
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState(null);
-  const [form, setForm] = useState({ title: '', content: '', tags: '' });
+  const [form, setForm] = useState({ title: '', content: '', category: '' });
   const [saving, setSaving] = useState(false);
   const [revisions, setRevisions] = useState([]);
   const [showRevisions, setShowRevisions] = useState(false);
@@ -60,13 +60,13 @@ export default function Wiki() {
 
   const openCreate = () => {
     setEditing(null);
-    setForm({ title: '', content: '', tags: '' });
+    setForm({ title: '', content: '', category: '' });
     setShowModal(true);
   };
 
   const openEdit = (a) => {
     setEditing(a);
-    setForm({ title: a.title || '', content: a.content || '', tags: (a.tags || []).join(', ') });
+    setForm({ title: a.title || '', content: a.content || '', category: a.category || '' });
     setShowModal(true);
   };
 
@@ -75,20 +75,22 @@ export default function Wiki() {
     if (!form.title.trim()) return;
     setSaving(true);
     try {
-      const tags = form.tags.split(',').map(t => t.trim()).filter(Boolean);
+      const data = { title: form.title.trim(), content: form.content.trim() };
+      if (form.category.trim()) data.category = form.category.trim();
       if (editing) {
-        await wiki.update(editing.id, { title: form.title.trim(), content: form.content.trim(), tags });
+        await wiki.update(editing.id, data);
         toast.success('Article updated');
         if (view === 'detail') {
           const res = await wiki.get(editing.id);
           setArticleDetail(unwrapData(res));
         }
       } else {
-        await wiki.create({ title: form.title.trim(), content: form.content.trim(), tags, workspace: activeWorkspace?.id });
+        data.workspace = activeWorkspace?.id;
+        await wiki.create(data);
         toast.success('Article created');
       }
       setShowModal(false);
-      setForm({ title: '', content: '', tags: '' });
+      setForm({ title: '', content: '', category: '' });
       setEditing(null);
       if (view === 'list') load();
     } catch { toast.error(editing ? 'Failed to update' : 'Failed to create'); } finally { setSaving(false); }
@@ -161,9 +163,9 @@ export default function Wiki() {
                     <ChevronRight size={14} style={{ color: 'var(--text3)' }} />
                   </div>
                   <p style={{ fontSize: 12, color: 'var(--text3)', margin: '0 0 12px', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{a.content || a.summary || 'No content'}</p>
-                  {a.tags?.length > 0 && (
+                  {a.category && (
                     <div className="flex gap-1 mb-3 flex-wrap">
-                      {a.tags.slice(0, 3).map((tag, ti) => <Badge key={ti} variant="secondary">{tag}</Badge>)}
+                      <Badge variant="secondary">{a.category}</Badge>
                     </div>
                   )}
                   <div className="flex items-center gap-3" style={{ fontSize: 10, color: 'var(--text3)' }}>
@@ -210,9 +212,9 @@ export default function Wiki() {
                 </div>
               </div>
 
-              {articleDetail.tags?.length > 0 && (
+              {articleDetail.category && (
                 <div className="flex gap-1 mb-4 flex-wrap">
-                  {articleDetail.tags.map((tag, ti) => <Badge key={ti} variant="secondary">{tag}</Badge>)}
+                  <Badge variant="secondary">{articleDetail.category}</Badge>
                 </div>
               )}
 
@@ -245,8 +247,8 @@ export default function Wiki() {
                   style={{ ...inputStyle, flex: 1, minHeight: 200, resize: 'vertical', lineHeight: 1.6 }} />
               </label>
               <label style={{ display: 'block', marginBottom: 16 }}>
-                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', display: 'block', marginBottom: 4 }}>Tags (comma separated)</span>
-                <input value={form.tags} onChange={e => setForm({ ...form, tags: e.target.value })} placeholder="e.g. onboarding, guides, api" style={inputStyle} />
+                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', display: 'block', marginBottom: 4 }}>Category</span>
+                <input value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} placeholder="e.g. onboarding, guides, api" style={inputStyle} />
               </label>
               <div className="flex gap-2 justify-end">
                 <Button variant="ghost" onClick={() => { setShowModal(false); setEditing(null); }}>Cancel</Button>

@@ -18,6 +18,13 @@ class WikiArticleViewSet(viewsets.ModelViewSet):
             qs = qs.filter(title__icontains=q) | qs.filter(content__icontains=q)
         return qs.order_by('-updated_at')
 
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+    def perform_update(self, serializer):
+        instance = serializer.save()
+        WikiRevision.objects.create(article=instance, content=instance.content, author=self.request.user)
+
     @action(detail=True, methods=['get'], url_path='revisions')
     def revisions(self, request, pk=None):
         article = self.get_object()
