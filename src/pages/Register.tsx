@@ -4,23 +4,10 @@ import { useStore } from '../store';
 import { auth } from '../services/api';
 import { getT } from '../i18n';
 import toast from 'react-hot-toast';
-import { ArrowRight, Mail, Lock, User as UserIcon, Globe, Eye, EyeOff, Check, Shield, Zap, MessageSquare } from 'lucide-react';
-
-const LANGS = [
-  { code: 'en', label: 'EN', flag: '🇬🇧', name: 'English' },
-  { code: 'fr', label: 'FR', flag: '🇫🇷', name: 'Français' },
-  { code: 'rw', label: 'RW', flag: '🇷🇼', name: 'Kinyarwanda' },
-];
-
-const benefits = [
-  { icon: <Zap size={16} />, text: 'AI-powered task management' },
-  { icon: <MessageSquare size={16} />, text: 'Real-time team chat' },
-  { icon: <Shield size={16} />, text: 'Enterprise-grade security' },
-  { icon: <Globe size={16} />, text: 'Multi-language support' },
-];
+import { ArrowRight, Eye, EyeOff, User as UserIcon } from 'lucide-react';
 
 export default function Register() {
-  const { setUser, lang = 'en', setLang } = useStore();
+  const { setUser, lang = 'en' } = useStore();
   const t = getT(lang || 'en');
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -34,7 +21,6 @@ export default function Register() {
   const [avatarPreview, setAvatarPreview] = React.useState<string | null>(null);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
   const [loading, setLoading] = React.useState(false);
-  const [focused, setFocused] = React.useState<string | null>(null);
   const [showPass, setShowPass] = React.useState(false);
   const [showPass2, setShowPass2] = React.useState(false);
 
@@ -52,17 +38,17 @@ export default function Register() {
   };
 
   const validate = () => {
-    const required   = t('error.required',          'This field is required.');
-    const invalidEmail = t('error.invalid_email',   'Please enter a valid email address.');
-    const passMin    = t('error.too_short',          'Minimum 8 characters required.');
-    const passMismatch = t('error.password_mismatch','Passwords do not match.');
+    const required = t('error.required', 'This field is required.');
+    const invalidEmail = t('error.invalid_email', 'Please enter a valid email address.');
+    const passMin = t('error.too_short', 'Minimum 8 characters required.');
+    const passMismatch = t('error.password_mismatch', 'Passwords do not match.');
     const e: Record<string, string> = {};
     if (!form.first_name) e.first_name = required;
-    if (!form.last_name)  e.last_name  = required;
-    if (!form.email)      e.email      = required;
+    if (!form.last_name) e.last_name = required;
+    if (!form.email) e.email = required;
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = invalidEmail;
-    if (!form.password)   e.password   = required;
-    else if (form.password.length < 8)  e.password  = passMin;
+    if (!form.password) e.password = required;
+    else if (form.password.length < 8) e.password = passMin;
     if (form.password !== form.password2) e.password2 = passMismatch;
     setErrors(e);
     return !Object.keys(e).length;
@@ -108,7 +94,7 @@ export default function Register() {
           setErrors(prev => ({ ...prev, ...fieldErrs }));
           const firstField = Object.keys(fieldErrs)[0];
           if (firstField) {
-            msg = ['non_field_errors','detail','error','__all__'].includes(firstField)
+            msg = ['non_field_errors', 'detail', 'error', '__all__'].includes(firstField)
               ? fieldErrs[firstField]
               : `${firstField.replace(/_/g, ' ')}: ${fieldErrs[firstField]}`;
           }
@@ -120,239 +106,180 @@ export default function Register() {
     }
   };
 
-  const inputStyle = (field: string) => ({
-    width: '100%', padding: '11px 14px 11px 38px', borderRadius: 10, fontSize: 14,
-    background: 'var(--bg3)', border: `1.5px solid ${focused === field ? 'var(--brand)' : errors[field] ? 'var(--danger)' : 'var(--border)'}`,
+  const inputStyle = (hasError: boolean) => ({
+    width: '100%' as const, padding: '12px 14px', borderRadius: 10, fontSize: 14,
+    background: 'var(--bg3)', border: `1.5px solid ${hasError ? 'var(--danger)' : 'var(--border)'}`,
     color: 'var(--text)', outline: 'none', boxSizing: 'border-box' as const,
     fontFamily: 'var(--font-body)', transition: 'border-color 0.2s',
   });
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg)', fontFamily: 'var(--font-body)', overflow: 'hidden' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg)', fontFamily: 'var(--font-body)' }}>
+
       {/* Top bar */}
       <div style={{
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        padding: '12px 24px', borderBottom: '1px solid var(--border)',
-        background: 'var(--bg)', position: 'sticky', top: 0, zIndex: 100
+        padding: '14px clamp(16px,4vw,24px)', borderBottom: '1px solid var(--border)',
       }}>
         <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
-          <div style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--brand)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 5 }}>
+          <div style={{ width: 32, height: 32, borderRadius: 8, background: 'linear-gradient(135deg, var(--brand), var(--accent))', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 5, overflow: 'hidden' }}>
             <img src="/logo.png" alt="RT" style={{ width: '100%', objectFit: 'contain' }} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
           </div>
           <span style={{ fontSize: 16, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.02em' }}>
             Remote<span style={{ color: 'var(--brand)' }}>Team</span>
           </span>
         </Link>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <Globe size={13} style={{ color: 'var(--text3)', marginRight: 4 }} />
-          {LANGS.map(l => (
-            <button key={l.code} onClick={() => setLang && setLang(l.code)} title={l.name}
-              style={{
-                background: lang === l.code ? 'var(--brand)' : 'transparent',
-                border: `1px solid ${lang === l.code ? 'var(--brand)' : 'var(--border)'}`,
-                color: lang === l.code ? '#fff' : 'var(--text3)',
-                borderRadius: 6, padding: '4px 8px', fontSize: 11, fontWeight: 700,
-                cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: 3
-              }}>
-              <span>{l.flag}</span> {l.label}
-            </button>
-          ))}
-        </div>
+        <Link to="/" style={{ fontSize: 13, fontWeight: 600, color: 'var(--text3)', textDecoration: 'none' }}>
+          Back to home
+        </Link>
       </div>
 
-      {/* Split layout */}
-      <div style={{ flex: 1, display: 'flex', minHeight: 'calc(100vh - 56px)' }}>
-        {/* Left branding panel */}
-        <div className="register-left-panel" style={{
-          flex: '0 0 50%', display: 'none', flexDirection: 'column',
-          justifyContent: 'center', padding: '48px 56px',
-          background: 'var(--bg2)', borderRight: '1px solid var(--border)',
-        }}>
-          <div style={{ position: 'relative', zIndex: 1 }}>
-            <div style={{
-              display: 'inline-flex', alignItems: 'center', gap: 6,
-              padding: '5px 12px', borderRadius: 16, marginBottom: 32,
-              background: 'var(--brand-bg)', border: '1px solid rgba(51,102,255,0.15)',
-              fontSize: 11, fontWeight: 700, color: 'var(--brand)', textTransform: 'uppercase', letterSpacing: '0.1em'
-            }}>
-              <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--success)', display: 'inline-block' }} />
-              Free to get started
+      {/* Form */}
+      <div style={{
+        flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: 'clamp(24px,4vw,40px) clamp(16px,4vw,24px)',
+      }}>
+        <div style={{ width: '100%', maxWidth: 420 }}>
+          <div style={{ marginBottom: 28 }}>
+            <h1 style={{ fontSize: 'clamp(24px,4vw,28px)', fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.03em', margin: '0 0 8px' }}>
+              {t('auth.register.title', 'Create your account')}
+            </h1>
+            <p style={{ color: 'var(--text3)', fontSize: 'clamp(13px,1.4vw,14px)', margin: 0 }}>
+              {t('auth.register.subtitle', 'Start managing your remote team in minutes.')}
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+
+            {/* Avatar */}
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 4 }}>
+              <div onClick={() => fileInputRef.current?.click()}
+                style={{
+                  width: 64, height: 64, borderRadius: 16,
+                  border: `2px dashed ${avatarPreview ? 'var(--brand)' : 'var(--border)'}`,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  cursor: 'pointer', overflow: 'hidden', background: 'var(--bg3)',
+                  transition: 'border-color 0.2s',
+                }}>
+                {avatarPreview ? (
+                  <img src={avatarPreview} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <UserIcon size={20} style={{ color: 'var(--text3)' }} />
+                )}
+              </div>
+              <input ref={fileInputRef} type="file" hidden accept="image/*" onChange={handleFileChange} />
             </div>
 
-            <h2 style={{ fontSize: 'clamp(26px,3vw,44px)', fontWeight: 800, color: 'var(--text)', lineHeight: 1.15, letterSpacing: '-0.03em', marginBottom: 16 }}>
-              Manage your<br />
-              <span style={{ color: 'var(--brand)' }}>remote workforce.</span>
-            </h2>
-
-            <p style={{ fontSize: 14, color: 'var(--text2)', lineHeight: 1.7, marginBottom: 36, maxWidth: 340 }}>
-              Tasks, projects, chat, analytics, and AI — everything your distributed team needs to stay aligned and ship faster.
-            </p>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 40 }}>
-              {benefits.map((f, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <div style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--brand-bg)', border: '1px solid rgba(51,102,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--brand)', flexShrink: 0 }}>
-                    {f.icon}
-                  </div>
-                  <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text2)' }}>{f.text}</span>
-                  <Check size={13} style={{ color: 'var(--success)', marginLeft: 'auto', flexShrink: 0 }} />
+            {/* Name row - stacks on small screens */}
+            <div className="register-name-row">
+              {([['first_name', t('auth.register.first_name', 'First name')], ['last_name', t('auth.register.last_name', 'Last name')]] as [string, string][]).map(([field, label]) => (
+                <div key={field}>
+                  <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text2)', marginBottom: 6 }}>{label}</label>
+                  <input value={form[field as keyof typeof form]} onChange={e => updateForm(field, e.target.value)}
+                    placeholder={label}
+                    style={inputStyle(!!errors[field])}
+                    onFocus={e => { e.target.style.borderColor = 'var(--brand)'; }}
+                    onBlur={e => { e.target.style.borderColor = errors[field] ? 'var(--danger)' : 'var(--border)'; }}
+                  />
+                  {errors[field] && <p style={{ fontSize: 11, color: 'var(--danger)', marginTop: 4 }}>{errors[field]}</p>}
                 </div>
               ))}
             </div>
 
-            <div style={{ padding: '18px 22px', borderRadius: 14, background: 'var(--bg3)', border: '1px solid var(--border)' }}>
-              <p style={{ fontSize: 13, fontStyle: 'italic', color: 'var(--text2)', marginBottom: 12, lineHeight: 1.65 }}>
-                "Our team went from scattered spreadsheets to full visibility in under a week. RemoteTeam just works."
-              </p>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--brand)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 11, fontWeight: 800, flexShrink: 0 }}>DM</div>
-                <div>
-                  <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)', margin: 0 }}>Dieu Merci N.</p>
-                  <p style={{ fontSize: 10, color: 'var(--text3)', margin: 0 }}>Founder & CEO</p>
+            {/* Email */}
+            <div>
+              <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text2)', marginBottom: 6 }}>{t('common.email', 'Email')}</label>
+              <input type="email" value={form.email} onChange={e => updateForm('email', e.target.value)}
+                placeholder="name@company.com"
+                style={inputStyle(!!errors.email)}
+                onFocus={e => { e.target.style.borderColor = 'var(--brand)'; }}
+                onBlur={e => { e.target.style.borderColor = errors.email ? 'var(--danger)' : 'var(--border)'; }}
+              />
+              {errors.email && <p style={{ fontSize: 11, color: 'var(--danger)', marginTop: 4 }}>{errors.email}</p>}
+            </div>
+
+            {/* Passwords - stacks on small screens */}
+            <div className="register-pw-row">
+              <div>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text2)', marginBottom: 6 }}>{t('auth.login.password', 'Password')}</label>
+                <div style={{ position: 'relative' }}>
+                  <input type={showPass ? 'text' : 'password'} value={form.password}
+                    onChange={e => updateForm('password', e.target.value)}
+                    placeholder="Min 8 characters"
+                    style={{ ...inputStyle(!!errors.password), padding: '12px 40px 12px 14px' }}
+                    onFocus={e => { e.target.style.borderColor = 'var(--brand)'; }}
+                    onBlur={e => { e.target.style.borderColor = errors.password ? 'var(--danger)' : 'var(--border)'; }}
+                  />
+                  <button type="button" onClick={() => setShowPass(!showPass)} tabIndex={-1}
+                    style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer', padding: 4, display: 'flex' }}>
+                    {showPass ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
                 </div>
+                {errors.password && <p style={{ fontSize: 11, color: 'var(--danger)', marginTop: 4 }}>{errors.password}</p>}
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text2)', marginBottom: 6 }}>{t('auth.register.confirm_password', 'Confirm')}</label>
+                <div style={{ position: 'relative' }}>
+                  <input type={showPass2 ? 'text' : 'password'} value={form.password2}
+                    onChange={e => updateForm('password2', e.target.value)}
+                    placeholder="Repeat password"
+                    style={{ ...inputStyle(!!errors.password2), padding: '12px 40px 12px 14px' }}
+                    onFocus={e => { e.target.style.borderColor = 'var(--brand)'; }}
+                    onBlur={e => { e.target.style.borderColor = errors.password2 ? 'var(--danger)' : 'var(--border)'; }}
+                  />
+                  <button type="button" onClick={() => setShowPass2(!showPass2)} tabIndex={-1}
+                    style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer', padding: 4, display: 'flex' }}>
+                    {showPass2 ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
+                {errors.password2 && <p style={{ fontSize: 11, color: 'var(--danger)', marginTop: 4 }}>{errors.password2}</p>}
               </div>
             </div>
-          </div>
-        </div>
 
-        {/* Right form panel */}
-        <div style={{
-          flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center',
-          justifyContent: 'center', padding: '40px 24px', overflowY: 'auto', background: 'var(--bg)'
-        }}>
-          <div style={{ width: '100%', maxWidth: 440 }}>
-            <div style={{ textAlign: 'center', marginBottom: 28 }}>
-              <div style={{
-                display: 'inline-flex', alignItems: 'center', gap: 5, padding: '4px 12px',
-                borderRadius: 16, background: 'var(--brand-bg)', border: '1px solid rgba(51,102,255,0.15)',
-                fontSize: 11, fontWeight: 700, color: 'var(--brand)', marginBottom: 16
+            <button type="submit" disabled={loading}
+              style={{
+                width: '100%', padding: '13px', borderRadius: 10, fontSize: 14, fontWeight: 700,
+                background: loading ? 'var(--bg3)' : 'var(--brand)',
+                color: loading ? 'var(--text3)' : '#fff', border: 'none',
+                cursor: loading ? 'default' : 'pointer',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                fontFamily: 'var(--font-body)', marginTop: 4, transition: 'background 0.2s',
               }}>
-                <Shield size={11} /> Secure Sign Up
-              </div>
-              <h1 style={{ fontSize: 'clamp(24px,3.5vw,30px)', fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.02em', margin: '0 0 6px' }}>
-                {t('auth.register.title', 'Create your account')}
-              </h1>
-              <p style={{ color: 'var(--text3)', fontSize: 14, margin: 0 }}>{t('auth.register.subtitle', 'Start managing your remote team in minutes.')}</p>
-            </div>
+              {loading ? (
+                <>
+                  <span style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTop: '2px solid #fff', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.7s linear infinite' }} />
+                  {t('auth.register.creating', 'Creating account...')}
+                </>
+              ) : (
+                <>{t('auth.register.submit', 'Create Account')} <ArrowRight size={15} /></>
+              )}
+            </button>
+          </form>
 
-            <div style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 16, padding: '28px 24px' }}>
-              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                {/* Avatar upload */}
-                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 4 }}>
-                  <div onClick={() => fileInputRef.current?.click()}
-                    style={{
-                      width: 72, height: 72, borderRadius: 20, border: `2px dashed ${avatarPreview ? 'var(--brand)' : 'var(--border)'}`,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-                      overflow: 'hidden', background: 'var(--bg3)', transition: 'all 0.2s'
-                    }}>
-                    {avatarPreview ? (
-                      <img src={avatarPreview} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    ) : (
-                      <div style={{ textAlign: 'center', padding: 6 }}>
-                        <UserIcon size={18} style={{ color: 'var(--text3)', marginBottom: 2 }} />
-                        <div style={{ fontSize: 8, fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{t('auth.register.add_photo', 'Photo')}</div>
-                      </div>
-                    )}
-                  </div>
-                  <input ref={fileInputRef} type="file" hidden accept="image/*" onChange={handleFileChange} />
-                </div>
-
-                {/* Name row */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                  {([['first_name', t('auth.register.first_name', 'First Name'), 'John'], ['last_name', t('auth.register.last_name', 'Last Name'), 'Doe']] as [string, string, string][]).map(([field, label, ph]) => (
-                    <div key={field}>
-                      <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 5 }}>{label}</label>
-                      <div style={{ position: 'relative' }}>
-                        <UserIcon size={13} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text3)' }} />
-                        <input value={form[field as keyof typeof form]} onChange={e => updateForm(field, e.target.value)}
-                          onFocus={() => setFocused(field)} onBlur={() => setFocused(null)}
-                          placeholder={ph} style={inputStyle(field)} />
-                      </div>
-                      {errors[field] && <p style={{ fontSize: 10, color: 'var(--danger)', marginTop: 3 }}>{errors[field]}</p>}
-                    </div>
-                  ))}
-                </div>
-
-                {/* Email */}
-                <div>
-                  <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 5 }}>{t('common.email', 'Email')}</label>
-                  <div style={{ position: 'relative' }}>
-                    <Mail size={13} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text3)' }} />
-                    <input type="email" value={form.email} onChange={e => updateForm('email', e.target.value)}
-                      onFocus={() => setFocused('email')} onBlur={() => setFocused(null)}
-                      placeholder="name@company.com" style={inputStyle('email')} />
-                  </div>
-                  {errors.email && <p style={{ fontSize: 10, color: 'var(--danger)', marginTop: 3 }}>{errors.email}</p>}
-                </div>
-
-                {/* Passwords */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 5 }}>{t('auth.login.password', 'Password')}</label>
-                    <div style={{ position: 'relative' }}>
-                      <Lock size={13} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text3)', pointerEvents: 'none' }} />
-                      <input type={showPass ? 'text' : 'password'} value={form.password}
-                        onChange={e => updateForm('password', e.target.value)}
-                        onFocus={() => setFocused('password')} onBlur={() => setFocused(null)}
-                        placeholder="Min 8 characters" style={{ ...inputStyle('password'), paddingRight: 36 }} />
-                      <button type="button" onClick={() => setShowPass(v => !v)} tabIndex={-1}
-                        style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer', padding: 3, display: 'flex', alignItems: 'center' }}>
-                        {showPass ? <EyeOff size={14} /> : <Eye size={14} />}
-                      </button>
-                    </div>
-                    {errors.password ? <p style={{ fontSize: 10, color: 'var(--danger)', marginTop: 3 }}>{errors.password}</p> : null}
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: 10, fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 5 }}>{t('auth.register.confirm_password', 'Confirm Password')}</label>
-                    <div style={{ position: 'relative' }}>
-                      <Lock size={13} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text3)', pointerEvents: 'none' }} />
-                      <input type={showPass2 ? 'text' : 'password'} value={form.password2}
-                        onChange={e => updateForm('password2', e.target.value)}
-                        onFocus={() => setFocused('password2')} onBlur={() => setFocused(null)}
-                        placeholder="Repeat password" style={{ ...inputStyle('password2'), paddingRight: 36 }} />
-                      <button type="button" onClick={() => setShowPass2(v => !v)} tabIndex={-1}
-                        style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer', padding: 3, display: 'flex', alignItems: 'center' }}>
-                        {showPass2 ? <EyeOff size={14} /> : <Eye size={14} />}
-                      </button>
-                    </div>
-                    {errors.password2 && <p style={{ fontSize: 10, color: 'var(--danger)', marginTop: 3 }}>{errors.password2}</p>}
-                  </div>
-                </div>
-
-                <button type="submit" disabled={loading}
-                  style={{
-                    width: '100%', padding: '12px', borderRadius: 10, fontSize: 14, fontWeight: 700,
-                    background: loading ? 'var(--bg3)' : 'var(--brand)',
-                    color: loading ? 'var(--text3)' : '#fff', border: 'none',
-                    cursor: loading ? 'default' : 'pointer',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                    marginTop: 4, fontFamily: 'var(--font-body)'
-                  }}>
-                  {loading ? (
-                    <>
-                      <span style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTop: '2px solid #fff', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.7s linear infinite' }} />
-                      {t('auth.register.creating', 'Creating account...')}
-                    </>
-                  ) : (
-                    <>{t('auth.register.submit', 'Create Account')} <ArrowRight size={15} /></>
-                  )}
-                </button>
-              </form>
-            </div>
-
-            <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--text3)', marginTop: 16 }}>
-              {t('auth.register.have_account', 'Already have an account?')}{' '}
-              <Link to="/login" style={{ color: 'var(--brand)', fontWeight: 700, textDecoration: 'none' }}>{t('auth.login.sign_up', 'Sign in')}</Link>
-            </p>
-          </div>
+          <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--text3)', marginTop: 20 }}>
+            {t('auth.register.have_account', 'Already have an account?')}{' '}
+            <Link to="/login" style={{ color: 'var(--brand)', fontWeight: 700, textDecoration: 'none' }}>{t('auth.login.sign_up', 'Sign in')}</Link>
+          </p>
         </div>
       </div>
 
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
-        @media (min-width: 900px) {
-          .register-left-panel { display: flex !important; }
+        .register-name-row {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 12px;
+        }
+        .register-pw-row {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 12px;
+        }
+        @media (max-width: 480px) {
+          .register-name-row,
+          .register-pw-row {
+            grid-template-columns: 1fr;
+          }
         }
       `}</style>
     </div>
