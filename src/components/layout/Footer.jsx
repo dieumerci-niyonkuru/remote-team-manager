@@ -50,7 +50,7 @@ function NewsletterForm() {
 
   if (done) {
     return (
-      <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--success)', background: 'var(--success-subtle)', border: '1px solid rgba(16,185,129,0.15)', padding: '8px 14px', borderRadius: 8 }}>
+      <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--success)', background: 'var(--success-subtle)', border: '1px solid rgba(16,185,129,0.15)', padding: '8px 14px', borderRadius: 8, animation: 'ftFadeIn 0.4s ease' }}>
         Subscribed — thank you!
       </div>
     );
@@ -65,13 +65,21 @@ function NewsletterForm() {
           background: 'var(--bg3)', border: '1px solid var(--border)',
           borderRadius: 8, padding: '8px 12px',
           color: 'var(--text)', fontSize: 13, outline: 'none', fontFamily: 'inherit',
+          transition: 'border-color 0.2s, box-shadow 0.2s',
         }}
+        onFocus={e => { e.target.style.borderColor = 'var(--brand)'; e.target.style.boxShadow = '0 0 0 3px rgba(51,102,255,0.1)'; }}
+        onBlur={e => { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = 'none'; }}
       />
       <button type="submit" style={{
-        background: 'var(--brand)', color: '#fff', border: 'none',
+        background: 'linear-gradient(135deg, var(--brand), var(--accent))', color: '#fff', border: 'none',
         borderRadius: 8, padding: '8px 14px', fontSize: 12,
         fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap',
-      }}>
+        transition: 'transform 0.2s, box-shadow 0.2s',
+        boxShadow: '0 4px 12px rgba(51,102,255,0.25)',
+      }}
+        onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 16px rgba(51,102,255,0.35)'; }}
+        onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 4px 12px rgba(51,102,255,0.25)'; }}
+      >
         Subscribe
       </button>
     </form>
@@ -93,6 +101,20 @@ export default function Footer() {
           display: flex; align-items: center;
           justify-content: space-between;
           flex-wrap: wrap; gap: 12px;
+        }
+        .ft-social:hover {
+          background: var(--brand) !important;
+          color: #fff !important;
+          border-color: var(--brand) !important;
+          box-shadow: 0 6px 16px rgba(51,102,255,0.3);
+        }
+        .ft-link:hover {
+          color: var(--brand) !important;
+          padding-left: 4px;
+        }
+        @keyframes ftFadeIn {
+          from { opacity: 0; transform: translateY(6px); }
+          to   { opacity: 1; transform: translateY(0); }
         }
         @media (max-width: 640px) {
           .ft-bottom { flex-direction: column; align-items: center; text-align: center; }
@@ -127,9 +149,8 @@ export default function Footer() {
           <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
             {SOCIALS.map(s => (
               <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer" aria-label={s.label}
-                style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--bg3)', border: '1px solid var(--border)', color: 'var(--text3)', display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', transition: 'all .2s' }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'var(--brand)'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = 'var(--brand)'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'var(--bg3)'; e.currentTarget.style.color = 'var(--text3)'; e.currentTarget.style.borderColor = 'var(--border)'; }}
+                className="ft-social"
+                style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--bg3)', border: '1px solid var(--border)', color: 'var(--text3)', display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none', transition: 'all .25s' }}
               >
                 {s.icon}
               </a>
@@ -145,9 +166,7 @@ export default function Footer() {
           <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
             {PRODUCT_LINKS.map(l => (
               <li key={l.label}>
-                <Link to={l.to} style={{ color: 'var(--text3)', textDecoration: 'none', fontSize: 13, fontWeight: 500, transition: 'color .18s' }}
-                  onMouseEnter={e => { e.currentTarget.style.color = 'var(--text)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.color = 'var(--text3)'; }}
+                <Link to={l.to} className="ft-link" style={{ color: 'var(--text3)', textDecoration: 'none', fontSize: 13, fontWeight: 500, transition: 'color .2s, padding-left .2s', display: 'inline-block' }}
                 >{l.label}</Link>
               </li>
             ))}
@@ -158,9 +177,7 @@ export default function Footer() {
           <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
             {COMPANY_LINKS.map(l => (
               <li key={l.label}>
-                <Link to={l.to} style={{ color: 'var(--text3)', textDecoration: 'none', fontSize: 13, fontWeight: 500, transition: 'color .18s' }}
-                  onMouseEnter={e => { e.currentTarget.style.color = 'var(--text)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.color = 'var(--text3)'; }}
+                <Link to={l.to} className="ft-link" style={{ color: 'var(--text3)', textDecoration: 'none', fontSize: 13, fontWeight: 500, transition: 'color .2s, padding-left .2s', display: 'inline-block' }}
                 >{l.label}</Link>
               </li>
             ))}

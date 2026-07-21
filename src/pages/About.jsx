@@ -1,13 +1,42 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Users, Zap, Shield, Globe } from 'lucide-react';
 
 const VALUES = [
-  { icon: <Users size={22} />, title: 'Team First', desc: 'Remote teams deserve world-class tools. Everything we build starts with the question: does this make teamwork better?' },
-  { icon: <Zap size={22} />, title: 'Speed & Reliability', desc: 'Your team cannot afford downtime. We obsess over performance, uptime, and instant responsiveness.' },
-  { icon: <Shield size={22} />, title: 'Privacy & Security', desc: 'Your workspace data is yours. Enterprise-grade security standards, always.' },
-  { icon: <Globe size={22} />, title: 'Built for Everyone', desc: 'Available in English, French, and Kinyarwanda — great tools should cross language barriers.' },
+  { icon: <Users size={22} />, title: 'Team First', desc: 'Remote teams deserve world-class tools. Everything we build starts with the question: does this make teamwork better?', color: 'var(--brand)' },
+  { icon: <Zap size={22} />, title: 'Speed & Reliability', desc: 'Your team cannot afford downtime. We obsess over performance, uptime, and instant responsiveness.', color: 'var(--accent)' },
+  { icon: <Shield size={22} />, title: 'Privacy & Security', desc: 'Your workspace data is yours. Enterprise-grade security standards, always.', color: 'var(--success)' },
+  { icon: <Globe size={22} />, title: 'Built for Everyone', desc: 'Available in English, French, and Kinyarwanda — great tools should cross language barriers.', color: 'var(--warning)' },
 ];
+
+function useReveal(threshold = 0.15) {
+  const [visible, setVisible] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { setVisible(true); obs.disconnect(); }
+    }, { threshold });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [threshold]);
+  return { visible, ref };
+}
+
+function RevealSection({ children, delay = 0, style = {} }) {
+  const { visible, ref } = useReveal();
+  return (
+    <div ref={ref} style={{
+      opacity: visible ? 1 : 0,
+      transform: visible ? 'translateY(0)' : 'translateY(28px)',
+      transition: `all 0.7s cubic-bezier(0.4,0,0.2,1) ${delay}s`,
+      ...style,
+    }}>
+      {children}
+    </div>
+  );
+}
 
 export default function About() {
   return (
@@ -15,12 +44,15 @@ export default function About() {
 
       {/* Hero */}
       <div style={{
+        position: 'relative',
         background: 'var(--bg2)',
         padding: 'clamp(80px,12vh,140px) clamp(16px,4vw,24px) clamp(48px,6vw,80px)',
         textAlign: 'center',
         borderBottom: '1px solid var(--border)',
+        overflow: 'hidden',
       }}>
-        <div style={{ maxWidth: 680, margin: '0 auto' }}>
+        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 60% 50% at 50% 30%, rgba(51,102,255,0.07), transparent)', pointerEvents: 'none' }} />
+        <div style={{ maxWidth: 680, margin: '0 auto', position: 'relative', zIndex: 1 }}>
           <h1 style={{
             fontSize: 'clamp(28px,5vw,52px)', fontWeight: 800, color: 'var(--text)',
             marginBottom: 16, lineHeight: 1.1, letterSpacing: '-0.03em',
@@ -41,7 +73,7 @@ export default function About() {
       <div style={{ maxWidth: 900, margin: '0 auto', padding: 'clamp(36px,6vw,72px) clamp(16px,4vw,24px)' }}>
 
         {/* Story */}
-        <div style={{ marginBottom: 'clamp(40px,6vw,64px)' }}>
+        <RevealSection style={{ marginBottom: 'clamp(40px,6vw,64px)' }}>
           <h2 style={{ fontSize: 'clamp(22px,3.5vw,30px)', fontWeight: 800, marginBottom: 16, letterSpacing: '-0.02em' }}>Our Story</h2>
           <div style={{ fontSize: 'clamp(14px,1.5vw,15px)', color: 'var(--text2)', lineHeight: 1.85, display: 'flex', flexDirection: 'column', gap: 16 }}>
             <p style={{ margin: 0 }}>
@@ -60,34 +92,20 @@ export default function About() {
               into one cohesive experience. Available in English, French, and Kinyarwanda.
             </p>
           </div>
-        </div>
+        </RevealSection>
 
         {/* Values */}
-        <div style={{ marginBottom: 'clamp(40px,6vw,64px)' }}>
+        <RevealSection delay={0.1} style={{ marginBottom: 'clamp(40px,6vw,64px)' }}>
           <h2 style={{ fontSize: 'clamp(22px,3.5vw,30px)', fontWeight: 800, marginBottom: 'clamp(20px,3vw,32px)', letterSpacing: '-0.02em' }}>What We Stand For</h2>
           <div className="about-values-grid">
             {VALUES.map((v, i) => (
-              <div key={i} style={{
-                padding: 'clamp(20px,3vw,28px)', background: 'var(--bg-card)', border: '1px solid var(--border)',
-                borderRadius: 14, transition: 'all 0.25s',
-              }}
-                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 16px 40px -8px rgba(0,0,0,0.3)'; }}
-                onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = ''; }}>
-                <div style={{
-                  width: 44, height: 44, borderRadius: 10, background: 'var(--brand-bg)',
-                  color: 'var(--brand)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16,
-                }}>
-                  {v.icon}
-                </div>
-                <h3 style={{ fontSize: 'clamp(15px,1.5vw,16px)', fontWeight: 800, marginBottom: 8, color: 'var(--text)' }}>{v.title}</h3>
-                <p style={{ fontSize: 'clamp(13px,1.4vw,14px)', color: 'var(--text2)', lineHeight: 1.7, margin: 0 }}>{v.desc}</p>
-              </div>
+              <AboutValueCard key={i} value={v} index={i} />
             ))}
           </div>
-        </div>
+        </RevealSection>
 
         {/* Team */}
-        <div style={{ marginBottom: 'clamp(40px,6vw,64px)' }}>
+        <RevealSection delay={0.15} style={{ marginBottom: 'clamp(40px,6vw,64px)' }}>
           <h2 style={{ fontSize: 'clamp(22px,3.5vw,30px)', fontWeight: 800, marginBottom: 8, letterSpacing: '-0.02em' }}>The Team</h2>
           <p style={{ fontSize: 'clamp(14px,1.5vw,15px)', color: 'var(--text2)', marginBottom: 32 }}>
             A small, focused team building for the future of remote work.
@@ -97,7 +115,11 @@ export default function About() {
             padding: 'clamp(20px,4vw,36px)',
             background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 16,
             display: 'flex', gap: 'clamp(16px,3vw,32px)', alignItems: 'center', flexWrap: 'wrap',
-          }}>
+            transition: 'border-color 0.3s',
+          }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--brand)'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; }}
+          >
             <div style={{
               width: 72, height: 72, borderRadius: '50%',
               background: 'linear-gradient(135deg, var(--brand), var(--accent))',
@@ -116,10 +138,10 @@ export default function About() {
               </p>
             </div>
           </div>
-        </div>
+        </RevealSection>
 
         {/* CTA */}
-        <div style={{
+        <RevealSection delay={0.2} style={{
           textAlign: 'center', padding: 'clamp(32px,6vw,56px) 0',
           borderTop: '1px solid var(--border)',
         }}>
@@ -137,12 +159,12 @@ export default function About() {
             boxShadow: '0 8px 24px rgba(51,102,255,0.3)',
             transition: 'transform 0.2s, box-shadow 0.2s',
           }}
-            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 12px 32px rgba(51,102,255,0.45)'; }}
+            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = '0 14px 36px rgba(51,102,255,0.45)'; }}
             onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 8px 24px rgba(51,102,255,0.3)'; }}
           >
             Get Started <ArrowRight size={16} />
           </Link>
-        </div>
+        </RevealSection>
       </div>
 
       <style>{`
@@ -157,6 +179,37 @@ export default function About() {
           }
         }
       `}</style>
+    </div>
+  );
+}
+
+function AboutValueCard({ value, index }) {
+  const [hovered, setHovered] = useState(false);
+  const { visible, ref } = useReveal();
+  return (
+    <div
+      ref={ref}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        padding: 'clamp(20px,3vw,28px)', background: 'var(--bg-card)', border: `1px solid ${hovered ? value.color : 'var(--border)'}`,
+        borderRadius: 14,
+        transform: visible ? (hovered ? 'translateY(-6px)' : 'translateY(0)') : 'translateY(24px)',
+        opacity: visible ? 1 : 0,
+        boxShadow: hovered ? '0 20px 48px -12px rgba(0,0,0,0.4)' : 'var(--shadow-sm)',
+        transition: `all 0.5s cubic-bezier(0.4,0,0.2,1) ${index * 0.08}s`,
+      }}>
+      <div style={{
+        width: 48, height: 48, borderRadius: 12,
+        background: `${value.color}15`, border: `1px solid ${value.color}25`,
+        color: value.color,
+        display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16,
+        transition: 'transform 0.3s', transform: hovered ? 'scale(1.1)' : 'scale(1)',
+      }}>
+        {value.icon}
+      </div>
+      <h3 style={{ fontSize: 'clamp(15px,1.5vw,16px)', fontWeight: 800, marginBottom: 8, color: 'var(--text)' }}>{value.title}</h3>
+      <p style={{ fontSize: 'clamp(13px,1.4vw,14px)', color: 'var(--text2)', lineHeight: 1.7, margin: 0 }}>{value.desc}</p>
     </div>
   );
 }
