@@ -390,7 +390,6 @@ h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: -0.02em; line
   .desktop-only { display: none !important; }
   .container { padding: 0 16px; }
   .grid-responsive { grid-template-columns: 1fr; gap: 16px; }
-  .card { padding: 24px !important; }
   .logo-font { font-size: 20px; }
 }
 

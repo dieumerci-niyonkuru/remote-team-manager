@@ -52,7 +52,7 @@ export default function Login() {
       {/* Top bar */}
       <div style={{
         display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        padding: '14px 24px', borderBottom: '1px solid var(--border)',
+        padding: '14px clamp(12px,4vw,24px)', borderBottom: '1px solid var(--border)',
       }}>
         <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
           <div style={{ width: 32, height: 32, borderRadius: 8, background: 'linear-gradient(135deg, var(--brand), var(--accent))', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 5, overflow: 'hidden' }}>
@@ -70,11 +70,11 @@ export default function Login() {
       {/* Form */}
       <div style={{
         flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        padding: '40px 24px',
+        padding: 'clamp(24px,6vw,40px) clamp(16px,4vw,24px)',
       }}>
         <div style={{ width: '100%', maxWidth: 380 }}>
           <div style={{ marginBottom: 32 }}>
-            <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.03em', margin: '0 0 8px' }}>
+            <h1 style={{ fontSize: 'clamp(24px,4vw,28px)', fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.03em', margin: '0 0 8px' }}>
               {t('auth.login.title', 'Welcome back')}
             </h1>
             <p style={{ color: 'var(--text3)', fontSize: 14, margin: 0 }}>

@@ -86,7 +86,7 @@ export default function Footer() {
           max-width: 1100px; margin: 0 auto;
           padding: clamp(24px,4vw,40px) clamp(16px,4vw,32px);
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(150px,1fr));
+          grid-template-columns: repeat(auto-fit, minmax(min(160px, 100%), 1fr));
           gap: clamp(20px,3vw,32px) clamp(16px,3vw,24px);
         }
         .ft-bottom {
@@ -94,18 +94,20 @@ export default function Footer() {
           justify-content: space-between;
           flex-wrap: wrap; gap: 12px;
         }
-        @media (max-width: 480px) {
+        @media (max-width: 640px) {
           .ft-bottom { flex-direction: column; align-items: center; text-align: center; }
           .ft-grid { grid-template-columns: 1fr 1fr; }
+          .ft-tagline { display: none; }
         }
-        @media (max-width: 320px) {
+        @media (max-width: 360px) {
           .ft-grid { grid-template-columns: 1fr; }
+          .ft-desc { display: none; }
         }
       `}</style>
 
       {/* Top strip */}
       <div style={{ borderBottom: '1px solid var(--border)' }}>
-        <div style={{ maxWidth: 1100, margin: '0 auto', padding: '20px clamp(16px,4vw,32px)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+        <div style={{ maxWidth: 1100, margin: '0 auto', padding: 'clamp(16px,3vw,20px) clamp(16px,4vw,32px)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
           <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none', flexShrink: 0 }}>
             <div style={{ width: 36, height: 36, borderRadius: 8, background: 'var(--brand)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 6, overflow: 'hidden', flexShrink: 0 }}>
               <img src="/logo.png" alt="RemoteTeam" style={{ width: '100%', height: '100%', objectFit: 'contain' }} onError={e => { e.target.style.display = 'none'; }} />
@@ -114,11 +116,11 @@ export default function Footer() {
               <span style={{ fontSize: 16, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
                 Remote<span style={{ color: 'var(--brand)' }}>Team</span>
               </span>
-              <div style={{ fontSize: 9, fontWeight: 600, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: 1 }}>Enterprise Workspace OS</div>
+              <div className="ft-tagline" style={{ fontSize: 9, fontWeight: 600, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: 1 }}>Enterprise Workspace OS</div>
             </div>
           </Link>
 
-          <p style={{ fontSize: 12, color: 'var(--text3)', maxWidth: 260, lineHeight: 1.6, margin: 0, flex: '1 1 160px' }}>
+          <p className="ft-desc" style={{ fontSize: 12, color: 'var(--text3)', maxWidth: 260, lineHeight: 1.6, margin: 0, flex: '1 1 160px' }}>
             The all-in-one platform for distributed teams — projects, chat, video, analytics & AI.
           </p>
 

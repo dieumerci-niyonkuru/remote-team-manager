@@ -102,7 +102,7 @@ export default function Header() {
             width: 280, padding: 8, borderRadius: 16,
             background: 'var(--bg2)', border: '1px solid var(--border)',
             boxShadow: '0 24px 60px -8px rgba(0,0,0,0.5)',
-            zIndex: 100, animation: 'dropdownIn 0.15s ease',
+            zIndex: 100, animation: 'hdr-dropdown 0.15s ease',
           }}>
             {items.map(item => (
               <Link key={item.to} to={item.to} style={{
@@ -123,118 +123,126 @@ export default function Header() {
   }
 
   return (
-    <header style={{
-      position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000,
-      background: scrolled ? 'rgba(var(--bg-rgb), 0.92)' : 'transparent',
-      backdropFilter: scrolled ? 'blur(30px)' : 'none',
-      borderBottom: scrolled ? '1px solid var(--border)' : '1px solid transparent',
-      height: scrolled ? 72 : 88, transition: '0.4s cubic-bezier(0.4, 0, 0.2, 1)'
-    }}>
-      <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: 1300, padding: '0 clamp(16px,3vw,24px)' }}>
+    <>
+      <header style={{
+        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000,
+        background: scrolled ? 'rgba(var(--bg-rgb), 0.92)' : 'transparent',
+        backdropFilter: scrolled ? 'blur(30px)' : 'none',
+        borderBottom: scrolled ? '1px solid var(--border)' : '1px solid transparent',
+        height: scrolled ? 64 : 80, transition: '0.4s cubic-bezier(0.4, 0, 0.2, 1)'
+      }}>
+        <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', maxWidth: 1300, padding: '0 clamp(12px,3vw,24px)' }}>
 
-        {/* Brand */}
-        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', flexShrink: 0 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 10, background: 'linear-gradient(135deg, var(--brand), var(--accent))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', boxShadow: '0 8px 16px -4px rgba(51,102,255,0.4)', overflow: 'hidden', padding: 6 }}>
-            <img src="/logo.png" alt="RemoteTeam" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-          </div>
-          <span style={{ fontSize: 18, fontWeight: 900, letterSpacing: '-0.03em', color: 'var(--text)' }}>
-            Remote<span style={{ color: 'var(--brand)' }}>Team</span>
-          </span>
-        </Link>
-
-        {/* Desktop Nav */}
-        <nav ref={navRef} className="desktop-only" style={{ display: 'flex', alignItems: 'center', gap: 2, height: '100%' }}>
-          <Link to="/about" style={{
-            fontSize: 13, fontWeight: 700, padding: '8px 14px', borderRadius: 10,
-            textDecoration: 'none', color: pathname === '/about' ? 'var(--brand)' : 'var(--text2)',
-            background: pathname === '/about' ? 'var(--brand-bg)' : 'transparent',
-            transition: '0.2s', height: '100%', display: 'flex', alignItems: 'center',
-          }}
-            onMouseEnter={e => { e.currentTarget.style.color = 'var(--brand)'; e.currentTarget.style.background = 'var(--brand-bg)'; }}
-            onMouseLeave={e => {
-              e.currentTarget.style.color = pathname === '/about' ? 'var(--brand)' : 'var(--text2)';
-              e.currentTarget.style.background = pathname === '/about' ? 'var(--brand-bg)' : 'transparent';
-            }}
-          >
-            {t('nav.about', 'About Us')}
+          {/* Brand */}
+          <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', flexShrink: 0 }}>
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: 'linear-gradient(135deg, var(--brand), var(--accent))', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', boxShadow: '0 8px 16px -4px rgba(51,102,255,0.4)', overflow: 'hidden', padding: 6 }}>
+              <img src="/logo.png" alt="RemoteTeam" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+            </div>
+            <span style={{ fontSize: 18, fontWeight: 900, letterSpacing: '-0.03em', color: 'var(--text)' }}>
+              Remote<span style={{ color: 'var(--brand)' }}>Team</span>
+            </span>
           </Link>
-          <NavDropdown label="Product" items={PRODUCT_MENU} />
-          <NavDropdown label="Solutions" items={SOLUTIONS_MENU} />
-          <NavDropdown label="Enterprise" items={ENTERPRISE_MENU} />
-          <NavDropdown label="Platform" items={PLATFORM_MENU} />
-        </nav>
 
-        {/* Actions */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-
-          {/* Language Switcher */}
-          <div className="desktop-only" style={{ position: 'relative' }} ref={langRef}>
-            <button
-              onClick={() => setShowLangMenu(v => !v)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                background: showLangMenu ? 'var(--brand-bg)' : 'var(--bg3)',
-                border: `1px solid ${showLangMenu ? 'var(--brand)' : 'var(--border)'}`,
-                color: showLangMenu ? 'var(--brand)' : 'var(--text2)',
-                borderRadius: 10, padding: '7px 12px', fontSize: 12, fontWeight: 800, cursor: 'pointer', transition: '0.2s'
+          {/* Desktop Nav */}
+          <nav ref={navRef} className="hdr-desktop" style={{ display: 'flex', alignItems: 'center', gap: 2, height: '100%' }}>
+            <Link to="/about" style={{
+              fontSize: 13, fontWeight: 700, padding: '8px 14px', borderRadius: 10,
+              textDecoration: 'none', color: pathname === '/about' ? 'var(--brand)' : 'var(--text2)',
+              background: pathname === '/about' ? 'var(--brand-bg)' : 'transparent',
+              transition: '0.2s', height: '100%', display: 'flex', alignItems: 'center',
+            }}
+              onMouseEnter={e => { e.currentTarget.style.color = 'var(--brand)'; e.currentTarget.style.background = 'var(--brand-bg)'; }}
+              onMouseLeave={e => {
+                e.currentTarget.style.color = pathname === '/about' ? 'var(--brand)' : 'var(--text2)';
+                e.currentTarget.style.background = pathname === '/about' ? 'var(--brand-bg)' : 'transparent';
               }}
             >
-              <Globe size={13} />
-              {LANGS.find(l => l.code === (lang || 'en'))?.flag} {LANGS.find(l => l.code === (lang || 'en'))?.label}
-              <ChevronDown size={11} style={{ opacity: 0.6, transform: showLangMenu ? 'rotate(180deg)' : 'none', transition: '0.2s' }} />
-            </button>
-            {showLangMenu && (
-              <div style={{
-                position: 'absolute', top: 'calc(100% + 8px)', right: 0, minWidth: 160,
-                background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 14,
-                padding: 6, boxShadow: '0 20px 50px rgba(0,0,0,0.4)', zIndex: 500,
-              }}>
-                {LANGS.map(l => (
-                  <button key={l.code} onClick={() => { setLang && setLang(l.code); setShowLangMenu(false); }}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '9px 12px',
-                      borderRadius: 10, background: (lang || 'en') === l.code ? 'var(--brand-bg)' : 'transparent',
-                      border: 'none', color: (lang || 'en') === l.code ? 'var(--brand)' : 'var(--text2)',
-                      fontSize: 13, fontWeight: 700, cursor: 'pointer', transition: '0.15s', textAlign: 'left'
-                    }}>
-                    <span style={{ fontSize: 16 }}>{l.flag}</span>
-                    <span>{l.name}</span>
-                    {(lang || 'en') === l.code && <span style={{ marginLeft: 'auto', fontSize: 10, color: 'var(--brand)' }}>\u2713</span>}
-                  </button>
-                ))}
+              {t('nav.about', 'About Us')}
+            </Link>
+            <NavDropdown label="Product" items={PRODUCT_MENU} />
+            <NavDropdown label="Solutions" items={SOLUTIONS_MENU} />
+            <NavDropdown label="Enterprise" items={ENTERPRISE_MENU} />
+            <NavDropdown label="Platform" items={PLATFORM_MENU} />
+          </nav>
+
+          {/* Actions */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+
+            {/* Language Switcher - desktop */}
+            <div className="hdr-desktop" style={{ position: 'relative' }} ref={langRef}>
+              <button
+                onClick={() => setShowLangMenu(v => !v)}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  background: showLangMenu ? 'var(--brand-bg)' : 'var(--bg3)',
+                  border: `1px solid ${showLangMenu ? 'var(--brand)' : 'var(--border)'}`,
+                  color: showLangMenu ? 'var(--brand)' : 'var(--text2)',
+                  borderRadius: 10, padding: '7px 12px', fontSize: 12, fontWeight: 800, cursor: 'pointer', transition: '0.2s'
+                }}
+              >
+                <Globe size={13} />
+                {LANGS.find(l => l.code === (lang || 'en'))?.flag} {LANGS.find(l => l.code === (lang || 'en'))?.label}
+                <ChevronDown size={11} style={{ opacity: 0.6, transform: showLangMenu ? 'rotate(180deg)' : 'none', transition: '0.2s' }} />
+              </button>
+              {showLangMenu && (
+                <div style={{
+                  position: 'absolute', top: 'calc(100% + 8px)', right: 0, minWidth: 160,
+                  background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 14,
+                  padding: 6, boxShadow: '0 20px 50px rgba(0,0,0,0.4)', zIndex: 500,
+                }}>
+                  {LANGS.map(l => (
+                    <button key={l.code} onClick={() => { setLang && setLang(l.code); setShowLangMenu(false); }}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 10, width: '100%', padding: '9px 12px',
+                        borderRadius: 10, background: (lang || 'en') === l.code ? 'var(--brand-bg)' : 'transparent',
+                        border: 'none', color: (lang || 'en') === l.code ? 'var(--brand)' : 'var(--text2)',
+                        fontSize: 13, fontWeight: 700, cursor: 'pointer', transition: '0.15s', textAlign: 'left'
+                      }}>
+                      <span style={{ fontSize: 16 }}>{l.flag}</span>
+                      <span>{l.name}</span>
+                      {(lang || 'en') === l.code && <span style={{ marginLeft: 'auto', fontSize: 10, color: 'var(--brand)' }}>\u2713</span>}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {isAuth && <NotificationBadge />}
+
+            <div className="hdr-desktop">
+              <ThemeSwitcher />
+            </div>
+
+            {isAuth ? (
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <Button variant="secondary" onClick={() => navigate('/dashboard')} size="sm" className="font-black hdr-desktop">{t('nav.dashboard', 'Dashboard')}</Button>
+                <Button variant="ghost" onClick={handleLogout} size="sm" className="font-black">{t('auth.logout', 'Sign Out')}</Button>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', gap: 8 }}>
+                <Button variant="secondary" size="sm" className="hdr-desktop font-black" onClick={() => navigate('/login')}>{t('auth.login.submit', 'Sign In')}</Button>
+                <Button variant="primary" size="sm" className="font-black" onClick={() => navigate('/register')}>{t('auth.register.submit', 'Sign Up')}</Button>
               </div>
             )}
+
+            {/* Hamburger - mobile only */}
+            <button className="hdr-mobile" onClick={() => setShowMenu(!showMenu)}
+              style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 12, padding: '8px 12px', color: 'var(--text)', cursor: 'pointer', fontSize: 20, lineHeight: 1, display: 'none', alignItems: 'center', justifyContent: 'center' }}>
+              {showMenu ? '\u2715' : '\u2630'}
+            </button>
           </div>
-
-          {isAuth && <NotificationBadge />}
-
-          <div className="desktop-only">
-            <ThemeSwitcher />
-          </div>
-
-          {isAuth ? (
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              <Button variant="secondary" onClick={() => navigate('/dashboard')} size="sm" className="font-black desktop-only">{t('nav.dashboard', 'Dashboard')}</Button>
-              <Button variant="ghost" onClick={handleLogout} size="sm" className="font-black">{t('auth.logout', 'Sign Out')}</Button>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', gap: 8 }}>
-              <Button variant="secondary" size="sm" className="desktop-only font-black" onClick={() => navigate('/login')}>{t('auth.login.submit', 'Sign In')}</Button>
-              <Button variant="primary" size="sm" className="font-black" onClick={() => navigate('/register')}>{t('auth.register.submit', 'Sign Up')}</Button>
-            </div>
-          )}
-
-          <button className="mobile-only btn-icon" onClick={() => setShowMenu(!showMenu)} style={{ fontSize: 22, background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 12, padding: '8px 12px', color: 'var(--text)', cursor: 'pointer' }}>
-            {showMenu ? '\u2715' : '\u2630'}
-          </button>
         </div>
-      </div>
+      </header>
 
       {/* Mobile Menu */}
       {showMenu && (
-        <div className="mobile-menu-overlay fade-in" style={{ position: 'fixed', top: scrolled ? 72 : 88, left: 0, right: 0, bottom: 0, background: 'var(--bg)', backdropFilter: 'blur(40px)', zIndex: 1001, padding: 'clamp(16px,3vw,24px)', overflowY: 'auto' }}>
+        <div className="hdr-mobile-menu" style={{
+          position: 'fixed', top: scrolled ? 64 : 80, left: 0, right: 0, bottom: 0,
+          background: 'var(--bg)', backdropFilter: 'blur(40px)', zIndex: 1001,
+          padding: 'clamp(12px,3vw,24px)', overflowY: 'auto',
+        }}>
           {/* Language selector */}
-          <div style={{ display: 'flex', gap: 8, marginBottom: 24, justifyContent: 'center' }}>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 20, justifyContent: 'center' }}>
             {LANGS.map(l => (
               <button key={l.code} onClick={() => { setLang && setLang(l.code); }}
                 style={{ background: (lang || 'en') === l.code ? 'var(--brand)' : 'var(--bg3)', color: (lang || 'en') === l.code ? '#fff' : 'var(--text)', border: 'none', borderRadius: 10, padding: '8px 16px', fontSize: 13, fontWeight: 800, cursor: 'pointer' }}>
@@ -288,22 +296,22 @@ export default function Header() {
       )}
 
       <style>{`
-        .desktop-only { display: flex !important; }
-        .mobile-only { display: none !important; }
+        .hdr-desktop { display: flex !important; }
+        .hdr-mobile { display: none !important; }
         @media (max-width: 1024px) {
-          .desktop-only { display: none !important; }
-          .mobile-only { display: flex !important; }
+          .hdr-desktop { display: none !important; }
+          .hdr-mobile { display: flex !important; }
         }
         .mobile-nav-link {
           padding: 12px 16px; font-size: 13px; font-weight: 700; color: var(--text); text-decoration: none;
           border-radius: 12px; background: var(--bg3); border: 1px solid var(--border); transition: 0.2s; display: block;
         }
         .mobile-nav-link:hover { background: var(--bg2); border-color: var(--brand); }
-        @keyframes dropdownIn {
+        @keyframes hdr-dropdown {
           from { opacity: 0; transform: translateX(-50%) translateY(-4px); }
           to   { opacity: 1; transform: translateX(-50%) translateY(0); }
         }
       `}</style>
-    </header>
+    </>
   )
 }
