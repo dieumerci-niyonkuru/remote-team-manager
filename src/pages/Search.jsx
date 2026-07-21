@@ -98,7 +98,7 @@ export default function SearchPage() {
                       <span style={{ color: 'var(--brand)' }}>{resultIcon(category)}</span>
                       <div className="flex-1 min-w-0">
                         <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{item.name || item.title || item.first_name || 'Result'}</span>
-                        {item.description && <p style={{ fontSize: 11, color: 'var(--text3)', margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.description}</p>}
+                        {item.description && <p title={item.description} style={{ fontSize: 11, color: 'var(--text3)', margin: '2px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.description}</p>}
                       </div>
                     </div>
                   ))}

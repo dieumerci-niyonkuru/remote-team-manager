@@ -98,8 +98,8 @@ export default function Sidebar() {
           {!collapsed && (
             <>
               <div className="flex-1 text-left">
-                <p style={{ fontSize: 9, color: 'var(--text3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>Workspace</p>
-                <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{activeWorkspace?.name || 'Select Workspace'}</p>
+                <p style={{ fontSize: 10, color: 'var(--text3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>Workspace</p>
+                <p title={activeWorkspace?.name || 'Select Workspace'} style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{activeWorkspace?.name || 'Select Workspace'}</p>
               </div>
               <ChevronDown size={14} style={{ color: 'var(--text3)', transition: 'transform 0.2s', transform: showWorkspaceMenu ? 'rotate(180deg)' : 'none' }} />
             </>
@@ -108,8 +108,8 @@ export default function Sidebar() {
 
         {showWorkspaceMenu && !collapsed && (
           <div 
-            className="absolute top-full left-3 right-3 mt-1 overflow-hidden py-1"
-            style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: tokens.radius.md, boxShadow: 'var(--shadow-lg)', zIndex: 150 }}
+            className="absolute top-full left-3 right-3 mt-1 overflow-y-auto py-1"
+            style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: tokens.radius.md, boxShadow: 'var(--shadow-lg)', zIndex: 150, maxHeight: 280 }}
           >
             {workspaces.map(ws => (
               <button
@@ -121,7 +121,7 @@ export default function Sidebar() {
                 <div style={{ width: 24, height: 24, borderRadius: 6, background: 'var(--bg3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700 }}>
                   {ws.name.charAt(0)}
                 </div>
-                <span style={{ fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ws.name}</span>
+                <span title={ws.name} style={{ fontSize: 13, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{ws.name}</span>
               </button>
             ))}
             <div style={{ borderTop: '1px solid var(--border)', marginTop: 4, paddingTop: 4 }}>
@@ -164,12 +164,12 @@ export default function Sidebar() {
           <div className="flex items-center justify-between px-3 py-2 mb-2">
             <div className="flex items-center gap-2">
               <div style={{ width: 7, height: 7, borderRadius: '50%', background: status === 'open' ? 'var(--success)' : status === 'connecting' ? 'var(--warning)' : 'var(--danger)', boxShadow: status === 'open' ? '0 0 6px var(--success)' : 'none' }} />
-              <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+              <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                 {status === 'open' ? 'Live' : status === 'connecting' ? 'Connecting' : 'Offline'}
               </span>
             </div>
             {isSyncing && (
-              <div className="flex items-center gap-1" style={{ fontSize: 9, fontWeight: 700, color: 'var(--brand)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+              <div className="flex items-center gap-1" style={{ fontSize: 10, fontWeight: 700, color: 'var(--brand)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                 <div style={{ width: 5, height: 5, background: 'var(--brand)', borderRadius: '50%' }} />
                 Syncing
               </div>
@@ -184,8 +184,8 @@ export default function Sidebar() {
           {!collapsed && (
             <>
               <div className="flex-1 min-w-0">
-                <p style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', margin: '0 0 1px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.first_name ? `${user.first_name} ${user.last_name || ''}` : user?.username}</p>
-                <p style={{ fontSize: 9, color: 'var(--text3)', fontWeight: 700, textTransform: 'uppercase', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', margin: 0 }}>{user?.email}</p>
+                <p title={user?.first_name ? `${user.first_name} ${user.last_name || ''}` : user?.username} style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', margin: '0 0 1px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.first_name ? `${user.first_name} ${user.last_name || ''}` : user?.username}</p>
+                <p title={user?.email} style={{ fontSize: 11, color: 'var(--text3)', fontWeight: 700, textTransform: 'uppercase', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', margin: 0 }}>{user?.email}</p>
               </div>
               <div className="shrink-0 flex items-center gap-1">
                 <div style={{ display:'flex', gap:2 }}>

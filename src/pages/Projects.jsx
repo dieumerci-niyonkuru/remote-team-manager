@@ -194,7 +194,7 @@ export default function Projects() {
                     </Badge>
                   </div>
                   {p.description && (
-                    <p style={{
+                    <p title={p.description} style={{
                       fontSize: 12,
                       color: 'var(--text3)',
                       margin: '2px 0 0',

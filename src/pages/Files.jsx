@@ -191,7 +191,7 @@ export default function Files() {
                 <Trash2 size={11} />
               </button>
               <div className="flex justify-center mb-2">{getFileIcon(getFileName(f))}</div>
-              <p style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{getFileName(f)}</p>
+              <p title={getFileName(f)} style={{ fontSize: 12, fontWeight: 700, color: 'var(--text)', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{getFileName(f)}</p>
               <p style={{ fontSize: 10, color: 'var(--text3)', margin: '3px 0 0' }}>{formatSize(f.file_size)}</p>
               <div className="flex gap-1 justify-center mt-2">
                 {isPreviewable(getFileName(f)) && <button onClick={(e) => { e.stopPropagation(); openPreview(f); }}
@@ -210,7 +210,7 @@ export default function Files() {
               onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; }}>
               {getFileIcon(getFileName(f))}
               <div className="flex-1 min-w-0">
-                <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{getFileName(f)}</span>
+                <span title={getFileName(f)} style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{getFileName(f)}</span>
               </div>
               <span className="hidden sm:inline" style={{ fontSize: 11, color: 'var(--text3)' }}>{formatSize(f.file_size)}</span>
               <span className="hidden md:inline" style={{ fontSize: 11, color: 'var(--text3)' }}>{f.uploaded_by?.first_name || 'Unknown'}</span>

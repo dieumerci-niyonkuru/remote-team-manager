@@ -19,7 +19,7 @@ export const Badge: React.FC<BadgeProps> = ({ children, variant = 'primary', siz
   };
 
   const sizes = {
-    xs: 'px-1.5 py-0.5 text-[8px]',
+    xs: 'px-1.5 py-0.5 text-[10px]',
     sm: 'px-2.5 py-1 text-[10px]',
     md: 'px-3 py-1.5 text-xs',
   };

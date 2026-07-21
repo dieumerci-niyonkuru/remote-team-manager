@@ -637,7 +637,7 @@ export default function Home() {
           .demo-kpis { gap: 4px !important; }
         }
         @media (max-width: 480px) {
-          .demo-url { font-size: 9px !important; }
+          .demo-url { font-size: 10px !important; }
         }
       `}</style>
     </div>

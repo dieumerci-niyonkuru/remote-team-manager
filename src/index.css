@@ -484,7 +484,7 @@ dialog { outline: none; }
 }
 
 /* Chart and analytics overflow protection */
-.recharts-responsive-container { overflow: hidden !important; }
+.recharts-responsive-container { overflow: visible !important; }
 
 /* Skeleton loading animation */
 .skeleton {

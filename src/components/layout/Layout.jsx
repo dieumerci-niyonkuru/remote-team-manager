@@ -74,7 +74,7 @@ export default function Layout({ showFooter = true }) {
                   }}>
                     {activeWorkspace?.name?.charAt(0) || 'W'}
                   </div>
-                  <span style={{ fontSize: 'clamp(11px, 1.8vw, 12)', fontWeight: 700, color: 'var(--text)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <span title={activeWorkspace?.name || 'Select Workspace'} style={{ fontSize: 'clamp(11px, 1.8vw, 12)', fontWeight: 700, color: 'var(--text)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {activeWorkspace?.name || 'Select Workspace'}
                   </span>
                   <ChevronDown size={14} style={{ color: 'var(--text3)', transition: 'transform 0.2s', transform: showWsMenu ? 'rotate(180deg)' : 'none', flexShrink: 0 }} />
@@ -107,7 +107,7 @@ export default function Layout({ showFooter = true }) {
                         }}>
                           {w.name.charAt(0)}
                         </div>
-                        <span style={{ fontSize: 'clamp(12px, 1.8vw, 13)', fontWeight: 600, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{w.name}</span>
+                        <span title={w.name} style={{ fontSize: 'clamp(12px, 1.8vw, 13)', fontWeight: 600, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{w.name}</span>
                         {activeWorkspace?.id === w.id && <Check size={14} style={{ color: 'var(--brand)', flexShrink: 0 }} />}
                       </button>
                     ))}
@@ -131,7 +131,7 @@ export default function Layout({ showFooter = true }) {
             )}
             
             {/* Main Content Area */}
-            <div className="flex-1 overflow-hidden relative">
+            <div className="flex-1 overflow-y-auto relative">
               <ErrorBoundary>
                 <Outlet />
               </ErrorBoundary>
@@ -148,7 +148,7 @@ export default function Layout({ showFooter = true }) {
         // Public Marketing Layout
         <div className="flex flex-col min-h-screen relative">
           <Header />
-          <main className="flex-1">
+          <main className="flex-1" style={{ paddingTop: 80 }}>
             <ErrorBoundary>
               <Outlet />
             </ErrorBoundary>

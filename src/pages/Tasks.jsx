@@ -203,7 +203,7 @@ export default function Tasks() {
                     {t.title}
                   </span>
                   {t.description && (
-                    <p style={{
+                    <p title={t.description} style={{
                       fontSize: 11,
                       color: 'var(--text3)',
                       margin: '2px 0 0',

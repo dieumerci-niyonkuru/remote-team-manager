@@ -157,7 +157,7 @@ export default function Dashboard() {
               onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = ''; }}
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'clamp(6px, 1.5vw, 10)' }}>
-                <span style={{ fontSize: 'clamp(9px, 1.2vw, 10)', fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{s.label}</span>
+                <span style={{ fontSize: 'clamp(10px, 1.2vw, 11)', fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{s.label}</span>
                 <span style={{ width: 'clamp(24px, 3vw, 28)', height: 'clamp(24px, 3vw, 28)', borderRadius: 8, background: `${s.color}15`, border: `1px solid ${s.color}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: s.color }}>
                   <s.icon size={14} />
                 </span>
@@ -231,7 +231,7 @@ export default function Dashboard() {
                   onMouseEnter={e => { e.currentTarget.style.borderColor = s.color; }}
                   onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; }}
                 >
-                  <div style={{ fontSize: 'clamp(9px, 1.2vw, 10)', fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>{s.label}</div>
+                  <div style={{ fontSize: 'clamp(10px, 1.2vw, 11)', fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>{s.label}</div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span style={{ fontSize: 'clamp(16px, 2.5vw, 20)', fontWeight: 800, color: s.color }}>{s.count}</span>
                     <div style={{ flex: 1, height: 4, borderRadius: 2, background: 'var(--bg3)' }}>

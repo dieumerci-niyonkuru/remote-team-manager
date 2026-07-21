@@ -330,21 +330,23 @@ export default function Chat() {
         <>
           {filteredJoined.length > 0 && (
             <div style={{ marginBottom: 8 }}>
-              <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '4px 8px' }}>Your Channels</div>
+              <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '4px 8px' }}>Your Channels</div>
               {filteredJoined.map(ch => (
-                <button key={ch.id} onClick={() => { setThreadMsg(null); setActiveChannel(ch); }}
-                  style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: isMobile ? '10px 8px' : '7px 8px', borderRadius: 6, border: 'none', cursor: 'pointer', textAlign: 'left', background: activeChannel?.id === ch.id && !threadMsg ? 'var(--brand-bg)' : 'transparent', color: activeChannel?.id === ch.id && !threadMsg ? 'var(--brand)' : 'var(--text3)' }}>
-                  <Hash size={13} />
-                  <span style={{ fontSize: isMobile ? 13 : 12, fontWeight: 600, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ch.name}</span>
+                  <button key={ch.id} onClick={() => { setThreadMsg(null); setActiveChannel(ch); }}
+                    title={ch.name}
+                    style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: isMobile ? '10px 8px' : '7px 8px', borderRadius: 6, border: 'none', cursor: 'pointer', textAlign: 'left', background: activeChannel?.id === ch.id && !threadMsg ? 'var(--brand-bg)' : 'transparent', color: activeChannel?.id === ch.id && !threadMsg ? 'var(--brand)' : 'var(--text3)' }}>
+                    <Hash size={13} />
+                    <span style={{ fontSize: isMobile ? 13 : 12, fontWeight: 600, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ch.name}</span>
                 </button>
               ))}
             </div>
           )}
           {filteredAll.length > 0 && (
             <div style={{ marginBottom: 8 }}>
-              <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '4px 8px' }}>All Channels</div>
+              <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '4px 8px' }}>All Channels</div>
               {filteredAll.map(ch => (
                 <button key={ch.id} onClick={() => handleJoinChannel(ch)}
+                  title={ch.name}
                   style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: isMobile ? '10px 8px' : '7px 8px', borderRadius: 6, border: 'none', cursor: 'pointer', textAlign: 'left', background: 'transparent', color: 'var(--text3)' }}>
                   <Plus size={12} />
                   <span style={{ fontSize: isMobile ? 13 : 12, fontWeight: 500, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ch.name}</span>
@@ -354,11 +356,12 @@ export default function Chat() {
           )}
           {filteredDms.length > 0 && (
             <div>
-              <div style={{ fontSize: 9, fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '4px 8px', marginTop: 4 }}>DMs</div>
+              <div style={{ fontSize: 10, fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '4px 8px', marginTop: 4 }}>DMs</div>
               {filteredDms.map(dm => {
                 const dmUser = getDmUser(dm);
                 return (
                   <button key={dm.id} onClick={() => { setThreadMsg(null); openDm(dm); }}
+                    title={getDmName(dm)}
                     style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: isMobile ? '10px 8px' : '7px 8px', borderRadius: 6, border: 'none', cursor: 'pointer', textAlign: 'left', background: activeChannel?.id === dm.id && !threadMsg ? 'var(--brand-bg)' : 'transparent', color: activeChannel?.id === dm.id && !threadMsg ? 'var(--brand)' : 'var(--text3)' }}>
                     <Avatar user={dmUser} size={isMobile ? 24 : 20} />
                     <span style={{ fontSize: isMobile ? 13 : 12, fontWeight: 500, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -509,7 +512,7 @@ export default function Chat() {
                 <Hash size={isMobile ? 14 : 16} style={{ color: 'var(--brand)', flexShrink: 0 }} />
               )}
               <div style={{ flex: 1, minWidth: 0 }}>
-                <h2 style={{ fontSize: isMobile ? 13 : 14, fontWeight: 700, color: 'var(--text)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <h2 title={threadMsg ? 'Thread' : activeChannel?.name || 'Select a channel'} style={{ fontSize: isMobile ? 13 : 14, fontWeight: 700, color: 'var(--text)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {threadMsg ? `Thread` : activeChannel?.name || 'Select a channel'}
                 </h2>
                 {!threadMsg && activeChannel?.description && <p style={{ fontSize: 11, color: 'var(--text3)', margin: '1px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{activeChannel.description}</p>}
