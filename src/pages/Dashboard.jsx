@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { task, proj, ws, ai, unwrapData } from '../services/api';
+import { task, proj, ws, ai, timer, unwrapData } from '../services/api';
 import toast from 'react-hot-toast';
 import { useStore } from '../store';
 import { getT } from '../i18n';
@@ -47,6 +47,49 @@ export default function Dashboard() {
   const [activity, setActivity] = useState([]);
   const [summary, setSummary] = useState(null);
   const [insights, setInsights] = useState(null);
+  const [focusActive, setFocusActive] = useState(false);
+  const [timerSeconds, setTimerSeconds] = useState(0);
+  const intervalRef = useRef(null);
+
+  const formatTime = useCallback((totalSeconds) => {
+    const hrs = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+    const mins = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+    const secs = String(totalSeconds % 60).padStart(2, '0');
+    return `${hrs}:${mins}:${secs}`;
+  }, []);
+
+  const startInterval = useCallback(() => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    intervalRef.current = setInterval(() => {
+      setTimerSeconds(s => s + 1);
+    }, 1000);
+  }, []);
+
+  const clearTimerInterval = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  }, []);
+
+  const handleToggleFocus = useCallback(async () => {
+    if (!activeWorkspace) return;
+    try {
+      if (focusActive) {
+        await timer.pause(activeWorkspace.id);
+        setFocusActive(false);
+        clearTimerInterval();
+        setTasks(unwrapData(await task.list(activeWorkspace.id)));
+      } else {
+        await timer.start(activeWorkspace.id);
+        setFocusActive(true);
+        setTimerSeconds(0);
+        startInterval();
+      }
+    } catch {
+      toast.error(t('dashboard.timer_failed', 'Timer action failed'));
+    }
+  }, [activeWorkspace, focusActive, clearTimerInterval, startInterval, t]);
 
   useEffect(() => {
     if (!activeWorkspace) { setLoading(false); return; }
@@ -83,6 +126,33 @@ export default function Dashboard() {
     load();
     return () => { cancelled = true; };
   }, [activeWorkspace, lang]);
+
+  useEffect(() => {
+    if (!activeWorkspace) return;
+    let cancelled = false;
+
+    async function syncTimer() {
+      try {
+        const res = await timer.logs();
+        const logs = unwrapData(res);
+        const active = Array.isArray(logs) && logs.find(l => l.end == null);
+        if (!cancelled && active) {
+          setFocusActive(true);
+          const started = new Date(active.start);
+          const elapsed = Math.floor((Date.now() - started.getTime()) / 1000);
+          setTimerSeconds(Math.max(0, elapsed));
+          startInterval();
+        }
+      } catch {}
+    }
+
+    syncTimer();
+    return () => { cancelled = true; };
+  }, [activeWorkspace, startInterval]);
+
+  useEffect(() => {
+    return () => clearTimerInterval();
+  }, [clearTimerInterval]);
 
   const firstName = user?.first_name || user?.name?.split(' ')[0] || 'there';
   const completionRate = summary?.completion_rate ?? 0;
@@ -165,6 +235,26 @@ export default function Dashboard() {
               <div style={{ fontSize: 'clamp(18px, 3vw, 24)', fontWeight: 800, color: 'var(--text)', lineHeight: 1 }}>{s.value}</div>
             </div>
           ))}
+        </div>
+
+        <div style={{ ...card, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ width: 40, height: 40, borderRadius: 10, background: focusActive ? 'var(--success)15' : 'var(--brand)15', border: `1px solid ${focusActive ? 'var(--success)30' : 'var(--brand)30'}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Clock size={20} style={{ color: focusActive ? 'var(--success)' : 'var(--brand)' }} />
+            </div>
+            <div>
+              <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Focus Timer</span>
+              <div style={{ fontSize: 28, fontWeight: 800, color: focusActive ? 'var(--success)' : 'var(--text)', lineHeight: 1.2, fontVariantNumeric: 'tabular-nums' }}>{formatTime(timerSeconds)}</div>
+            </div>
+          </div>
+          <button
+            onClick={handleToggleFocus}
+            style={{ padding: '10px 20px', borderRadius: 10, border: 'none', fontSize: 13, fontWeight: 700, cursor: 'pointer', color: '#fff', background: focusActive ? 'var(--danger, #e53e3e)' : 'linear-gradient(135deg, var(--brand), var(--accent))', boxShadow: focusActive ? '0 4px 12px rgba(229,62,62,0.3)' : '0 4px 12px rgba(51,102,255,0.3)', transition: 'all 0.2s' }}
+            onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; }}
+            onMouseLeave={e => { e.currentTarget.style.transform = ''; }}
+          >
+            {focusActive ? 'Stop Focus' : 'Start Focus'}
+          </button>
         </div>
 
         <div style={card}>

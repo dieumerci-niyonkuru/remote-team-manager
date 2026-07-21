@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react';
 import * as tokens from '../styles/tokens';
 import { useStore } from '../store';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { ws, unwrapData } from '../services/api';
+import { ws } from '../services/api';
 import toast from 'react-hot-toast';
 import { getT } from '../i18n';
-import { Briefcase, Users, FolderKanban, CheckSquare, Settings, ArrowLeft, Crown } from 'lucide-react';
+import { Briefcase, Users, FolderKanban, CheckSquare, Settings, ArrowLeft, Crown, Pencil } from 'lucide-react';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { Button } from '../components/common/Button';
 import { Badge } from '../components/common/Badge';
+import { Modal } from '../components/common/Modal';
 
 const cardBase = {
   background: 'var(--bg2)',
@@ -19,12 +20,16 @@ const cardBase = {
 
 export default function WorkspaceDetail() {
   const { id } = useParams();
-  const { setActiveWorkspace, workspaces, user, lang = 'en' } = useStore();
+  const { setActiveWorkspace, updateWorkspace, workspaces, user, lang = 'en' } = useStore();
   const t = getT(lang || 'en');
   const navigate = useNavigate();
   const [workspace, setWorkspace] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editDesc, setEditDesc] = useState('');
+  const [editLoading, setEditLoading] = useState(false);
 
   useEffect(() => {
     const existing = workspaces.find(ws => String(ws.id) === String(id));
@@ -37,6 +42,35 @@ export default function WorkspaceDetail() {
     try { const r = await ws.get(id); setWorkspace(r.data); setActiveWorkspace(r.data); }
     catch (e) { setError(e.message || 'Failed to load'); } finally { setLoading(false); }
   };
+
+  const openEditModal = () => {
+    setEditName(workspace.name || '');
+    setEditDesc(workspace.description || '');
+    setEditOpen(true);
+  };
+
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    if (!editName.trim()) return toast.error('Workspace name is required');
+    setEditLoading(true);
+    try {
+      const res = await ws.update(workspace.id, { name: editName.trim(), description: editDesc.trim() });
+      const updated = res.data;
+      updateWorkspace(workspace.id, updated);
+      setWorkspace(updated);
+      setActiveWorkspace(updated);
+      toast.success('Workspace updated');
+      setEditOpen(false);
+    } catch (err) {
+      const msg = err.response?.data?.detail || err.response?.data?.name?.[0] || 'Failed to update workspace.';
+      toast.error(msg);
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
+  const inputStyle = { width: '100%', background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8, padding: '9px 12px', color: 'var(--text)', fontSize: 13, outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' };
+  const labelStyle = { fontSize: 12, fontWeight: 700, color: 'var(--text2)', marginBottom: 6, display: 'block' };
 
   if (loading) return <div className="p-8 flex items-center justify-center" style={{ minHeight: '100vh', background: 'var(--bg)' }}><LoadingSpinner size={28} /></div>;
   if (error || !workspace) return (
@@ -76,6 +110,7 @@ export default function WorkspaceDetail() {
           </div>
           {isAdmin && (
             <div className="flex gap-2">
+              <Button variant="secondary" leftIcon={<Pencil size={14} />} onClick={openEditModal}>Edit</Button>
               <Link to={`/settings?workspace=${workspace.id}`}><Button variant="secondary" leftIcon={<Settings size={14} />}>Settings</Button></Link>
               <Link to={`/team?workspace=${workspace.id}`}><Button variant="primary" leftIcon={<Users size={14} />}>Manage Team</Button></Link>
             </div>
@@ -101,6 +136,39 @@ export default function WorkspaceDetail() {
           </Link>
         ))}
       </div>
+
+      <Modal isOpen={editOpen} onClose={() => setEditOpen(false)} title="Edit Workspace">
+        <form onSubmit={handleEditSubmit} className="space-y-5">
+          <div>
+            <label style={labelStyle}>Name <span style={{ color: 'var(--danger)' }}>*</span></label>
+            <input
+              type="text"
+              required
+              autoFocus
+              value={editName}
+              onChange={e => setEditName(e.target.value)}
+              placeholder="Workspace name"
+              style={inputStyle}
+            />
+          </div>
+          <div>
+            <label style={labelStyle}>Description</label>
+            <textarea
+              rows={3}
+              value={editDesc}
+              onChange={e => setEditDesc(e.target.value)}
+              placeholder="What is this workspace for?"
+              style={{ ...inputStyle, resize: 'vertical' }}
+            />
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+            <Button variant="secondary" type="button" onClick={() => setEditOpen(false)}>Cancel</Button>
+            <Button variant="primary" type="submit" disabled={editLoading}>
+              {editLoading ? 'Saving…' : 'Save Changes'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }
