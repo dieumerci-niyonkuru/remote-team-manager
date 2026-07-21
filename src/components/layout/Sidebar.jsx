@@ -69,19 +69,6 @@ export default function Sidebar() {
   const SidebarContent = () => (
     <div className="flex flex-col h-full" style={{ background: 'var(--bg2)', color: 'var(--text2)', borderRight: '1px solid var(--border)', transition: 'all 0.3s' }}>
       
-      {/* Brand Logo */}
-      <div className={`px-5 py-6 flex items-center gap-3 ${collapsed ? 'justify-center' : ''}`}>
-        <div 
-          className="w-9 h-9 flex items-center justify-center"
-          style={{ background: 'var(--brand)', borderRadius: tokens.radius.md }}
-        >
-          <img src="/logo.png" alt="RemoteTeam" className="w-6 h-6 object-contain" />
-        </div>
-        {!collapsed && (
-          <span style={{ fontSize: 17, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.02em' }}>Remote<span style={{ color: 'var(--brand)' }}>Team</span></span>
-        )}
-      </div>
-
       {/* Workspace Switcher */}
       <div className="px-3 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
         <button 
