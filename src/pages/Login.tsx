@@ -4,7 +4,7 @@ import { useStore } from '../store';
 import { auth } from '../services/api';
 import { getT } from '../i18n';
 import toast from 'react-hot-toast';
-import { Eye, EyeOff, ArrowRight, ChevronLeft } from 'lucide-react';
+import { Eye, EyeOff, ArrowRight } from 'lucide-react';
 
 export default function Login() {
   const { setUser, lang = 'en' } = useStore();
@@ -45,31 +45,12 @@ export default function Login() {
 
   return (
     <div style={{
-      minHeight: '100vh', display: 'flex', flexDirection: 'column',
+      // Layout already offsets the fixed site header by 80px, so subtract it
+      // here — otherwise the page overflows a full viewport and pushes the
+      // site footer an extra 80px out of reach.
+      minHeight: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column',
       background: 'var(--bg)', fontFamily: 'var(--font-body)',
     }}>
-
-      {/* Top bar */}
-      <div style={{
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        padding: '14px clamp(12px,4vw,24px)', borderBottom: '1px solid var(--border)',
-        background: 'var(--bg)', backdropFilter: 'blur(12px)', position: 'sticky', top: 0, zIndex: 10,
-      }}>
-        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
-          <div style={{ width: 32, height: 32, borderRadius: 8, background: 'linear-gradient(135deg, var(--brand), var(--accent))', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 5, overflow: 'hidden' }}>
-            <img src="/logo.png" alt="RT" style={{ width: '100%', objectFit: 'contain' }} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-          </div>
-          <span style={{ fontSize: 16, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.02em' }}>
-            Remote<span style={{ color: 'var(--brand)' }}>Team</span>
-          </span>
-        </Link>
-        <Link to="/" style={{ fontSize: 13, fontWeight: 600, color: 'var(--text3)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4, transition: 'color 0.2s' }}
-          onMouseEnter={e => { e.currentTarget.style.color = 'var(--brand)'; }}
-          onMouseLeave={e => { e.currentTarget.style.color = 'var(--text3)'; }}
-        >
-          <ChevronLeft size={14} /> Back to home
-        </Link>
-      </div>
 
       {/* Form area with gradient bg */}
       <div style={{

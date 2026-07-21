@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 
 export default function CreateTaskModal({ isOpen, onClose, onCreated }) {
   const { activeWorkspace } = useStore();
-  const [form, setForm] = useState({ title: '', description: '', priority: 'medium', deadline: '' });
+  const [form, setForm] = useState({ title: '', description: '', priority: 'medium', due_date: '' });
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -17,7 +17,7 @@ export default function CreateTaskModal({ isOpen, onClose, onCreated }) {
     try {
       await task.create(activeWorkspace.id, undefined, form);
       toast.success('Task created!');
-      setForm({ title: '', description: '', priority: 'medium', deadline: '' });
+      setForm({ title: '', description: '', priority: 'medium', due_date: '' });
       onClose();
       onCreated?.();
     } catch (err) {
@@ -58,7 +58,7 @@ export default function CreateTaskModal({ isOpen, onClose, onCreated }) {
           </div>
           <div>
             <label style={labelStyle}>Deadline</label>
-            <input type="date" value={form.deadline} onChange={e => setForm({...form, deadline: e.target.value})} style={inputStyle} />
+            <input type="date" value={form.due_date} onChange={e => setForm({...form, due_date: e.target.value})} style={inputStyle} />
           </div>
         </div>
       </form>

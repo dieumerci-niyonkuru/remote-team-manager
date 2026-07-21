@@ -24,7 +24,7 @@ export default function Calendar() {
     try {
       const r = await task.list(activeWorkspace.id);
       const all = unwrapData(r);
-      setTasks(Array.isArray(all) ? all.filter(t => t.deadline) : []);
+      setTasks(Array.isArray(all) ? all.filter(t => t.due_date) : []);
     } catch (e) { toast.error('Failed to load calendar'); } finally { setLoading(false); }
   };
 
@@ -33,7 +33,7 @@ export default function Calendar() {
   const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
   const startPad = getDay(monthStart);
 
-  const tasksForDay = (d) => tasks.filter(t => t.deadline && isSameDay(new Date(t.deadline), d));
+  const tasksForDay = (d) => tasks.filter(t => t.due_date && isSameDay(new Date(t.due_date), d));
   const selectedTasks = tasksForDay(selectedDate);
 
   const statusColor = (s) => ({ todo: 'var(--text3)', in_progress: 'var(--brand)', review: 'var(--warning)', done: 'var(--success)' }[s] || 'var(--text3)');
@@ -96,7 +96,7 @@ export default function Calendar() {
                 <div key={t.id || i} style={{ padding: '10px 12px', background: 'var(--bg3)', borderRadius: 8, borderLeft: `3px solid ${statusColor(t.status)}` }}>
                   <h4 style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', margin: 0 }}>{t.title}</h4>
                   <div className="flex items-center gap-3 mt-1" style={{ fontSize: 11, color: 'var(--text3)' }}>
-                    <span className="flex items-center gap-1"><Clock size={10} /> {format(new Date(t.deadline), 'h:mm a')}</span>
+                    <span className="flex items-center gap-1"><Clock size={10} /> {format(new Date(t.due_date), 'h:mm a')}</span>
                     <span style={{ color: statusColor(t.status), fontWeight: 600 }}>{t.status?.replace('_', ' ')}</span>
                   </div>
                 </div>

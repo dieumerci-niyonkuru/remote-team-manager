@@ -114,25 +114,7 @@ export default function Register() {
   });
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg)', fontFamily: 'var(--font-body)' }}>
-
-      {/* Top bar */}
-      <div style={{
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        padding: '14px clamp(16px,4vw,24px)', borderBottom: '1px solid var(--border)',
-      }}>
-        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
-          <div style={{ width: 32, height: 32, borderRadius: 8, background: 'linear-gradient(135deg, var(--brand), var(--accent))', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 5, overflow: 'hidden' }}>
-            <img src="/logo.png" alt="RT" style={{ width: '100%', objectFit: 'contain' }} onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-          </div>
-          <span style={{ fontSize: 16, fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.02em' }}>
-            Remote<span style={{ color: 'var(--brand)' }}>Team</span>
-          </span>
-        </Link>
-        <Link to="/" style={{ fontSize: 13, fontWeight: 600, color: 'var(--text3)', textDecoration: 'none' }}>
-          Back to home
-        </Link>
-      </div>
+    <div style={{ minHeight: 'calc(100vh - 80px)', display: 'flex', flexDirection: 'column', background: 'var(--bg)', fontFamily: 'var(--font-body)' }}>
 
       {/* Form */}
       <div style={{

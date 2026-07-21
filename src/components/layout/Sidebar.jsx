@@ -35,12 +35,12 @@ export default function Sidebar() {
   const mainLinks = [
     { to: '/dashboard', label: t('nav.dashboard', 'Dashboard'), icon: <LayoutDashboard size={18} /> },
     { to: '/workspaces', label: t('nav.workspaces', 'Workspaces'), icon: <Briefcase size={18} /> },
-    { to: `/workspaces/${activeWorkspace?.id}`, label: 'Workspace Details', icon: <Blocks size={18} /> },
+    { to: `/workspaces/${activeWorkspace?.id}`, label: t('nav.workspace_details', 'Workspace Details'), icon: <Blocks size={18} /> },
     { to: '/projects', label: t('nav.projects', 'Projects'), icon: <FolderKanban size={18} /> },
     { to: '/tasks', label: t('nav.tasks', 'Tasks'), icon: <CheckSquare size={18} /> },
     { to: '/schedule', label: t('nav.schedule', 'Schedule'), icon: <CalendarDays size={18} /> },
     { to: '/team', label: t('nav.team', 'Team'), icon: <Users size={18} /> },
-    { to: '/invitations', label: 'Invitations', icon: <Mail size={18} />, badge: true },
+    { to: '/invitations', label: t('invitations.title', 'Invitations'), icon: <Mail size={18} />, badge: true },
   ];
 
   const adminLinks = isAdmin ? [
@@ -56,7 +56,7 @@ export default function Sidebar() {
 
   const toolsLinks = [
     { to: '/wiki', label: t('nav.wiki', 'Wiki'), icon: <BookOpen size={18} /> },
-    { to: '/okr', label: 'OKRs', icon: <Target size={18} /> },
+    { to: '/okr', label: t('okr.title', 'OKRs'), icon: <Target size={18} /> },
     { to: '/integrations', label: t('nav.integrations', 'Integrations'), icon: <Blocks size={18} /> },
     { to: '/ai', label: t('nav.ai_assistant', 'AI Assistant'), icon: <Sparkles size={18} /> },
   ];
@@ -166,15 +166,18 @@ export default function Sidebar() {
         <NavGroup links={bottomLinks} collapsed={collapsed} />
         
         {/* User Profile Section */}
-        <div className={`mt-3 pt-3 flex items-center gap-3 px-2 ${collapsed ? 'justify-center' : ''}`} style={{ borderTop: '1px solid var(--border)' }}>
-          <Avatar user={user} size={collapsed ? 32 : 36} className="shadow-lg" status="online" />
-          {!collapsed && (
-            <>
+        <div className="mt-3 pt-3 px-2" style={{ borderTop: '1px solid var(--border)' }}>
+          <div className={`flex items-center gap-3 ${collapsed ? 'justify-center' : ''}`}>
+            <Avatar user={user} size={collapsed ? 32 : 36} className="shadow-lg" status="online" />
+            {!collapsed && (
               <div className="flex-1 min-w-0">
                 <p title={user?.first_name ? `${user.first_name} ${user.last_name || ''}` : user?.username} style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', margin: '0 0 1px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user?.first_name ? `${user.first_name} ${user.last_name || ''}` : user?.username}</p>
                 <p title={user?.email} style={{ fontSize: 11, color: 'var(--text3)', fontWeight: 700, textTransform: 'uppercase', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', margin: 0 }}>{user?.email}</p>
               </div>
-              <div className="shrink-0 flex items-center gap-1">
+            )}
+          </div>
+          {!collapsed && (
+            <div className="flex items-center justify-between gap-1 mt-2">
                 <div style={{ display:'flex', gap:2 }}>
                   {[{c:'en',f:'🇬🇧'},{c:'fr',f:'🇫🇷'},{c:'rw',f:'🇷🇼'}].map(l => (
                     <button key={l.c} onClick={() => setLang && setLang(l.c)}
@@ -193,10 +196,9 @@ export default function Sidebar() {
                   title="Logout">
                   <LogOut size={16} />
                 </button>
-              </div>
-            </>
+            </div>
           )}
-          <CreateWorkspaceModal 
+          <CreateWorkspaceModal
             isOpen={showCreateWsModal} 
             onClose={() => setShowCreateWsModal(false)}
             onCreated={(newWs) => setActiveWorkspace(newWs)}

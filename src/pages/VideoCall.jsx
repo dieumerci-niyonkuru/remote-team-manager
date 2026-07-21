@@ -64,6 +64,9 @@ export default function VideoCall() {
   const localStreamRef = useRef(null);
   const remoteStreamsRef = useRef({});
   const [remoteStreams, setRemoteStreams] = useState({});
+  // Mirrors localStreamRef in state: a ref alone never triggers the re-render
+  // the self-view tile needs once the camera finishes opening.
+  const [localStream, setLocalStream] = useState(null);
   const pcRef = useRef({});
   const wsRef = useRef(null);
   const chatEndRef = useRef(null);
@@ -112,6 +115,7 @@ export default function VideoCall() {
       localStreamRef.current.getTracks().forEach(t => t.stop());
       localStreamRef.current = null;
     }
+    setLocalStream(null);
     if (wsRef.current) {
       wsRef.current.close();
       wsRef.current = null;
@@ -133,6 +137,7 @@ export default function VideoCall() {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         if (unmounted) { stream.getTracks().forEach(t => t.stop()); return; }
         localStreamRef.current = stream;
+        setLocalStream(stream);
         setVideoOn(true);
         setAudioOn(true);
       } catch {
@@ -155,9 +160,14 @@ export default function VideoCall() {
         let msg;
         try { msg = JSON.parse(evt.data); } catch { return; }
 
+        // The channel layer echoes room messages back to the sender, and some
+        // frames arrive without a user id. Either one would otherwise be added
+        // as a phantom peer — rendering a "User undefined" tile with no React
+        // key. Drop anything that is not a real remote participant.
+        if (msg.user == null || msg.user === user?.id) return;
+
         if (msg.type === 'user_joined') {
           const peerId = msg.user;
-          if (peerId === user?.id) return;
           if (!participantNamesRef.current[peerId]) {
             participantNamesRef.current[peerId] = msg.name || `User ${peerId}`;
             setParticipantNames({ ...participantNamesRef.current });
@@ -331,7 +341,7 @@ export default function VideoCall() {
         <div style={{ display: 'grid', gridTemplateColumns: participants.length <= 1 ? '1fr' : participants.length <= 4 ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)', gap: 4, padding: 4, height: 'calc(100vh - 64px)' }}>
           {localUserId && (
             <VideoTile
-              stream={localStreamRef.current}
+              stream={localStream}
               name={`${user?.first_name || user?.username || 'You'} (You)`}
               isLocal
               audioOff={!audioOn}
@@ -362,7 +372,7 @@ export default function VideoCall() {
 
         <div style={{ position: 'absolute', bottom: 16, right: 16, width: 160, height: 120, borderRadius: 8, overflow: 'hidden', border: '2px solid rgba(255,255,255,0.15)', boxShadow: '0 4px 16px rgba(0,0,0,0.4)', zIndex: 10 }}>
           <VideoTile
-            stream={localStreamRef.current}
+            stream={localStream}
             name="You"
             isLocal
             audioOff={!audioOn}

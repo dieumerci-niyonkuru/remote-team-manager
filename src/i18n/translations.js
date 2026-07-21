@@ -890,6 +890,131 @@ const translations = {
     fr: "Accepter l'invitation",
     rw: 'Emera inzabitso',
   },
+
+  'nav.workspace_details': {
+    en: 'Workspace Details',
+    fr: "Détails de l'espace",
+    rw: "Ibisobanuro by'ikibanza",
+  },
+
+  // ─── Page titles ───────────────────────────────────────────
+  // Terminology matches the matching nav.* entries above.
+  'workspaces.title': {
+    en: 'Workspaces',
+    fr: 'Espaces de travail',
+    rw: "Ibibanza by'akazi",
+  },
+  'schedule.title': {
+    en: 'Schedule',
+    fr: 'Planning',
+    rw: 'Gahunda',
+  },
+  'calendar.title': {
+    en: 'Calendar',
+    fr: 'Calendrier',
+    rw: 'Kalendari',
+  },
+  'wiki.title': {
+    en: 'Wiki',
+    fr: 'Wiki',
+    rw: 'Wiki',
+  },
+  'search.title': {
+    en: 'Search',
+    fr: 'Rechercher',
+    rw: 'Shakisha',
+  },
+  'integrations.title': {
+    en: 'Integrations',
+    fr: 'Intégrations',
+    rw: 'Guhuza',
+  },
+  'activity.title': {
+    en: 'Activity',
+    fr: 'Activité',
+    rw: 'Ibikorwa',
+  },
+  'invitations.title': {
+    en: 'Invitations',
+    fr: 'Invitations',
+    rw: 'Ubutumire',
+  },
+  'automations.title': {
+    en: 'Automations',
+    fr: 'Automatisations',
+    rw: 'Ibikorwa byikora',
+  },
+  'okr.title': {
+    en: 'OKRs',
+    fr: 'OKR',
+    rw: 'OKR',
+  },
+  'hr.title': {
+    en: 'Human Resources',
+    fr: 'Ressources humaines',
+    rw: 'Abakozi',
+  },
+
+  // ─── AI assistant ──────────────────────────────────────────
+  'ai.title': {
+    en: 'AI Assistant',
+    fr: 'Assistant IA',
+    rw: 'Umufasha wa AI',
+  },
+  'ai.insights': {
+    en: 'Workspace Insights',
+    fr: "Aperçus de l'espace de travail",
+    rw: "Ubushishozi ku kibanza cy'akazi",
+  },
+  'ai.summary': {
+    en: 'Task Summary',
+    fr: 'Résumé des tâches',
+    rw: "Incamake y'imirimo",
+  },
+  'ai.writing': {
+    en: 'AI Writing Assistant',
+    fr: "Assistant de rédaction IA",
+    rw: 'Umufasha wo kwandika wa AI',
+  },
+
+  // ─── Dashboard messages ────────────────────────────────────
+  'dashboard.load_failed': {
+    en: 'Failed to load dashboard',
+    fr: 'Échec du chargement du tableau de bord',
+    rw: 'Kuzana ikibaho byanze',
+  },
+  'dashboard.timer_failed': {
+    en: 'Timer action failed',
+    fr: 'Échec de l\'action du minuteur',
+    rw: 'Igikorwa cy\'isaha cyanze',
+  },
+
+  // ─── Workspace actions ─────────────────────────────────────
+  'workspaces.create': {
+    en: 'Create Workspace',
+    fr: 'Créer un espace de travail',
+    rw: "Rema ikibanza cy'akazi",
+  },
+  'workspaces.deleted': {
+    en: 'Workspace deleted',
+    fr: 'Espace de travail supprimé',
+    rw: 'Ikibanza cyasibwe',
+  },
+  'workspaces.delete_failed': {
+    en: 'Failed to delete',
+    fr: 'Échec de la suppression',
+    rw: 'Gusiba byanze',
+  },
+  'workspaces.empty_title': {
+    en: 'No workspaces yet',
+    fr: 'Aucun espace de travail',
+    rw: "Nta kibanza cy'akazi kiraboneka",
+  },
+  'workspaces.empty_desc': {
+    en: 'Create your first workspace to start collaborating.',
+    fr: 'Créez votre premier espace de travail pour commencer à collaborer.',
+    rw: "Rema ikibanza cyawe cya mbere kugira ngo utangire gukorana.",
+  },
 };
 
 export default translations;

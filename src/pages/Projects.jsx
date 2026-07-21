@@ -282,9 +282,9 @@ export default function Projects() {
                           <Badge variant={t.priority === 'urgent' ? 'danger' : t.priority === 'high' ? 'warning' : t.priority === 'medium' ? 'primary' : 'ghost'} size="xs">
                             {t.priority}
                           </Badge>
-                          {t.deadline && (
+                          {t.due_date && (
                             <span style={{ fontSize: 11, color: 'var(--text3)', flexShrink: 0 }}>
-                              {format(new Date(t.deadline), 'MMM d')}
+                              {format(new Date(t.due_date), 'MMM d')}
                             </span>
                           )}
                           <button

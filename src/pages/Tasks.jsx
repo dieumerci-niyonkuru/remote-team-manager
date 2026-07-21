@@ -223,7 +223,7 @@ export default function Tasks() {
                   </span>
                 )}
 
-                {t.deadline && (
+                {t.due_date && (
                   <span className="hidden sm:flex" style={{
                     alignItems: 'center',
                     gap: 4,
@@ -231,7 +231,7 @@ export default function Tasks() {
                     fontSize: 11,
                     color: 'var(--text3)',
                   }}>
-                    {format(new Date(t.deadline), 'MMM d')}
+                    {format(new Date(t.due_date), 'MMM d')}
                   </span>
                 )}
 
@@ -380,7 +380,7 @@ function CreateTaskModal({ isOpen, onClose, onCreated }) {
     if (!title.trim() || !selectedWs || !projectId) return;
     setLoading(true);
     try {
-      const payload = { title, description, status, priority, deadline: deadline || undefined };
+      const payload = { title, description, status, priority, due_date: deadline || undefined };
       await task.create(Number(selectedWs), Number(projectId), payload);
       toast.success('Task created!');
       resetForm();

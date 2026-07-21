@@ -145,6 +145,20 @@ export default function Header() {
 
           {/* Desktop Nav */}
           <nav ref={navRef} className="hdr-desktop" style={{ display: 'flex', alignItems: 'center', gap: 2, height: '100%' }}>
+            <Link to="/" style={{
+              fontSize: 13, fontWeight: 700, padding: '8px 14px', borderRadius: 10,
+              textDecoration: 'none', color: pathname === '/' ? 'var(--brand)' : 'var(--text2)',
+              background: pathname === '/' ? 'var(--brand-bg)' : 'transparent',
+              transition: '0.2s', height: '100%', display: 'flex', alignItems: 'center',
+            }}
+              onMouseEnter={e => { e.currentTarget.style.color = 'var(--brand)'; e.currentTarget.style.background = 'var(--brand-bg)'; }}
+              onMouseLeave={e => {
+                e.currentTarget.style.color = pathname === '/' ? 'var(--brand)' : 'var(--text2)';
+                e.currentTarget.style.background = pathname === '/' ? 'var(--brand-bg)' : 'transparent';
+              }}
+            >
+              {t('nav.home', 'Home')}
+            </Link>
             <Link to="/about" style={{
               fontSize: 13, fontWeight: 700, padding: '8px 14px', borderRadius: 10,
               textDecoration: 'none', color: pathname === '/about' ? 'var(--brand)' : 'var(--text2)',
@@ -253,6 +267,7 @@ export default function Header() {
 
           {/* Simple links */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 20 }}>
+            <Link to="/" onClick={() => setShowMenu(false)} className="mobile-nav-link" style={{ textAlign: 'center' }}>{t('nav.home', 'Home')}</Link>
             <Link to="/about" onClick={() => setShowMenu(false)} className="mobile-nav-link" style={{ textAlign: 'center' }}>{t('nav.about', 'About Us')}</Link>
           </div>
 

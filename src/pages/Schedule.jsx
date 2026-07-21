@@ -45,24 +45,24 @@ export default function Schedule() {
   const now = startOfDay(new Date());
 
   const upcoming = tasks.filter(t => {
-    if (!t.deadline) return false;
-    return isAfter(new Date(t.deadline), now) || format(new Date(t.deadline), 'yyyy-MM-dd') === format(now, 'yyyy-MM-dd');
+    if (!t.due_date) return false;
+    return isAfter(new Date(t.due_date), now) || format(new Date(t.due_date), 'yyyy-MM-dd') === format(now, 'yyyy-MM-dd');
   });
 
   const overdue = tasks.filter(t => {
-    if (!t.deadline) return false;
-    const d = new Date(t.deadline);
+    if (!t.due_date) return false;
+    const d = new Date(t.due_date);
     return d < now && t.status !== 'done';
   });
 
   const today = tasks.filter(t => {
-    if (!t.deadline) return false;
-    return format(new Date(t.deadline), 'yyyy-MM-dd') === format(now, 'yyyy-MM-dd');
+    if (!t.due_date) return false;
+    return format(new Date(t.due_date), 'yyyy-MM-dd') === format(now, 'yyyy-MM-dd');
   });
 
   const thisWeek = tasks.filter(t => {
-    if (!t.deadline) return false;
-    const d = new Date(t.deadline);
+    if (!t.due_date) return false;
+    const d = new Date(t.due_date);
     const weekEnd = new Date(now);
     weekEnd.setDate(weekEnd.getDate() + 7);
     return d > now && d <= weekEnd && format(d, 'yyyy-MM-dd') !== format(now, 'yyyy-MM-dd');
@@ -72,7 +72,7 @@ export default function Schedule() {
   const source = view === 'upcoming' ? upcoming : view === 'overdue' ? overdue : view === 'today' ? today : view === 'week' ? thisWeek : tasks;
 
   source.forEach(t => {
-    const key = t.deadline ? format(new Date(t.deadline), 'yyyy-MM-dd') : 'No Date';
+    const key = t.due_date ? format(new Date(t.due_date), 'yyyy-MM-dd') : 'No Date';
     if (!grouped[key]) grouped[key] = [];
     grouped[key].push(t);
   });
@@ -125,9 +125,9 @@ export default function Schedule() {
               </h3>
               <div className="space-y-2">
                 {grouped[date].sort((a, b) => {
-                  if (!a.deadline) return 1;
-                  if (!b.deadline) return -1;
-                  return new Date(a.deadline) - new Date(b.deadline);
+                  if (!a.due_date) return 1;
+                  if (!b.due_date) return -1;
+                  return new Date(a.due_date) - new Date(b.due_date);
                 }).map((tk, i) => {
                   const st = STATUS_MAP[tk.status] || STATUS_MAP.todo;
                   return (
@@ -142,10 +142,10 @@ export default function Schedule() {
                           {tk.project_name && <span style={{ fontSize: 11, color: 'var(--text3)' }}>{tk.project_name}</span>}
                         </div>
                       </div>
-                      {tk.deadline && (
+                      {tk.due_date && (
                         <span className="flex items-center gap-1 shrink-0" style={{ fontSize: 11, color: 'var(--text3)' }}>
                           <Clock size={11} />
-                          {format(new Date(tk.deadline), 'h:mm a')}
+                          {format(new Date(tk.due_date), 'h:mm a')}
                         </span>
                       )}
                       <div style={{ padding: '3px 8px', borderRadius: 6, fontSize: 10, fontWeight: 700, background: `${st.color}15`, color: st.color, textTransform: 'uppercase', letterSpacing: '0.05em' }}>

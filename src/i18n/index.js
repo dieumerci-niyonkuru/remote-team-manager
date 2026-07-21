@@ -17,13 +17,22 @@ import { useStore } from '../store';
 import translations from './translations';
 
 /**
+ * Internal lookup. Returns undefined when the key is unknown so that callers
+ * can distinguish "missing" from "translated". Never returns the raw key —
+ * that decision belongs to the caller.
+ */
+function lookup(key, lang) {
+  const entry = translations[key];
+  if (!entry) return undefined;
+  return entry[lang] ?? entry['en'];
+}
+
+/**
  * Resolve a translation key for the given language.
  * Falls back to English, then to the raw key if unknown.
  */
 export function t(key, lang = 'en') {
-  const entry = translations[key];
-  if (!entry) return key;
-  return entry[lang] ?? entry['en'] ?? key;
+  return lookup(key, lang) ?? key;
 }
 
 /**
@@ -32,7 +41,7 @@ export function t(key, lang = 'en') {
  */
 export function useT() {
   const lang = useStore((s) => s.lang ?? 'en');
-  return (key, fallback) => t(key, lang) || fallback || key;
+  return (key, fallback) => lookup(key, lang) ?? fallback ?? key;
 }
 
 /**
@@ -41,7 +50,7 @@ export function useT() {
  * Equivalent to: (key) => t(key, lang)
  */
 export function getT(lang = 'en') {
-  return (key, fallback) => t(key, lang) || fallback || key;
+  return (key, fallback) => lookup(key, lang) ?? fallback ?? key;
 }
 
 /**
