@@ -4,7 +4,7 @@ import { useStore } from '../store';
 import api, { chat, ws as wsApi, presence, calls, unwrapData } from '../services/api';
 import toast from 'react-hot-toast';
 import { getT } from '../i18n';
-import { Hash, Send, Plus, MessageSquare, X, Users, Search, Reply, ChevronLeft, Video, Trash2, Smile } from 'lucide-react';
+import { Hash, Send, Plus, MessageSquare, X, Users, Search, Reply, ChevronLeft, Video, Trash2, Smile, LogOut, Paperclip, Pin } from 'lucide-react';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { Avatar } from '../components/common/Avatar';
 
@@ -62,6 +62,14 @@ export default function Chat() {
   const [showEmojiPicker, setShowEmojiPicker] = useState(null);
   const [messageReactions, setMessageReactions] = useState({});
 
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [searching, setSearching] = useState(false);
+  const searchTimerRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const [highlightedMsgId, setHighlightedMsgId] = useState(null);
+
   useEffect(() => {
     if (!activeWorkspace) return;
     loadChannels();
@@ -91,6 +99,20 @@ export default function Chat() {
   useEffect(() => {
     if (!isMobile) setShowSidebar(true);
   }, [isMobile]);
+
+  useEffect(() => {
+    if (!showSearch || !activeChannel) return;
+    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+    if (!searchQuery.trim()) { setSearchResults([]); return; }
+    setSearching(true);
+    searchTimerRef.current = setTimeout(async () => {
+      try {
+        const res = await chat.searchMessages(activeChannel.id, searchQuery.trim());
+        setSearchResults(unwrapData(res));
+      } catch { setSearchResults([]); } finally { setSearching(false); }
+    }, 300);
+    return () => { if (searchTimerRef.current) clearTimeout(searchTimerRef.current); };
+  }, [searchQuery, showSearch, activeChannel]);
 
   const loadChannels = async () => {
     setLoadingChannels(true);
@@ -260,6 +282,55 @@ export default function Chat() {
     }
   };
 
+  const handleLeaveChannel = async () => {
+    if (!activeChannel || activeChannel.is_dm) return;
+    try {
+      await chat.leaveChannel(activeChannel.id);
+      setChannels(prev => prev.filter(c => c.id !== activeChannel.id));
+      const remaining = channels.filter(c => c.id !== activeChannel.id);
+      setActiveChannel(remaining.length > 0 ? remaining[0] : null);
+      toast.success(`Left #${activeChannel.name}`);
+    } catch {
+      toast.error('Failed to leave channel');
+    }
+  };
+
+  const handleFileSelect = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !activeChannel) return;
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('workspace', activeWorkspace.id);
+    formData.append('content_type', 'chat_message');
+    try {
+      const res = await chat.uploadFile(formData);
+      const uploaded = unwrapData(res);
+      const fileUrl = uploaded?.url || uploaded?.file || file.name;
+      await chat.sendMessage({ channel: activeChannel.id, content: fileUrl });
+      await loadMessages();
+      toast.success('File sent');
+    } catch {
+      toast.error('Failed to upload file');
+    }
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handlePinMessage = async (msgId) => {
+    try {
+      await chat.pinMessage(msgId);
+      toast.success('Message pinned');
+    } catch {
+      toast.error('Failed to pin message');
+    }
+  };
+
+  const scrollToMessage = (msgId) => {
+    setHighlightedMsgId(msgId);
+    const el = document.getElementById(`msg-${msgId}`);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(() => setHighlightedMsgId(null), 3000);
+  };
+
   const handleDeleteMessage = async (msgId) => {
     if (!confirm('Delete this message?')) return;
     try {
@@ -393,7 +464,7 @@ export default function Chat() {
       return acc;
     }, {});
     return (
-      <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexDirection: isMe ? 'row-reverse' : 'row' }}>
+      <div id={`msg-${msg.id}`} style={{ display: 'flex', gap: 8, marginBottom: 10, flexDirection: isMe ? 'row-reverse' : 'row', background: highlightedMsgId === msg.id ? 'var(--brand-bg)' : 'transparent', borderRadius: 8, padding: highlightedMsgId === msg.id ? '4px 0' : 0, transition: 'background 0.3s' }}>
         <Avatar user={sender} size={isMobile ? 26 : 28} style={{ marginTop: 2, flexShrink: 0 }} />
         <div style={{ maxWidth: maxW, textAlign: isMe ? 'right' : 'left' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4, justifyContent: isMe ? 'flex-end' : 'flex-start' }}>
@@ -440,6 +511,14 @@ export default function Chat() {
                 onMouseLeave={e => e.currentTarget.style.color = 'var(--text3)'}
                 title="Delete message">
                 <Trash2 size={12} />
+              </button>
+            )}
+            {!isThread && (
+              <button onClick={() => handlePinMessage(msg.id)} style={{ background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer', padding: '2px 4px', display: 'flex', alignItems: 'center', fontSize: 11 }}
+                onMouseEnter={e => e.currentTarget.style.color = 'var(--brand)'}
+                onMouseLeave={e => e.currentTarget.style.color = 'var(--text3)'}
+                title="Pin message">
+                <Pin size={12} />
               </button>
             )}
             {showEmojiPicker === msg.id && (
@@ -511,11 +590,40 @@ export default function Chat() {
               ) : (
                 <Hash size={isMobile ? 14 : 16} style={{ color: 'var(--brand)', flexShrink: 0 }} />
               )}
-              <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ flex: 1, minWidth: 0, position: 'relative' }}>
                 <h2 title={threadMsg ? 'Thread' : activeChannel?.name || 'Select a channel'} style={{ fontSize: isMobile ? 13 : 14, fontWeight: 700, color: 'var(--text)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {threadMsg ? `Thread` : activeChannel?.name || 'Select a channel'}
                 </h2>
-                {!threadMsg && activeChannel?.description && <p style={{ fontSize: 11, color: 'var(--text3)', margin: '1px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{activeChannel.description}</p>}
+                {!threadMsg && showSearch && activeChannel ? (
+                  <div style={{ position: 'relative' }}>
+                    <input autoFocus value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+                      placeholder="Search messages..." style={{ width: '100%', background: 'var(--bg3)', border: '1px solid var(--brand)', borderRadius: 6, padding: '4px 8px', color: 'var(--text)', fontSize: 11, outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box', marginTop: 2 }} />
+                    {searchQuery.trim() && (
+                      <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 8, maxHeight: 260, overflowY: 'auto', zIndex: 30, boxShadow: '0 4px 16px rgba(0,0,0,0.3)', marginTop: 4 }}>
+                        {searching ? (
+                          <div style={{ padding: 12, display: 'flex', justifyContent: 'center' }}><LoadingSpinner size={14} /></div>
+                        ) : searchResults.length === 0 ? (
+                          <p style={{ fontSize: 11, color: 'var(--text3)', textAlign: 'center', padding: 12, margin: 0 }}>No results found</p>
+                        ) : (
+                          searchResults.map(r => (
+                            <button key={r.id} onClick={() => { scrollToMessage(r.id); setShowSearch(false); setSearchQuery(''); setSearchResults([]); }}
+                              style={{ display: 'block', width: '100%', textAlign: 'left', background: 'transparent', border: 'none', borderBottom: '1px solid var(--border)', padding: '8px 10px', cursor: 'pointer', fontFamily: 'inherit' }}
+                              onMouseEnter={e => e.currentTarget.style.background = 'var(--bg3)'}
+                              onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                                <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text)' }}>{r.sender?.first_name || r.user?.first_name || 'Unknown'}</span>
+                                <span style={{ fontSize: 10, color: 'var(--text3)' }}>{r.created_at ? new Date(r.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}</span>
+                              </div>
+                              <p style={{ fontSize: 12, color: 'var(--text)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.content}</p>
+                            </button>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ) : !threadMsg && activeChannel?.description && (
+                  <p style={{ fontSize: 11, color: 'var(--text3)', margin: '1px 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{activeChannel.description}</p>
+                )}
                 {threadMsg && <p style={{ fontSize: 11, color: 'var(--text3)', margin: '1px 0 0' }}>{threadReplies.length} replies</p>}
               </div>
               {!threadMsg && activeChannel && (
@@ -526,6 +634,18 @@ export default function Chat() {
               {!threadMsg && (
                 <button onClick={toggleMembers} style={{ width: 32, height: 32, borderRadius: 8, background: showMembers ? 'var(--brand)' : 'var(--bg3)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: showMembers ? '#fff' : 'var(--text3)', flexShrink: 0 }}>
                   <Users size={15} />
+                </button>
+              )}
+              {!threadMsg && activeChannel && (
+                <button onClick={() => { setShowSearch(prev => !prev); setSearchQuery(''); setSearchResults([]); }} title="Search messages" style={{ width: 32, height: 32, borderRadius: 8, background: showSearch ? 'var(--brand)' : 'var(--bg3)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: showSearch ? '#fff' : 'var(--text3)', flexShrink: 0 }}>
+                  <Search size={15} />
+                </button>
+              )}
+              {!threadMsg && activeChannel && !activeChannel.is_dm && (
+                <button onClick={handleLeaveChannel} title="Leave channel" style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--bg3)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text3)', flexShrink: 0 }}
+                  onMouseEnter={e => e.currentTarget.style.color = 'var(--danger)'}
+                  onMouseLeave={e => e.currentTarget.style.color = 'var(--text3)'}>
+                  <LogOut size={15} />
                 </button>
               )}
             </div>
@@ -615,6 +735,12 @@ export default function Chat() {
             {/* Input */}
             {!threadMsg ? (
               <form onSubmit={handleSend} style={{ padding: isMobile ? '8px 10px' : '10px 16px', borderTop: '1px solid var(--border)', display: 'flex', gap: 8, alignItems: 'center' }}>
+                <input type="file" ref={fileInputRef} onChange={handleFileSelect} style={{ display: 'none' }} />
+                <button type="button" onClick={() => fileInputRef.current?.click()} disabled={!activeChannel} title="Attach file" style={{ background: 'none', border: 'none', color: activeChannel ? 'var(--text3)' : 'var(--text3)', cursor: activeChannel ? 'pointer' : 'default', padding: '4px', display: 'flex', alignItems: 'center', flexShrink: 0, opacity: activeChannel ? 1 : 0.5 }}
+                  onMouseEnter={e => { if (activeChannel) e.currentTarget.style.color = 'var(--brand)'; }}
+                  onMouseLeave={e => e.currentTarget.style.color = 'var(--text3)'}>
+                  <Paperclip size={isMobile ? 18 : 16} />
+                </button>
                 <input value={newMsg} onChange={e => setNewMsg(e.target.value)} onKeyDown={handleKeyDown}
                   placeholder={activeChannel ? `Message #${activeChannel.name}...` : 'Select a channel'}
                   disabled={!activeChannel || sending}

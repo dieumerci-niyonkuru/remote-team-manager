@@ -4,7 +4,8 @@ import { useStore } from '../store';
 import { okr, unwrapData } from '../services/api';
 import toast from 'react-hot-toast';
 import { getT } from '../i18n';
-import { Target, CheckCircle2, Circle, Minus, Plus, Trash2, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { Target, CheckCircle2, Circle, Minus, Plus, Trash2, Pencil, X, ChevronDown, ChevronUp } from 'lucide-react';
+import Modal from '../components/common/Modal';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { EmptyState } from '../components/common/EmptyState';
 import { Button } from '../components/common/Button';
@@ -30,6 +31,9 @@ export default function OKR() {
   const [showObjModal, setShowObjModal] = useState(false);
   const [objForm, setObjForm] = useState({ title: '', description: '' });
   const [creatingObj, setCreatingObj] = useState(false);
+  const [editObjTarget, setEditObjTarget] = useState(null);
+  const [editObjForm, setEditObjForm] = useState({ title: '', description: '' });
+  const [updatingObj, setUpdatingObj] = useState(false);
   const [expandedObj, setExpandedObj] = useState(null);
   const [showKRModal, setShowKRModal] = useState(null);
   const [krForm, setKrForm] = useState({ title: '', status: 'on_track', target_value: '', current_value: '' });
@@ -79,6 +83,22 @@ export default function OKR() {
       toast.error('Failed to create objective');
     } finally {
       setCreatingObj(false);
+    }
+  };
+
+  const handleEditObjective = async (e) => {
+    e.preventDefault();
+    if (!editObjForm.title.trim() || !editObjTarget) return;
+    setUpdatingObj(true);
+    try {
+      await okr.updateObjective(editObjTarget.id, { title: editObjForm.title.trim(), description: editObjForm.description.trim() });
+      toast.success('Objective updated');
+      setEditObjTarget(null);
+      load();
+    } catch {
+      toast.error('Failed to update objective');
+    } finally {
+      setUpdatingObj(false);
     }
   };
 
@@ -181,6 +201,9 @@ export default function OKR() {
                       <button onClick={() => setExpandedObj(isExpanded ? null : obj.id)} style={{ background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer', padding: 2 }}>
                         {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                       </button>
+                      <button onClick={() => { setEditObjTarget(obj); setEditObjForm({ title: obj.title || obj.objective || '', description: obj.description || '' }); }} style={{ background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer', padding: 2 }} onMouseEnter={e => e.currentTarget.style.color = 'var(--brand)'} onMouseLeave={e => e.currentTarget.style.color = 'var(--text3)'}>
+                        <Pencil size={13} />
+                      </button>
                       <button onClick={() => handleDeleteObjective(obj.id)} style={{ background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer', padding: 2 }}>
                         <Trash2 size={13} />
                       </button>
@@ -280,7 +303,7 @@ export default function OKR() {
       )}
 
       {showKRModal && (
-        <div onClick={() => setShowKRModal(null)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+        <Modal onClose={() => setShowKRModal(null)}>
           <div onClick={e => e.stopPropagation()} style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 12, padding: 24, width: 400, maxWidth: '90vw' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
               <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', margin: 0 }}>Add Key Result</h3>
@@ -321,7 +344,32 @@ export default function OKR() {
               </div>
             </form>
           </div>
-        </div>
+        </Modal>
+      )}
+
+      {editObjTarget && (
+        <Modal onClose={() => setEditObjTarget(null)}>
+          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 12, padding: 24, width: 400, maxWidth: '90vw' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text)', margin: 0 }}>Edit Objective</h3>
+              <button onClick={() => setEditObjTarget(null)} style={{ background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer', padding: 4 }}><X size={18} /></button>
+            </div>
+            <form onSubmit={handleEditObjective}>
+              <label style={{ display: 'block', marginBottom: 12 }}>
+                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', display: 'block', marginBottom: 4 }}>Title</span>
+                <input value={editObjForm.title} onChange={e => setEditObjForm({ ...editObjForm, title: e.target.value })} placeholder="e.g. Increase Q4 revenue" autoFocus style={inputStyle} required />
+              </label>
+              <label style={{ display: 'block', marginBottom: 16 }}>
+                <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)', display: 'block', marginBottom: 4 }}>Description (optional)</span>
+                <textarea value={editObjForm.description} onChange={e => setEditObjForm({ ...editObjForm, description: e.target.value })} placeholder="What does this objective aim to achieve?" rows={3} style={{ ...inputStyle, resize: 'vertical' }} />
+              </label>
+              <div className="flex gap-2 justify-end">
+                <Button variant="ghost" onClick={() => setEditObjTarget(null)}>Cancel</Button>
+                <Button variant="primary" type="submit" loading={updatingObj}>Save Changes</Button>
+              </div>
+            </form>
+          </div>
+        </Modal>
       )}
     </div>
   );

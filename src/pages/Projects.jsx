@@ -4,7 +4,7 @@ import { useStore } from '../store';
 import toast from 'react-hot-toast';
 import { getT } from '../i18n';
 import { format } from 'date-fns';
-import { FolderKanban, Plus, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
+import { FolderKanban, Plus, Trash2, Pencil, ChevronDown, ChevronRight } from 'lucide-react';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { EmptyState } from '../components/common/EmptyState';
 import { Button } from '../components/common/Button';
@@ -49,6 +49,7 @@ export default function Projects() {
   const [expandedId, setExpandedId] = useState(null);
   const [projectTasks, setProjectTasks] = useState({});
   const [loadingTasks, setLoadingTasks] = useState({});
+  const [editTarget, setEditTarget] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
@@ -213,6 +214,24 @@ export default function Projects() {
                   {format(new Date(p.created_at), 'MMM d, yyyy')}
                 </span>
                 <button
+                  onClick={(e) => { e.stopPropagation(); setEditTarget(p); }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    padding: 4,
+                    cursor: 'pointer',
+                    color: 'var(--text3)',
+                    borderRadius: 6,
+                    display: 'flex',
+                    alignItems: 'center',
+                    transition: 'color 0.15s',
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--brand)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text3)'; }}
+                >
+                  <Pencil size={14} />
+                </button>
+                <button
                   onClick={(e) => { e.stopPropagation(); setDeleteTarget(p); }}
                   style={{
                     background: 'none',
@@ -288,6 +307,18 @@ export default function Projects() {
       )}
 
       <CreateProjectModal isOpen={showCreate} onClose={() => setShowCreate(false)} onCreated={loadProjects} />
+
+      {editTarget && (
+        <EditProjectModal
+          isOpen
+          onClose={() => setEditTarget(null)}
+          project={editTarget}
+          onUpdated={(updated) => {
+            setProjects((prev) => prev.map((p) => p.id === updated.id ? updated : p));
+            setEditTarget(null);
+          }}
+        />
+      )}
 
       {deleteTarget && (
         <Modal
@@ -380,6 +411,104 @@ function CreateProjectModal({ isOpen, onClose, onCreated }) {
             ))}
           </select>
         </div>
+        <div>
+          <label style={labelStyle}>Project Name *</label>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Project name"
+            required
+            style={inputStyle}
+          />
+        </div>
+        <div>
+          <label style={labelStyle}>Description</label>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={3}
+            placeholder="Project description"
+            style={{ ...inputStyle, resize: 'vertical' }}
+          />
+        </div>
+        <div>
+          <label style={labelStyle}>Status</label>
+          <select
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+            style={{ ...inputStyle, cursor: 'pointer' }}
+          >
+            <option value="active">Active</option>
+            <option value="on_hold">On Hold</option>
+            <option value="completed">Completed</option>
+            <option value="archived">Archived</option>
+          </select>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function EditProjectModal({ isOpen, onClose, project, onUpdated }) {
+  const { activeWorkspace } = useStore();
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [status, setStatus] = useState('active');
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (isOpen && project) {
+      setName(project.name);
+      setDescription(project.description || '');
+      setStatus(project.status);
+    }
+  }, [isOpen, project]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!name.trim()) return;
+    setLoading(true);
+    try {
+      const res = await proj.update(activeWorkspace.id, project.id, { name, description, status });
+      const updated = unwrapData(res);
+      toast.success('Project updated!');
+      onClose();
+      onUpdated?.(updated);
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Failed to update project');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const inputStyle = {
+    width: '100%',
+    background: 'var(--bg3)',
+    border: '1px solid var(--border)',
+    borderRadius: 8,
+    padding: '9px 12px',
+    color: 'var(--text)',
+    fontSize: 13,
+    outline: 'none',
+    fontFamily: 'inherit',
+    boxSizing: 'border-box',
+  };
+
+  const labelStyle = { fontSize: 12, fontWeight: 700, color: 'var(--text2)', marginBottom: 6, display: 'block' };
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Edit Project"
+      footer={
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+          <Button variant="ghost" onClick={onClose}>Cancel</Button>
+          <Button variant="primary" onClick={handleSubmit} loading={loading}>Save Changes</Button>
+        </div>
+      }
+    >
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label style={labelStyle}>Project Name *</label>
           <input

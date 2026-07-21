@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import { useStore } from '../../store'
+import { auth } from '../../services/api'
 import Header from './Header'
 import Footer from './Footer'
 import Sidebar from './Sidebar'
@@ -13,15 +14,31 @@ import { a11yStyles } from '../../styles/a11y'
 import { ChevronDown, Plus, Check } from 'lucide-react'
 
 export default function Layout({ showFooter = true }) {
-  const { theme, isAuth, setWorkspaces, workspaces, activeWorkspace, setActiveWorkspace } = useStore()
+  const { theme, isAuth, user, setUser, setWorkspaces, workspaces, activeWorkspace, setActiveWorkspace, logout } = useStore()
   const [showWsMenu, setShowWsMenu] = useState(false)
   const [showCreateWs, setShowCreateWs] = useState(false)
+  const [authChecked, setAuthChecked] = useState(false)
   
   React.useEffect(() => {
     const root = window.document.documentElement;
     root.classList.remove('light', 'dark');
     root.classList.add(theme);
   }, [theme]);
+
+  // Validate token on mount — refresh user state if token exists but user is null
+  React.useEffect(() => {
+    const token = localStorage.getItem('rtm_access');
+    if (token && !user) {
+      auth.me().then(res => {
+        const data = res.data?.data || res.data;
+        if (data) setUser(data);
+      }).catch(() => {
+        logout();
+      }).finally(() => setAuthChecked(true));
+    } else {
+      setAuthChecked(true);
+    }
+  }, []);
 
   React.useEffect(() => {
     if (isAuth) {

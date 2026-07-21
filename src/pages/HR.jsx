@@ -5,7 +5,8 @@ import { hr, unwrapData } from '../services/api';
 import toast from 'react-hot-toast';
 import { getT } from '../i18n';
 import { format } from 'date-fns';
-import { Users, Briefcase, Clock, TrendingUp, Award, UserCheck, Building2 } from 'lucide-react';
+import { Users, Briefcase, Clock, TrendingUp, Award, UserCheck, Building2, Plus } from 'lucide-react';
+import { Modal } from '../components/common/Modal';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { EmptyState } from '../components/common/EmptyState';
 import { Button } from '../components/common/Button';
@@ -19,6 +20,9 @@ export default function HR() {
   const t = getT(lang || 'en');
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [addForm, setAddForm] = useState({ first_name: '', last_name: '', email: '', job_title: '', department: '' });
+  const [addLoading, setAddLoading] = useState(false);
 
   useEffect(() => { if (activeWorkspace) load(); }, [activeWorkspace]);
 
@@ -33,6 +37,26 @@ export default function HR() {
       setLoading(false);
     }
   };
+
+  const handleAddEmployee = async (e) => {
+    e.preventDefault();
+    if (!addForm.first_name.trim() || !addForm.email.trim()) return;
+    setAddLoading(true);
+    try {
+      await hr.createEmployee({ user: { first_name: addForm.first_name, last_name: addForm.last_name, email: addForm.email }, job_title: addForm.job_title, department: addForm.department });
+      toast.success('Employee added!');
+      setAddForm({ first_name: '', last_name: '', email: '', job_title: '', department: '' });
+      setShowAddModal(false);
+      load();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Failed to add employee');
+    } finally {
+      setAddLoading(false);
+    }
+  };
+
+  const addInputStyle = { width: '100%', background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8, padding: '9px 12px', color: 'var(--text)', fontSize: 13, outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' };
+  const addLabelStyle = { fontSize: 12, fontWeight: 700, color: 'var(--text2)', marginBottom: 6, display: 'block' };
 
   const onlineCount = employees.filter(e => e.is_online).length;
   const deptCount = new Set(employees.map(e => e.department).filter(Boolean)).size;
@@ -50,7 +74,7 @@ export default function HR() {
           <h1 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text)' }}>{t('hr.title', 'Human Resources')}</h1>
           <p style={{ fontSize: 13, color: 'var(--text3)', margin: '4px 0 0' }}>{employees.length} employees</p>
         </div>
-        <Button variant="primary" leftIcon={<Users size={14} />}>Add Employee</Button>
+        <Button variant="primary" leftIcon={<Plus size={14} />} onClick={() => setShowAddModal(true)}>Add Employee</Button>
       </div>
 
       {loading ? (
@@ -121,6 +145,37 @@ export default function HR() {
           </div>
         </>
       )}
+
+      <Modal isOpen={showAddModal} onClose={() => setShowAddModal(false)} title="Add Employee"
+        footer={
+          <div className="flex gap-2 justify-end">
+            <Button variant="ghost" onClick={() => setShowAddModal(false)}>Cancel</Button>
+            <Button variant="primary" onClick={handleAddEmployee} loading={addLoading}>Add Employee</Button>
+          </div>
+        }>
+        <form onSubmit={handleAddEmployee} className="space-y-4">
+          <div>
+            <label style={addLabelStyle}>First Name *</label>
+            <input value={addForm.first_name} onChange={e => setAddForm({...addForm, first_name: e.target.value})} placeholder="First name" required style={addInputStyle} />
+          </div>
+          <div>
+            <label style={addLabelStyle}>Last Name</label>
+            <input value={addForm.last_name} onChange={e => setAddForm({...addForm, last_name: e.target.value})} placeholder="Last name" style={addInputStyle} />
+          </div>
+          <div>
+            <label style={addLabelStyle}>Email *</label>
+            <input type="email" value={addForm.email} onChange={e => setAddForm({...addForm, email: e.target.value})} placeholder="employee@example.com" required style={addInputStyle} />
+          </div>
+          <div>
+            <label style={addLabelStyle}>Job Title</label>
+            <input value={addForm.job_title} onChange={e => setAddForm({...addForm, job_title: e.target.value})} placeholder="e.g. Software Engineer" style={addInputStyle} />
+          </div>
+          <div>
+            <label style={addLabelStyle}>Department</label>
+            <input value={addForm.department} onChange={e => setAddForm({...addForm, department: e.target.value})} placeholder="e.g. Engineering" style={addInputStyle} />
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

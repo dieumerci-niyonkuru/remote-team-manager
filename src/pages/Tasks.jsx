@@ -4,7 +4,7 @@ import { useStore } from '../store';
 import toast from 'react-hot-toast';
 import { getT } from '../i18n';
 import { format } from 'date-fns';
-import { CheckSquare, Plus, Trash2, Flag } from 'lucide-react';
+import { CheckSquare, Plus, Trash2, Flag, Pencil } from 'lucide-react';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { EmptyState } from '../components/common/EmptyState';
 import { Button } from '../components/common/Button';
@@ -37,13 +37,14 @@ const PRIORITY_VARIANT = {
 };
 
 export default function Tasks() {
-  const { activeWorkspace, workspaces, setActiveWorkspace } = useStore();
+  const { activeWorkspace, workspaces, setActiveWorkspace, user } = useStore();
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('all');
   const [showCreate, setShowCreate] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [editTarget, setEditTarget] = useState(null);
   const [taskFilter, setTaskFilter] = useState({ workspace: '', project: '' });
 
   useEffect(() => {
@@ -273,6 +274,26 @@ export default function Tasks() {
                 >
                   <Trash2 size={14} />
                 </button>
+                {(t.assignee?.id === user?.id || activeWorkspace?.role === 'admin' || activeWorkspace?.role === 'owner') && (
+                  <button
+                    onClick={() => setEditTarget(t)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      padding: 4,
+                      cursor: 'pointer',
+                      color: 'var(--text3)',
+                      borderRadius: 6,
+                      display: 'flex',
+                      alignItems: 'center',
+                      transition: 'color 0.15s',
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--brand)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--text3)'; }}
+                  >
+                    <Pencil size={14} />
+                  </button>
+                )}
               </div>
             ))}
           </div>
@@ -280,6 +301,18 @@ export default function Tasks() {
       </div>
 
       <CreateTaskModal isOpen={showCreate} onClose={() => setShowCreate(false)} onCreated={loadTasks} />
+
+      {editTarget && (
+        <EditTaskModal
+          isOpen
+          onClose={() => setEditTarget(null)}
+          task={editTarget}
+          onUpdated={(updated) => {
+            setTasks((prev) => prev.map((t) => t.id === updated.id ? updated : t));
+            setEditTarget(null);
+          }}
+        />
+      )}
 
       {deleteTarget && (
         <Modal
@@ -457,6 +490,133 @@ function CreateTaskModal({ isOpen, onClose, onCreated }) {
               ))}
             </select>
           </div>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function EditTaskModal({ isOpen, onClose, task: editTask, onUpdated }) {
+  const { activeWorkspace } = useStore();
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [status, setStatus] = useState('todo');
+  const [priority, setPriority] = useState('medium');
+  const [deadline, setDeadline] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (isOpen && editTask) {
+      setTitle(editTask.title || '');
+      setDescription(editTask.description || '');
+      setStatus(editTask.status || 'todo');
+      setPriority(editTask.priority || 'medium');
+      setDeadline(editTask.due_date ? editTask.due_date.split('T')[0] : '');
+    }
+  }, [isOpen, editTask]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!title.trim()) return;
+    setLoading(true);
+    try {
+      const payload = { title, description, status, priority, due_date: deadline || undefined };
+      const res = await task.update(activeWorkspace.id, editTask.project?.id, editTask.id, payload);
+      const updated = unwrapData(res);
+      toast.success('Task updated!');
+      onUpdated?.(updated || { ...editTask, ...payload });
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Failed to update task');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const inputStyle = {
+    width: '100%',
+    background: 'var(--bg3)',
+    border: '1px solid var(--border)',
+    borderRadius: 8,
+    padding: '9px 12px',
+    color: 'var(--text)',
+    fontSize: 13,
+    outline: 'none',
+    fontFamily: 'inherit',
+    boxSizing: 'border-box',
+  };
+
+  const labelStyle = { fontSize: 12, fontWeight: 700, color: 'var(--text2)', marginBottom: 6, display: 'block' };
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Edit Task"
+      size="lg"
+      footer={
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+          <Button variant="ghost" onClick={onClose}>Cancel</Button>
+          <Button variant="primary" onClick={handleSubmit} loading={loading}>Save Changes</Button>
+        </div>
+      }
+    >
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label style={labelStyle}>Project</label>
+          <input
+            value={editTask?.project?.name || ''}
+            readOnly
+            style={{ ...inputStyle, opacity: 0.6, cursor: 'not-allowed' }}
+          />
+        </div>
+        <div>
+          <label style={labelStyle}>Title *</label>
+          <input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Task title"
+            required
+            style={inputStyle}
+          />
+        </div>
+        <div>
+          <label style={labelStyle}>Description</label>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={3}
+            placeholder="Task description"
+            style={{ ...inputStyle, resize: 'vertical' }}
+          />
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 140px), 1fr))', gap: 12 }}>
+          <div>
+            <label style={labelStyle}>Status</label>
+            <select value={status} onChange={(e) => setStatus(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}>
+              <option value="todo">To Do</option>
+              <option value="in_progress">In Progress</option>
+              <option value="review">Review</option>
+              <option value="done">Done</option>
+            </select>
+          </div>
+          <div>
+            <label style={labelStyle}>Priority</label>
+            <select value={priority} onChange={(e) => setPriority(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}>
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+              <option value="urgent">Urgent</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label style={labelStyle}>Due Date</label>
+          <input
+            type="date"
+            value={deadline}
+            onChange={(e) => setDeadline(e.target.value)}
+            style={inputStyle}
+          />
         </div>
       </form>
     </Modal>

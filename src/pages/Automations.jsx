@@ -10,6 +10,7 @@ import LoadingSpinner from '../components/common/LoadingSpinner';
 import { EmptyState } from '../components/common/EmptyState';
 import { Button } from '../components/common/Button';
 import { Badge } from '../components/common/Badge';
+import { Modal } from '../components/common/Modal';
 
 const cardBase = { background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: tokens.radius.lg, padding: 'clamp(16px,2vw,20px)' };
 
@@ -18,6 +19,9 @@ export default function Automations() {
   const t = getT(lang || 'en');
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showCreate, setShowCreate] = useState(false);
+  const [form, setForm] = useState({ name: '', trigger_type: 'task_created', action_type: 'send_notification', is_active: true });
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => { load(); }, []);
 
@@ -32,6 +36,27 @@ export default function Automations() {
     catch (e) { toast.error('Failed'); }
   };
 
+  const openCreate = () => {
+    setForm({ name: '', trigger_type: 'task_created', action_type: 'send_notification', is_active: true });
+    setShowCreate(true);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!form.name.trim()) return;
+    setSubmitting(true);
+    try {
+      await automation.create({ name: form.name, trigger_type: form.trigger_type, action_type: form.action_type, is_active: form.is_active });
+      toast.success('Automation created!');
+      setShowCreate(false);
+      load();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'Failed to create automation');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <div className="p-4 md:p-6 space-y-5" style={{ background: 'var(--bg)', minHeight: '100vh' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
@@ -39,14 +64,14 @@ export default function Automations() {
           <h1 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text)' }}>{t('automations.title', 'Automations')}</h1>
           <p style={{ fontSize: 13, color: 'var(--text3)', margin: '4px 0 0' }}>Automate repetitive tasks</p>
         </div>
-        <Button variant="primary" leftIcon={<Plus size={14} />}>New Automation</Button>
+        <Button variant="primary" leftIcon={<Plus size={14} />} onClick={openCreate}>New Automation</Button>
       </div>
 
       {loading ? (
         <div className="flex items-center justify-center py-20"><LoadingSpinner size={28} /></div>
       ) : items.length === 0 ? (
         <EmptyState icon={<Zap size={24} />} title="No automations yet" description="Create automations to save time."
-          actionLabel="New Automation" onAction={() => {}} />
+          actionLabel="New Automation" onAction={openCreate} />
       ) : (
         <div className="space-y-3">
           {items.map((auto, i) => (
@@ -73,6 +98,63 @@ export default function Automations() {
           ))}
         </div>
       )}
+
+      <Modal
+        isOpen={showCreate}
+        onClose={() => setShowCreate(false)}
+        title="Create Automation"
+        footer={
+          <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+            <Button variant="ghost" onClick={() => setShowCreate(false)}>Cancel</Button>
+            <Button variant="primary" onClick={handleSubmit} loading={submitting}>Create Automation</Button>
+          </div>
+        }
+      >
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text2)', marginBottom: 6, display: 'block' }}>Name *</label>
+            <input
+              value={form.name}
+              onChange={e => setForm({ ...form, name: e.target.value })}
+              placeholder="e.g. Notify on new task"
+              required
+              autoFocus
+              style={{ width: '100%', background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8, padding: '9px 12px', color: 'var(--text)', fontSize: 13, outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }}
+            />
+          </div>
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text2)', marginBottom: 6, display: 'block' }}>Trigger</label>
+            <select
+              value={form.trigger_type}
+              onChange={e => setForm({ ...form, trigger_type: e.target.value })}
+              style={{ width: '100%', background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8, padding: '9px 12px', color: 'var(--text)', fontSize: 13, outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box', cursor: 'pointer' }}
+            >
+              <option value="task_created">Task Created</option>
+              <option value="status_changed">Status Changed</option>
+              <option value="deadline_approaching">Deadline Approaching</option>
+            </select>
+          </div>
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text2)', marginBottom: 6, display: 'block' }}>Action</label>
+            <select
+              value={form.action_type}
+              onChange={e => setForm({ ...form, action_type: e.target.value })}
+              style={{ width: '100%', background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8, padding: '9px 12px', color: 'var(--text)', fontSize: 13, outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box', cursor: 'pointer' }}
+            >
+              <option value="send_notification">Send Notification</option>
+              <option value="assign_member">Assign Member</option>
+              <option value="change_status">Change Status</option>
+            </select>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <label style={{ fontSize: 12, fontWeight: 700, color: 'var(--text2)' }}>Is Active</label>
+            <button type="button" onClick={() => setForm({ ...form, is_active: !form.is_active })}
+              style={{ width: 36, height: 20, borderRadius: 10, background: form.is_active ? 'var(--brand)' : 'var(--bg3)', border: 'none', cursor: 'pointer', position: 'relative', transition: '0.2s', padding: 0 }}>
+              <div style={{ width: 16, height: 16, borderRadius: '50%', background: '#fff', position: 'absolute', top: 2, left: form.is_active ? 18 : 2, transition: '0.2s' }} />
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }
