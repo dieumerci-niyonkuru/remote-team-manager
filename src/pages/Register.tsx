@@ -258,7 +258,7 @@ export default function Register() {
 
           <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--text3)', marginTop: 20 }}>
             {t('auth.register.have_account', 'Already have an account?')}{' '}
-            <Link to="/login" style={{ color: 'var(--brand)', fontWeight: 700, textDecoration: 'none' }}>{t('auth.login.sign_up', 'Sign in')}</Link>
+            <Link to="/login" style={{ color: 'var(--brand)', fontWeight: 700, textDecoration: 'none' }}>{t('auth.login.submit', 'Sign in')}</Link>
           </p>
         </div>
       </div>
