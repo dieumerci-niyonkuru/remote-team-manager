@@ -152,15 +152,18 @@ export default function Projects() {
       ) : (
         <div className="space-y-3">
           {projects.map((p) => (
-            <div
-              key={p.id}
-              style={{
-                background: 'var(--bg2)',
-                border: '1px solid var(--border)',
-                borderRadius: 12,
-                overflow: 'hidden',
-              }}
-            >
+              <div
+                key={p.id}
+                style={{
+                  background: 'var(--bg2)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 12,
+                  overflow: 'hidden',
+                  transition: 'border-color 0.2s, box-shadow 0.2s, transform 0.2s',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--brand)'; e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 16px -6px rgba(0,0,0,0.25)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = ''; }}
+              >
               <div
                 onClick={() => toggleExpand(p)}
                 style={{

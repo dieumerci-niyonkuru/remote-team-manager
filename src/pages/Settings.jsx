@@ -6,8 +6,8 @@ import { getT } from '../i18n';
 import { Camera, Save, Lock, User } from 'lucide-react';
 import { Button } from '../components/common/Button';
 
-const card = { background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 12, padding: 'clamp(16px, 2vw, 24px)' };
-const input = { width: '100%', background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8, padding: '9px 12px', color: 'var(--text)', fontSize: 13, outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' };
+const card = { background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 12, padding: 'clamp(16px, 2vw, 24px)', transition: 'border-color 0.2s' };
+const input = { width: '100%', background: 'var(--bg3)', border: '1.5px solid var(--border)', borderRadius: 8, padding: '10px 12px', color: 'var(--text)', fontSize: 13, outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box', transition: 'border-color 0.2s, box-shadow 0.2s' };
 const label = { fontSize: 12, fontWeight: 700, color: 'var(--text2)', marginBottom: 6, display: 'block' };
 const textarea = { ...input, resize: 'vertical', minHeight: 72 };
 
@@ -137,8 +137,11 @@ export default function Settings() {
                   border: active ? '1px solid rgba(51,102,255,0.2)' : '1px solid transparent',
                   borderRadius: 8, padding: '8px 12px', fontSize: 13, fontWeight: 600,
                   color: active ? 'var(--brand)' : 'var(--text3)', cursor: 'pointer',
-                  textAlign: 'left', transition: '0.15s',
-                }}>
+                  textAlign: 'left', transition: 'all 0.2s',
+                }}
+                onMouseEnter={e => { if (!active) { e.currentTarget.style.color = 'var(--text)'; e.currentTarget.style.background = 'var(--bg3)'; } }}
+                onMouseLeave={e => { if (!active) { e.currentTarget.style.color = 'var(--text3)'; e.currentTarget.style.background = 'transparent'; } }}
+              >
                 <Icon size={14} /> {tb.label}
               </button>
             );
@@ -153,11 +156,16 @@ export default function Settings() {
                 <div onClick={handleAvatarClick}
                   style={{
                     width: 80, height: 80, borderRadius: '50%', cursor: 'pointer',
-                    background: displayAvatar ? 'transparent' : 'var(--brand)',
+                    background: displayAvatar ? 'transparent' : 'linear-gradient(135deg, var(--brand), var(--accent))',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     position: 'relative', overflow: 'hidden', flexShrink: 0,
                     border: '2px solid var(--border)',
-                  }}>
+                    boxShadow: '0 8px 24px rgba(51,102,255,0.25)',
+                    transition: 'border-color 0.2s, box-shadow 0.2s',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--brand)'; e.currentTarget.style.boxShadow = '0 12px 32px rgba(51,102,255,0.4)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(51,102,255,0.25)'; }}
+                >
                   {displayAvatar ? (
                     <img src={displayAvatar} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   ) : (
@@ -182,20 +190,32 @@ export default function Settings() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4" style={{ marginBottom: 16 }}>
                 <div>
                   <label style={label}>First Name</label>
-                  <input value={firstName} onChange={e => setFirstName(e.target.value)} style={input} />
+                  <input value={firstName} onChange={e => setFirstName(e.target.value)} style={input}
+                    onFocus={e => { e.target.style.borderColor = 'var(--brand)'; e.target.style.boxShadow = '0 0 0 3px rgba(51,102,255,0.12)'; }}
+                    onBlur={e => { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = 'none'; }}
+                  />
                 </div>
                 <div>
                   <label style={label}>Last Name</label>
-                  <input value={lastName} onChange={e => setLastName(e.target.value)} style={input} />
+                  <input value={lastName} onChange={e => setLastName(e.target.value)} style={input}
+                    onFocus={e => { e.target.style.borderColor = 'var(--brand)'; e.target.style.boxShadow = '0 0 0 3px rgba(51,102,255,0.12)'; }}
+                    onBlur={e => { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = 'none'; }}
+                  />
                 </div>
               </div>
               <div style={{ marginBottom: 16 }}>
                 <label style={label}>Email</label>
-                <input type="email" value={email} onChange={e => setEmail(e.target.value)} style={input} />
+                <input type="email" value={email} onChange={e => setEmail(e.target.value)} style={input}
+                  onFocus={e => { e.target.style.borderColor = 'var(--brand)'; e.target.style.boxShadow = '0 0 0 3px rgba(51,102,255,0.12)'; }}
+                  onBlur={e => { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = 'none'; }}
+                />
               </div>
               <div style={{ marginBottom: 20 }}>
                 <label style={label}>Bio</label>
-                <textarea value={bio} onChange={e => setBio(e.target.value)} rows={3} style={textarea} />
+                <textarea value={bio} onChange={e => setBio(e.target.value)} rows={3} style={textarea}
+                  onFocus={e => { e.target.style.borderColor = 'var(--brand)'; e.target.style.boxShadow = '0 0 0 3px rgba(51,102,255,0.12)'; }}
+                  onBlur={e => { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = 'none'; }}
+                />
               </div>
               <div className="flex justify-end">
                 <Button variant="primary" leftIcon={<Save size={14} />} onClick={saveProfile} loading={saving}>Save Changes</Button>
@@ -212,15 +232,24 @@ export default function Settings() {
                 </div>
                 <div style={{ marginBottom: 16 }}>
                   <label style={label}>Current Password</label>
-                  <input type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} style={input} />
+                  <input type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} style={input}
+                    onFocus={e => { e.target.style.borderColor = 'var(--brand)'; e.target.style.boxShadow = '0 0 0 3px rgba(51,102,255,0.12)'; }}
+                    onBlur={e => { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = 'none'; }}
+                  />
                 </div>
                 <div style={{ marginBottom: 16 }}>
                   <label style={label}>New Password</label>
-                  <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} style={input} />
+                  <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} style={input}
+                    onFocus={e => { e.target.style.borderColor = 'var(--brand)'; e.target.style.boxShadow = '0 0 0 3px rgba(51,102,255,0.12)'; }}
+                    onBlur={e => { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = 'none'; }}
+                  />
                 </div>
                 <div style={{ marginBottom: 20 }}>
                   <label style={label}>Confirm New Password</label>
-                  <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} style={input} />
+                  <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} style={input}
+                    onFocus={e => { e.target.style.borderColor = 'var(--brand)'; e.target.style.boxShadow = '0 0 0 3px rgba(51,102,255,0.12)'; }}
+                    onBlur={e => { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = 'none'; }}
+                  />
                 </div>
                 <div className="flex justify-end">
                   <Button variant="primary" leftIcon={<Lock size={14} />} onClick={changePassword} loading={changingPw}>Update Password</Button>

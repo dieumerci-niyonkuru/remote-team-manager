@@ -66,7 +66,9 @@ export default function Analytics() {
         <div className="space-y-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {statsCards.map((s, i) => (
-              <div key={i} style={cardBase}>
+              <div key={i} style={{ ...cardBase, transition: 'border-color 0.2s, box-shadow 0.2s, transform 0.2s' }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--brand)'; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 24px -8px rgba(0,0,0,0.3)'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = ''; }}>
                 <div className="flex items-center justify-between mb-2">
                   <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{s.label}</span>
                   <span style={{ color: s.color }}>{s.icon}</span>
@@ -77,7 +79,9 @@ export default function Analytics() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div style={cardBase}>
+            <div style={{ ...cardBase, transition: 'border-color 0.2s, box-shadow 0.2s, transform 0.2s' }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--brand)'; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 24px -8px rgba(0,0,0,0.3)'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = ''; }}>
               <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', margin: '0 0 16px' }} className="flex items-center gap-2">
                 <BarChart3 size={14} style={{ color: 'var(--brand)' }} /> Task Breakdown
               </h3>
@@ -99,7 +103,9 @@ export default function Analytics() {
               </div>
             </div>
 
-            <div style={cardBase}>
+            <div style={{ ...cardBase, transition: 'border-color 0.2s, box-shadow 0.2s, transform 0.2s' }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--brand)'; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 24px -8px rgba(0,0,0,0.3)'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = ''; }}>
               <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text)', margin: '0 0 16px' }} className="flex items-center gap-2">
                 <Activity size={14} style={{ color: 'var(--brand)' }} /> Overview
               </h3>

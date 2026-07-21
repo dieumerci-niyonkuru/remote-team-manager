@@ -72,7 +72,9 @@ export default function Team() {
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Search team..."
-          style={{ width: '100%', background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 10px 8px 30px', color: 'var(--text)', fontSize: 13, outline: 'none', fontFamily: 'inherit' }}
+          style={{ width: '100%', background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 10px 8px 30px', color: 'var(--text)', fontSize: 13, outline: 'none', fontFamily: 'inherit', transition: 'border-color 0.2s, box-shadow 0.2s' }}
+          onFocus={e => { e.target.style.borderColor = 'var(--brand)'; e.target.style.boxShadow = '0 0 0 3px rgba(51,102,255,0.1)'; }}
+          onBlur={e => { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = 'none'; }}
         />
       </div>
 
@@ -94,9 +96,9 @@ export default function Team() {
             return (
               <div
                 key={m.id || i}
-                style={{ ...cardBase, textAlign: 'center', transition: 'border-color 0.2s' }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--brand)'; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; }}
+                style={{ ...cardBase, textAlign: 'center', transition: 'border-color 0.25s, box-shadow 0.25s, transform 0.25s' }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--brand)'; e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 16px 40px -8px rgba(0,0,0,0.35)'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = ''; }}
               >
                 <div className="flex justify-center mb-3">
                   <Avatar user={u} size={48} status={m.is_online ? 'online' : 'offline'} />

@@ -169,7 +169,9 @@ export default function OKR() {
             const p = progress(obj);
             const isExpanded = expandedObj === obj.id;
             return (
-              <div key={obj.id || i} style={cardBase}>
+              <div key={obj.id || i} style={{ ...cardBase, transition: 'border-color 0.2s, box-shadow 0.2s, transform 0.2s' }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--brand)'; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 24px -8px rgba(0,0,0,0.3)'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = ''; }}>
                 <div className="flex items-start gap-4">
                   <ProgressRing value={p} size={48} />
                   <div className="flex-1 min-w-0">

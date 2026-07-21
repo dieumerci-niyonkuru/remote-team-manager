@@ -80,8 +80,10 @@ export default function Notifications() {
       ) : (
         <div className="space-y-2">
           {filtered.map((n, i) => (
-            <div key={n.id || i} style={{ ...cardBase, padding: '12px 16px', display: 'flex', alignItems: 'flex-start', gap: 12, opacity: n.is_read ? 0.6 : 1, transition: 'opacity 0.2s', cursor: 'pointer', borderLeft: n.is_read ? '3px solid transparent' : '3px solid var(--brand)' }}
-              onClick={() => !n.is_read && markRead(n.id)}>
+            <div key={n.id || i} style={{ ...cardBase, padding: '12px 16px', display: 'flex', alignItems: 'flex-start', gap: 12, opacity: n.is_read ? 0.6 : 1, transition: 'opacity 0.2s, border-color 0.2s, box-shadow 0.2s, transform 0.2s', cursor: 'pointer', borderLeft: n.is_read ? '3px solid transparent' : '3px solid var(--brand)' }}
+              onClick={() => !n.is_read && markRead(n.id)}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--brand)'; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 24px -8px rgba(0,0,0,0.3)'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = ''; }}>
               <span style={{ fontSize: 18, lineHeight: 1 }}>{NOTIF_ICONS[n.type] || '🔔'}</span>
               <div className="flex-1 min-w-0">
                 <p style={{ fontSize: 13, fontWeight: n.is_read ? 500 : 700, color: 'var(--text)', margin: 0, lineHeight: 1.4 }}>{n.message || n.title || 'Notification'}</p>

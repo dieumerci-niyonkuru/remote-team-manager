@@ -12,7 +12,7 @@ import { Button } from '../components/common/Button';
 import { Badge } from '../components/common/Badge';
 
 const cardBase = { background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: tokens.radius.lg, padding: 'clamp(16px,2vw,20px)' };
-const inputStyle = { width: '100%', background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontSize: 13, outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' };
+const inputStyle = { width: '100%', background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 12px', color: 'var(--text)', fontSize: 13, outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box', transition: 'border-color 0.2s, box-shadow 0.2s' };
 
 export default function Wiki() {
   const { activeWorkspace, lang = 'en' } = useStore();
@@ -141,6 +141,8 @@ export default function Wiki() {
           <div style={{ position: 'relative', maxWidth: 280 }}>
             <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text3)' }} />
             <input value={search} onChange={e => handleSearch(e.target.value)} placeholder="Search wiki..."
+              onFocus={e => { e.target.style.borderColor = 'var(--brand)'; e.target.style.boxShadow = '0 0 0 3px rgba(51,102,255,0.1)'; }}
+              onBlur={e => { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = 'none'; }}
               style={{ ...inputStyle, paddingLeft: 30 }} />
           </div>
 

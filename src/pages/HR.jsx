@@ -59,7 +59,9 @@ export default function HR() {
         <>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {stats.map((s, i) => (
-              <div key={i} style={cardBase}>
+              <div key={i} style={{ ...cardBase, transition: 'border-color 0.2s, box-shadow 0.2s, transform 0.2s' }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--brand)'; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 24px -8px rgba(0,0,0,0.3)'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = ''; }}>
                 <div className="flex items-center justify-between mb-2">
                   <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{s.label}</span>
                   <span style={{ color: s.color }}>{s.icon}</span>
@@ -88,7 +90,9 @@ export default function HR() {
                       const u = emp.user || {};
                       const name = u.first_name ? `${u.first_name} ${u.last_name || ''}` : u.username || emp.name || '—';
                       return (
-                        <tr key={emp.id || i} style={{ borderBottom: '1px solid var(--border)' }}>
+                        <tr key={emp.id || i} style={{ borderBottom: '1px solid var(--border)', transition: 'border-color 0.2s, box-shadow 0.2s, transform 0.2s' }}
+                          onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--brand)'; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 24px -8px rgba(0,0,0,0.3)'; }}
+                          onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = ''; }}>
                           <td style={{ padding: '10px 12px' }}>
                             <div className="flex items-center gap-3">
                               <Avatar user={u} size={28} />

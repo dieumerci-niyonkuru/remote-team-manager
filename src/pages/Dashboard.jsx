@@ -24,6 +24,7 @@ const card = {
   border: '1px solid var(--border)',
   borderRadius: 12,
   padding: 'clamp(16px, 2vw, 20px)',
+  transition: 'border-color 0.2s, box-shadow 0.2s, transform 0.2s',
 };
 
 const quickActions = [
@@ -102,7 +103,10 @@ export default function Dashboard() {
           </div>
           <h2 style={{ fontSize: 17, fontWeight: 800, color: 'var(--text)', marginBottom: 6 }}>No Workspace Selected</h2>
           <p style={{ fontSize: 13, color: 'var(--text3)', marginBottom: 20 }}>Create or select a workspace to get started.</p>
-          <Link to="/workspaces" style={{ background: 'var(--brand)', color: '#fff', padding: '8px 20px', borderRadius: 8, fontSize: 13, fontWeight: 700, textDecoration: 'none' }}>
+          <Link to="/workspaces" style={{ background: 'linear-gradient(135deg, var(--brand), var(--accent))', color: '#fff', padding: '10px 24px', borderRadius: 10, fontSize: 13, fontWeight: 700, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 6, boxShadow: '0 8px 24px rgba(51,102,255,0.3)', transition: 'transform 0.2s, box-shadow 0.2s' }}
+              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 12px 32px rgba(51,102,255,0.45)'; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 8px 24px rgba(51,102,255,0.3)'; }}
+            >
             Go to Workspaces
           </Link>
         </div>
@@ -131,7 +135,10 @@ export default function Dashboard() {
               {format(new Date(), 'EEEE, MMMM d')}
             </p>
           </div>
-          <button onClick={() => window.location.reload()} style={{ ...card, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', border: '1px solid var(--border)', fontSize: 12, fontWeight: 700, color: 'var(--text2)' }}>
+          <button onClick={() => window.location.reload()} style={{ ...card, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', border: '1px solid var(--border)', fontSize: 12, fontWeight: 700, color: 'var(--text2)' }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--brand)'; e.currentTarget.style.color = 'var(--brand)'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--text2)'; }}
+          >
             <RefreshCw size={14} /> Refresh
           </button>
         </div>
@@ -145,10 +152,13 @@ export default function Dashboard() {
             { label: 'To Do', value: todoTasks, icon: CheckSquare, color: 'var(--text3)' },
             { label: 'Projects', value: projectCount, icon: FolderKanban, color: 'var(--brand)' },
           ].map(s => (
-            <div key={s.label} style={card}>
+            <div key={s.label} style={card}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = s.color; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 24px -8px rgba(0,0,0,0.3)'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = ''; }}
+            >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'clamp(6px, 1.5vw, 10)' }}>
                 <span style={{ fontSize: 'clamp(9px, 1.2vw, 10)', fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{s.label}</span>
-                <span style={{ width: 'clamp(22px, 3vw, 26)', height: 'clamp(22px, 3vw, 26)', borderRadius: 7, background: `${s.color}15`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: s.color }}>
+                <span style={{ width: 'clamp(24px, 3vw, 28)', height: 'clamp(24px, 3vw, 28)', borderRadius: 8, background: `${s.color}15`, border: `1px solid ${s.color}20`, display: 'flex', alignItems: 'center', justifyContent: 'center', color: s.color }}>
                   <s.icon size={14} />
                 </span>
               </div>
@@ -195,9 +205,9 @@ export default function Dashboard() {
             <h3 style={{ fontSize: 13, fontWeight: 800, color: 'var(--text)', margin: '0 0 12px' }}>Quick Actions</h3>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(72px, 1fr))', gap: 'clamp(6px, 1.2vw, 10)', flex: 1 }}>
               {quickActions.map(a => (
-                <Link key={a.label} to={a.to} style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'clamp(4px, 0.8vw, 6)', padding: 'clamp(10px, 2vw, 14px) clamp(4px, 0.8vw, 6px)', borderRadius: 10, background: 'var(--bg)', border: '1px solid var(--border)', cursor: 'pointer', transition: 'border-color 0.15s' }}
-                  onMouseEnter={e => e.currentTarget.style.borderColor = a.color}
-                  onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
+                <Link key={a.label} to={a.to} style={{ textDecoration: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 'clamp(4px, 0.8vw, 6)', padding: 'clamp(10px, 2vw, 14px) clamp(4px, 0.8vw, 6px)', borderRadius: 10, background: 'var(--bg)', border: '1px solid var(--border)', cursor: 'pointer', transition: 'all 0.2s' }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = a.color; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 6px 16px -6px rgba(0,0,0,0.3)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = ''; }}
                 >
                   <a.icon size={18} style={{ color: a.color }} />
                   <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text2)' }}>{a.label}</span>
@@ -217,7 +227,10 @@ export default function Dashboard() {
                 { label: 'Review', count: reviewTasks, color: 'var(--warning)' },
                 { label: 'Done', count: doneTasks, color: 'var(--success)' },
               ].map(s => (
-                <div key={s.label} style={{ padding: 'clamp(8px, 1.5vw, 10px) clamp(10px, 2vw, 14px)', borderRadius: 8, background: 'var(--bg)', border: '1px solid var(--border)' }}>
+                <div key={s.label} style={{ padding: 'clamp(8px, 1.5vw, 10px) clamp(10px, 2vw, 14px)', borderRadius: 8, background: 'var(--bg)', border: '1px solid var(--border)', transition: 'border-color 0.2s' }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = s.color; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; }}
+                >
                   <div style={{ fontSize: 'clamp(9px, 1.2vw, 10)', fontWeight: 700, color: 'var(--text3)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 4 }}>{s.label}</div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span style={{ fontSize: 'clamp(16px, 2.5vw, 20)', fontWeight: 800, color: s.color }}>{s.count}</span>
@@ -263,7 +276,10 @@ export default function Dashboard() {
             </h3>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'clamp(6px, 1.2vw, 10)' }}>
               {onlineMembers.map(m => (
-                <div key={m.id || m.user} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: 'clamp(4px, 0.8vw, 6px) clamp(8px, 1.5vw, 10px)', borderRadius: 8, background: 'var(--bg)' }}>
+                <div key={m.id || m.user} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: 'clamp(4px, 0.8vw, 6px) clamp(8px, 1.5vw, 10px)', borderRadius: 8, background: 'var(--bg)', border: '1px solid var(--border)', transition: 'border-color 0.2s' }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--success)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; }}
+                >
                   <div style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--success)' }} />
                   <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text2)' }}>
                     {m.user_name || m.first_name || m.name || `User ${m.id}`}

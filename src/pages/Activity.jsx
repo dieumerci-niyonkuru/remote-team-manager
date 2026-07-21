@@ -46,7 +46,9 @@ export default function Activity() {
         <div style={cardBase}>
           <div className="space-y-0">
             {activities.map((a, i) => (
-              <div key={a.id || i} className="flex gap-3" style={{ padding: '12px 0', borderBottom: i < activities.length - 1 ? '1px solid var(--border)' : 'none' }}>
+              <div key={a.id || i} className="flex gap-3" style={{ padding: '12px 0', borderBottom: i < activities.length - 1 ? '1px solid var(--border)' : 'none', transition: 'border-color 0.2s, box-shadow 0.2s, transform 0.2s' }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--brand)'; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 24px -8px rgba(0,0,0,0.3)'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = ''; }}>
                 <div style={{ width: 32, height: 32, borderRadius: 8, background: 'var(--bg3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   {ACT_ICONS[a.type] || <Clock size={14} style={{ color: 'var(--text3)' }} />}
                 </div>

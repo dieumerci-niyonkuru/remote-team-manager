@@ -114,7 +114,7 @@ export default function Tasks() {
           <select
             value={taskFilter.workspace}
             onChange={(e) => setTaskFilter((prev) => ({ ...prev, workspace: e.target.value }))}
-            style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8, padding: '6px 10px', color: 'var(--text)', fontSize: 12, fontWeight: 600, cursor: 'pointer', outline: 'none' }}
+            style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8, padding: '6px 10px', color: 'var(--text)', fontSize: 12, fontWeight: 600, cursor: 'pointer', outline: 'none', transition: 'border-color 0.2s' }}
           >
             <option value="">All Workspaces</option>
             {(workspaces || []).map((w) => (
@@ -124,7 +124,7 @@ export default function Tasks() {
           <select
             value={taskFilter.project}
             onChange={(e) => setTaskFilter((prev) => ({ ...prev, project: e.target.value }))}
-            style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8, padding: '6px 10px', color: 'var(--text)', fontSize: 12, fontWeight: 600, cursor: 'pointer', outline: 'none' }}
+            style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8, padding: '6px 10px', color: 'var(--text)', fontSize: 12, fontWeight: 600, cursor: 'pointer', outline: 'none', transition: 'border-color 0.2s' }}
           >
             <option value="">All Projects</option>
           </select>
@@ -139,13 +139,14 @@ export default function Tasks() {
                 background: statusFilter === s ? 'var(--bg2)' : 'transparent',
                 border: statusFilter === s ? '1px solid var(--border)' : '1px solid transparent',
                 borderRadius: 6,
-                padding: '4px 12px',
+                padding: '5px 14px',
                 fontSize: 11,
                 fontWeight: 700,
                 color: statusFilter === s ? 'var(--text)' : 'var(--text3)',
                 cursor: 'pointer',
                 fontFamily: 'inherit',
-                transition: 'all 0.15s ease',
+                transition: 'all 0.2s ease',
+                boxShadow: statusFilter === s ? '0 2px 8px rgba(0,0,0,0.15)' : 'none',
               }}
             >
               {s === 'all' ? 'All' : STATUS_LABEL[s]}
@@ -178,10 +179,11 @@ export default function Tasks() {
                   display: 'flex',
                   alignItems: 'center',
                   gap: 12,
-                  transition: 'border-color 0.2s',
+                  transition: 'border-color 0.2s, box-shadow 0.2s, transform 0.2s',
+                  flexWrap: 'wrap',
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--brand)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'var(--brand)'; e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 16px -6px rgba(0,0,0,0.25)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = ''; }}
               >
                 <div
                   title={t.priority}

@@ -67,7 +67,9 @@ export default function SearchPage() {
         <div style={{ position: 'relative', flex: '1 1 300px' }}>
           <SearchIcon size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text3)' }} />
           <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search everything..."
-            style={{ width: '100%', background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 10, padding: '10px 14px 10px 36px', color: 'var(--text)', fontSize: 14, outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }} />
+            onFocus={e => { e.target.style.borderColor = 'var(--brand)'; e.target.style.boxShadow = '0 0 0 3px rgba(51,102,255,0.1)'; }}
+            onBlur={e => { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = 'none'; }}
+            style={{ width: '100%', background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 10, padding: '10px 14px 10px 36px', color: 'var(--text)', fontSize: 14, outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box', transition: 'border-color 0.2s, box-shadow 0.2s' }} />
         </div>
         <Button variant="primary" type="submit" loading={loading} leftIcon={loading ? <Loader2 size={14} /> : <SearchIcon size={14} />}>Search</Button>
       </form>
