@@ -4,7 +4,7 @@ import { useStore } from '../store';
 import api, { chat, ws as wsApi, presence, calls, unwrapData } from '../services/api';
 import toast from 'react-hot-toast';
 import { getT } from '../i18n';
-import { Hash, Send, Plus, MessageSquare, X, Users, Search, Reply, ChevronLeft, Video, Trash2 } from 'lucide-react';
+import { Hash, Send, Plus, MessageSquare, X, Users, Search, Reply, ChevronLeft, Video, Trash2, Smile } from 'lucide-react';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { Avatar } from '../components/common/Avatar';
 
@@ -57,6 +57,10 @@ export default function Chat() {
   const [onlineIds, setOnlineIds] = useState(new Set());
 
   const [showSidebar, setShowSidebar] = useState(true);
+
+  const [replyCounts, setReplyCounts] = useState({});
+  const [showEmojiPicker, setShowEmojiPicker] = useState(null);
+  const [messageReactions, setMessageReactions] = useState({});
 
   useEffect(() => {
     if (!activeWorkspace) return;
@@ -114,7 +118,13 @@ export default function Chat() {
     setLoadingMessages(true);
     try {
       const res = await chat.messages({ channel: activeChannel.id });
-      setMessages(unwrapData(res));
+      const msgs = unwrapData(res);
+      setMessages(msgs);
+      const initialReactions = {};
+      msgs.forEach(m => {
+        if (m.reactions?.length) initialReactions[m.id] = m.reactions;
+      });
+      setMessageReactions(prev => ({ ...prev, ...initialReactions }));
     } catch { toast.error('Failed to load messages'); } finally { setLoadingMessages(false); }
   };
 
@@ -136,11 +146,15 @@ export default function Chat() {
               if (prev.find(r => r.id === msg.id)) return prev;
               return [...prev, msg];
             });
+            setReplyCounts(prev => ({ ...prev, [msg.parent]: (prev[msg.parent] || 0) + 1 }));
           } else {
             setMessages(prev => {
               if (prev.find(m => m.id === msg.id)) return prev;
               return [...prev, msg];
             });
+          }
+          if (msg.reactions) {
+            setMessageReactions(prev => ({ ...prev, [msg.id]: msg.reactions }));
           }
         }
       } catch {}
@@ -196,7 +210,9 @@ export default function Chat() {
     setLoadingThread(true);
     try {
       const res = await chat.thread(msg.id);
-      setThreadReplies(unwrapData(res));
+      const replies = unwrapData(res);
+      setThreadReplies(replies);
+      setReplyCounts(prev => ({ ...prev, [msg.id]: replies.length }));
     } catch { setThreadReplies([]); } finally { setLoadingThread(false); }
   };
 
@@ -249,9 +265,30 @@ export default function Chat() {
     try {
       await chat.deleteMessage(msgId);
       setMessages(prev => prev.filter(m => m.id !== msgId));
+      setThreadReplies(prev => prev.filter(m => m.id !== msgId));
       toast.success('Message deleted');
     } catch {
       toast.error('Failed to delete message');
+    }
+  };
+
+  const handleReact = async (msgId, emoji) => {
+    setShowEmojiPicker(null);
+    try {
+      await chat.addReaction(msgId, emoji);
+      setMessageReactions(prev => {
+        const existing = prev[msgId] || [];
+        const userReaction = existing.find(r => r.emoji === emoji && r.user === user?.id);
+        let next;
+        if (userReaction) {
+          next = existing.filter(r => !(r.emoji === emoji && r.user === user?.id));
+        } else {
+          next = [...existing, { emoji, user: user?.id }];
+        }
+        return { ...prev, [msgId]: next };
+      });
+    } catch {
+      toast.error('Failed to react');
     }
   };
 
@@ -281,8 +318,6 @@ export default function Chat() {
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(e); }
   };
-
-  const countReplies = (msgId) => messages.filter(m => m.parent === msgId).length;
 
   const pad = isMobile ? '10px 12px' : '16px 24px';
   const containerH = isMobile ? 'calc(100vh - 100px)' : 'calc(100vh - 140px)';
@@ -342,11 +377,18 @@ export default function Chat() {
     </div>
   );
 
+  const EMOJI_LIST = ['👍', '❤️', '😂', '🎉', '🔥', '👀', '💯', '🚀', '✅', '👎', '😮', '🙏'];
+
   const MessageBubble = ({ msg, isThread = false }) => {
     const sender = msg.sender || msg.user || {};
     const isMe = sender.id === user?.id;
-    const replyCount = isThread ? 0 : countReplies(msg.id);
+    const replyCount = isThread ? 0 : (replyCounts[msg.id] || 0);
     const maxW = isMobile ? '85%' : '70%';
+    const reactions = messageReactions[msg.id] || msg.reactions || [];
+    const groupedReactions = reactions.reduce((acc, r) => {
+      acc[r.emoji] = (acc[r.emoji] || 0) + 1;
+      return acc;
+    }, {});
     return (
       <div style={{ display: 'flex', gap: 8, marginBottom: 10, flexDirection: isMe ? 'row-reverse' : 'row' }}>
         <Avatar user={sender} size={isMobile ? 26 : 28} style={{ marginTop: 2, flexShrink: 0 }} />
@@ -358,7 +400,21 @@ export default function Chat() {
           <div style={{ padding: isMobile ? '7px 10px' : '8px 12px', borderRadius: 12, fontSize: isMobile ? 14 : 13, lineHeight: 1.5, background: isMe ? 'var(--brand)' : 'var(--bg3)', color: isMe ? '#fff' : 'var(--text)', borderTopRightRadius: isMe ? 4 : 12, borderTopLeftRadius: isMe ? 12 : 4, wordBreak: 'break-word' }}>
             {msg.content}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4, justifyContent: isMe ? 'flex-end' : 'flex-start' }}>
+          {Object.keys(groupedReactions).length > 0 && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 4, justifyContent: isMe ? 'flex-end' : 'flex-start' }}>
+              {Object.entries(groupedReactions).map(([emoji, count]) => {
+                const iReacted = reactions.some(r => r.emoji === emoji && r.user === user?.id);
+                return (
+                  <button key={emoji} onClick={() => handleReact(msg.id, emoji)}
+                    style={{ display: 'flex', alignItems: 'center', gap: 3, padding: '2px 6px', borderRadius: 10, fontSize: 12, cursor: 'pointer', border: iReacted ? '1px solid var(--brand)' : '1px solid var(--border)', background: iReacted ? 'var(--brand-bg)' : 'var(--bg3)', color: 'var(--text)' }}>
+                    <span>{emoji}</span>
+                    <span style={{ fontSize: 10, fontWeight: 700 }}>{count}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4, justifyContent: isMe ? 'flex-end' : 'flex-start', position: 'relative' }}>
             {!isThread && (
               <button onClick={() => openThread(msg)} style={{ background: 'none', border: 'none', color: 'var(--brand)', cursor: 'pointer', padding: '2px 4px', display: 'flex', alignItems: 'center', gap: 3, fontSize: 11, fontWeight: 600 }}>
                 <Reply size={12} /> Reply
@@ -369,13 +425,32 @@ export default function Chat() {
                 {replyCount} {replyCount === 1 ? 'reply' : 'replies'}
               </button>
             )}
-            {isMe && !isThread && (
+            <button onClick={() => setShowEmojiPicker(showEmojiPicker === msg.id ? null : msg.id)} style={{ background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer', padding: '2px 4px', display: 'flex', alignItems: 'center', fontSize: 11 }}
+              onMouseEnter={e => e.currentTarget.style.color = 'var(--brand)'}
+              onMouseLeave={e => e.currentTarget.style.color = 'var(--text3)'}
+              title="Add reaction">
+              <Smile size={13} />
+            </button>
+            {isMe && (
               <button onClick={() => handleDeleteMessage(msg.id)} style={{ background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer', padding: '2px 4px', display: 'flex', alignItems: 'center', fontSize: 11 }}
                 onMouseEnter={e => e.currentTarget.style.color = 'var(--danger)'}
                 onMouseLeave={e => e.currentTarget.style.color = 'var(--text3)'}
                 title="Delete message">
                 <Trash2 size={12} />
               </button>
+            )}
+            {showEmojiPicker === msg.id && (
+              <div onClick={e => e.stopPropagation()}
+                style={{ position: 'absolute', bottom: '100%', [isMe ? 'right' : 'left']: 0, background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 10, padding: 8, display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 2, zIndex: 20, boxShadow: '0 4px 16px rgba(0,0,0,0.3)', marginBottom: 4 }}>
+                {EMOJI_LIST.map(em => (
+                  <button key={em} onClick={() => handleReact(msg.id, em)}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4, borderRadius: 6, fontSize: 16, lineHeight: 1, transition: 'background 0.15s' }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'var(--bg3)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'none'}>
+                    {em}
+                  </button>
+                ))}
+              </div>
             )}
           </div>
         </div>
@@ -454,7 +529,7 @@ export default function Chat() {
 
             <div style={{ flex: 1, display: 'flex', overflow: 'hidden', position: 'relative' }}>
               {/* Messages */}
-              <div style={{ flex: 1, overflowY: 'auto', padding: isMobile ? '8px 10px' : '12px 16px' }}>
+              <div style={{ flex: 1, overflowY: 'auto', padding: isMobile ? '8px 10px' : '12px 16px' }} onClick={() => setShowEmojiPicker(null)}>
                 {!activeChannel ? (
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text3)' }}>
                     <MessageSquare size={32} style={{ marginBottom: 8, opacity: 0.4 }} />
@@ -550,7 +625,7 @@ export default function Chat() {
               </form>
             ) : (
               <form onSubmit={handleThreadReply} style={{ padding: isMobile ? '8px 10px' : '10px 16px', borderTop: '1px solid var(--border)', display: 'flex', gap: 8, alignItems: 'center' }}>
-                <input value={threadReply} onChange={e => setThreadReply(e.target.value)}
+                <input value={threadReply} onChange={e => setThreadReply(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleThreadReply(e); } }}
                   placeholder="Reply to thread..." autoFocus
                   style={{ ...inputStyle, flex: 1, fontSize: isMobile ? 15 : 13, padding: isMobile ? '10px 12px' : '8px 12px' }}
                   inputMode="text" autoComplete="off" />

@@ -142,7 +142,8 @@ export default function VideoCall() {
       }
 
       const accessToken = localStorage.getItem('rtm_access');
-      const wsUrl = `ws://${window.location.host}/ws/call/${roomId}/?token=${accessToken}`;
+      const wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+      const wsUrl = `${wsProtocol}://${window.location.host}/ws/call/${roomId}/?token=${accessToken}`;
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
 

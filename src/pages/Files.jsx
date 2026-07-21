@@ -212,9 +212,9 @@ export default function Files() {
               <div className="flex-1 min-w-0">
                 <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)' }}>{getFileName(f)}</span>
               </div>
-              <span style={{ fontSize: 11, color: 'var(--text3)' }}>{formatSize(f.file_size)}</span>
-              <span style={{ fontSize: 11, color: 'var(--text3)' }}>{f.uploaded_by?.first_name || 'Unknown'}</span>
-              <span style={{ fontSize: 11, color: 'var(--text3)' }}>{f.uploaded_at || f.created_at ? format(new Date(f.uploaded_at || f.created_at), 'MMM d, yyyy') : '—'}</span>
+              <span className="hidden sm:inline" style={{ fontSize: 11, color: 'var(--text3)' }}>{formatSize(f.file_size)}</span>
+              <span className="hidden md:inline" style={{ fontSize: 11, color: 'var(--text3)' }}>{f.uploaded_by?.first_name || 'Unknown'}</span>
+              <span className="hidden lg:inline" style={{ fontSize: 11, color: 'var(--text3)' }}>{f.uploaded_at || f.created_at ? format(new Date(f.uploaded_at || f.created_at), 'MMM d, yyyy') : '—'}</span>
               <div className="flex gap-1">
                 {isPreviewable(getFileName(f)) && <button onClick={() => openPreview(f)} style={{ background: 'transparent', border: 'none', color: 'var(--brand)', cursor: 'pointer', padding: 4, display: 'flex' }}><Eye size={13} /></button>}
                 <a href={getFileUrl(f)} download={getFileName(f)} target="_blank" rel="noreferrer" style={{ background: 'transparent', border: 'none', color: 'var(--text3)', cursor: 'pointer', padding: 4, display: 'flex', textDecoration: 'none' }}><Download size={13} /></a>

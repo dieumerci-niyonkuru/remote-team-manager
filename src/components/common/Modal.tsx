@@ -59,17 +59,17 @@ export const Modal: React.FC<ModalProps> = ({
     xl: 'max-w-5xl',
   };
     return (
-      <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby={titleId}>      <div 
+      <div className="fixed inset-0 z-[1000] flex items-center justify-center p-3 sm:p-4" role="dialog" aria-modal="true" aria-labelledby={titleId}>      <div 
         className="absolute inset-0 bg-black/80 backdrop-blur-md animate-in fade-in duration-300" 
         onClick={onClose} 
       />
       
       <FocusTrap>
-        <div className={`w-full ${sizes[size]} bg-[#0d1425] border border-white/10 overflow-hidden relative z-10 animate-in zoom-in-95 slide-in-from-bottom-4 duration-300`} style={{ ...radiusStyle('lg'), ...shadowStyle('md') }}>
+        <div className={`w-full ${sizes[size]} overflow-hidden relative z-10 animate-in zoom-in-95 slide-in-from-bottom-4 duration-300`} style={{ background: 'var(--bg2)', border: '1px solid var(--border)', ...radiusStyle('lg'), ...shadowStyle('md'), maxHeight: '90vh' }}>
           {/* Header */}
-          <div className="px-8 py-6 border-b border-white/5 flex items-center justify-between">
+          <div className="px-4 sm:px-8 py-4 sm:py-6 border-b flex items-center justify-between" style={{ borderColor: 'var(--border)' }}>
             <div>
-              <h2 id={titleId} className="text-xl font-black text-white tracking-tight">{title}</h2>
+              <h2 id={titleId} className="text-lg sm:text-xl font-black tracking-tight" style={{ color: 'var(--text)' }}>{title}</h2>
             </div>
             <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close modal">
               <X size={20} />
@@ -77,13 +77,13 @@ export const Modal: React.FC<ModalProps> = ({
           </div>
 
           {/* Content */}
-          <div className="px-8 py-8 max-h-[70vh] overflow-y-auto custom-scrollbar">
+          <div className="px-4 sm:px-8 py-5 sm:py-8 max-h-[70vh] overflow-y-auto custom-scrollbar">
             {children}
           </div>
 
           {/* Footer */}
           {footer && (
-            <div className="px-8 py-6 border-t border-white/5 bg-white/2 flex items-center justify-end gap-3">
+            <div className="px-4 sm:px-8 py-4 sm:py-6 border-t flex items-center justify-end gap-3" style={{ borderColor: 'var(--border)', background: 'var(--bg3)' }}>
               {footer}
             </div>
           )}

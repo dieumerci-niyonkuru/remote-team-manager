@@ -192,11 +192,11 @@ export default function Sidebar() {
                   {[{c:'en',f:'🇬🇧'},{c:'fr',f:'🇫🇷'},{c:'rw',f:'🇷🇼'}].map(l => (
                     <button key={l.c} onClick={() => setLang && setLang(l.c)}
                       title={l.c.toUpperCase()}
-                      style={{
-                        background: (lang||'en')===l.c ? 'var(--brand-bg)' : 'transparent',
-                        border: `1px solid ${(lang||'en')===l.c ? 'rgba(51,102,255,0.3)' : 'transparent'}`,
-                        borderRadius:4, padding:'2px 4px', fontSize:10, cursor:'pointer', transition:'0.15s'
-                      }}>{l.f}</button>
+                       style={{
+                         background: (lang||'en')===l.c ? 'var(--brand-bg)' : 'transparent',
+                         border: `1px solid ${(lang||'en')===l.c ? 'rgba(51,102,255,0.3)' : 'transparent'}`,
+                         borderRadius:4, padding:'4px 6px', fontSize:10, cursor:'pointer', transition:'0.15s', lineHeight: 1
+                       }}>{l.f}</button>
                   ))}
                 </div>
                 <ThemeSwitcher />

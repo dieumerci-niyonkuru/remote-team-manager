@@ -76,8 +76,8 @@ export default function HR() {
             {employees.length === 0 ? (
               <EmptyState icon={<Users size={24} />} title="No employees" description="Add your first employee to get started." />
             ) : (
-              <div className="overflow-x-auto">
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+              <div className="overflow-x-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
+                <table style={{ width: '100%', minWidth: 640, borderCollapse: 'collapse', fontSize: 13 }}>
                   <thead>
                     <tr style={{ borderBottom: '1px solid var(--border)' }}>
                       {['Employee', 'Role', 'Department', 'Status', 'Joined'].map(h => (

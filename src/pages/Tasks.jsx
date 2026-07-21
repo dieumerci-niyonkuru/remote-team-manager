@@ -130,7 +130,7 @@ export default function Tasks() {
           </select>
         </div>
 
-        <div style={{ display: 'flex', gap: 4, background: 'var(--bg3)', borderRadius: 8, padding: 3, alignSelf: 'flex-start' }}>
+        <div style={{ display: 'flex', gap: 4, background: 'var(--bg3)', borderRadius: 8, padding: 3, alignSelf: 'flex-start', overflowX: 'auto', maxWidth: '100%' }} className="no-scrollbar">
           {STATUS_TABS.map((s) => (
             <button
               key={s}
@@ -147,6 +147,8 @@ export default function Tasks() {
                 fontFamily: 'inherit',
                 transition: 'all 0.2s ease',
                 boxShadow: statusFilter === s ? '0 2px 8px rgba(0,0,0,0.15)' : 'none',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
               }}
             >
               {s === 'all' ? 'All' : STATUS_LABEL[s]}
@@ -215,14 +217,13 @@ export default function Tasks() {
                 </div>
 
                 {t.project && (
-                  <span style={{ fontSize: 11, color: 'var(--text3)', flexShrink: 0, padding: '2px 8px', background: 'var(--bg3)', borderRadius: 6 }}>
+                  <span className="hidden sm:inline" style={{ fontSize: 11, color: 'var(--text3)', flexShrink: 0, padding: '2px 8px', background: 'var(--bg3)', borderRadius: 6 }}>
                     {t.project.name || t.project}
                   </span>
                 )}
 
                 {t.deadline && (
-                  <span style={{
-                    display: 'flex',
+                  <span className="hidden sm:flex" style={{
                     alignItems: 'center',
                     gap: 4,
                     flexShrink: 0,
@@ -417,7 +418,7 @@ function CreateTaskModal({ isOpen, onClose, onCreated }) {
             style={{ ...inputStyle, resize: 'vertical' }}
           />
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 140px), 1fr))', gap: 12 }}>
           <div>
             <label style={labelStyle}>Status</label>
             <select value={status} onChange={(e) => setStatus(e.target.value)} style={{ ...inputStyle, cursor: 'pointer' }}>
@@ -437,7 +438,7 @@ function CreateTaskModal({ isOpen, onClose, onCreated }) {
             </select>
           </div>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 140px), 1fr))', gap: 12 }}>
           <div>
             <label style={labelStyle}>Due Date</label>
             <input

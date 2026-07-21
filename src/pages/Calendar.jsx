@@ -48,9 +48,9 @@ export default function Calendar() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 12, padding: 16, gridColumn: 'span 2' }}>
           <div className="flex items-center justify-between mb-4">
-            <button onClick={() => setCurrentMonth(subMonths(currentMonth, 1))} style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 6, padding: '5px 8px', color: 'var(--text3)', cursor: 'pointer' }}><ChevronLeft size={14} /></button>
+            <button onClick={() => setCurrentMonth(subMonths(currentMonth, 1))} style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 10px', color: 'var(--text3)', cursor: 'pointer', minHeight: 36, display: 'flex', alignItems: 'center' }}><ChevronLeft size={14} /></button>
             <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text)', margin: 0 }}>{format(currentMonth, 'MMMM yyyy')}</h2>
-            <button onClick={() => setCurrentMonth(addMonths(currentMonth, 1))} style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 6, padding: '5px 8px', color: 'var(--text3)', cursor: 'pointer' }}><ChevronRight size={14} /></button>
+            <button onClick={() => setCurrentMonth(addMonths(currentMonth, 1))} style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 8, padding: '8px 10px', color: 'var(--text3)', cursor: 'pointer', minHeight: 36, display: 'flex', alignItems: 'center' }}><ChevronRight size={14} /></button>
           </div>
           {loading ? (
             <div className="flex items-center justify-center py-12"><LoadingSpinner size={24} /></div>

@@ -206,10 +206,10 @@ export default function Projects() {
                     </p>
                   )}
                 </div>
-                <span style={{ fontSize: 11, color: 'var(--text3)', flexShrink: 0 }}>
+                <span className="hidden sm:inline" style={{ fontSize: 11, color: 'var(--text3)', flexShrink: 0 }}>
                   {p.task_count ?? 0} tasks
                 </span>
-                <span style={{ fontSize: 11, color: 'var(--text3)', flexShrink: 0 }}>
+                <span className="hidden md:inline" style={{ fontSize: 11, color: 'var(--text3)', flexShrink: 0 }}>
                   {format(new Date(p.created_at), 'MMM d, yyyy')}
                 </span>
                 <button

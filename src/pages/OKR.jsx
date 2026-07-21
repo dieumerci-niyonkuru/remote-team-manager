@@ -193,7 +193,7 @@ export default function OKR() {
                           const ks = KR_STATUS[kr.status] || KR_STATUS.on_track;
                           return (
                             <div key={ki} style={{ padding: '8px 0', borderTop: '1px solid var(--border)' }}>
-                              <div className="flex items-center gap-3">
+                              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                                 <span style={{ color: ks.color }}>{ks.icon}</span>
                                 <div className="flex-1 min-w-0">
                                   <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>{kr.title || kr.name}</span>
