@@ -34,9 +34,8 @@ class CallSignalingConsumer(AsyncWebsocketConsumer):
             'type': 'peer_event',
             'payload': {
                 'type': 'user_joined',
-                'user_id': user.id,
-                'username': user.username,
-                'display_name': user.get_full_name() or user.username,
+                'user': user.id,
+                'name': user.get_full_name() or user.username,
             }
         })
 
@@ -63,8 +62,8 @@ class CallSignalingConsumer(AsyncWebsocketConsumer):
                 'type': 'peer_event',
                 'payload': {
                     'type': 'user_left',
-                    'user_id': self.user.id if hasattr(self, 'user') else None,
-                    'username': self.user.username if hasattr(self, 'user') else '',
+                    'user': self.user.id if hasattr(self, 'user') else None,
+                    'name': self.user.get_full_name() if hasattr(self, 'user') else '',
                 }
             })
             await self.channel_layer.group_discard(self.group_name, self.channel_name)
@@ -99,16 +98,19 @@ class CallSignalingConsumer(AsyncWebsocketConsumer):
             return
 
         # All other signaling events — broadcast to room group
-        # (offer, answer, ice_candidate, call_accept, call_reject, call_end)
-        broadcast_types = {'offer', 'answer', 'ice_candidate', 'call_accept', 'call_reject', 'call_end'}
+        broadcast_types = {
+            'offer', 'answer', 'ice_candidate',
+            'call_accept', 'call_reject', 'call_end',
+            'chat_message', 'raise_hand',
+        }
         if msg_type in broadcast_types:
             payload = {
                 'type': msg_type,
-                'from_user_id': self.user.id,
-                'from_username': self.user.username,
+                'user': self.user.id,
+                'name': self.user.get_full_name() or self.user.username,
             }
-            # Pass through SDP data and candidate data
-            for key in ('sdp', 'candidate', 'sdpMid', 'sdpMLineIndex', 'target_user_id'):
+            # Pass through SDP data, candidate data, chat content, etc.
+            for key in ('sdp', 'candidate', 'sdpMid', 'sdpMLineIndex', 'target_user_id', 'content'):
                 if key in data:
                     payload[key] = data[key]
 
@@ -120,10 +122,8 @@ class CallSignalingConsumer(AsyncWebsocketConsumer):
     async def peer_event(self, event):
         """Relay peer signaling events to this WebSocket client."""
         payload = event.get('payload', {})
-        # Don't echo back to sender (for offer/answer/ice)
-        sender_id = payload.get('from_user_id')
+        sender_id = payload.get('user')
         if sender_id and hasattr(self, 'user') and sender_id == self.user.id:
-            # Still send certain events back (e.g., user_joined echoes to everyone)
             if payload.get('type') not in ('offer', 'answer', 'ice_candidate'):
                 pass
             else:

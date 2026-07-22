@@ -77,6 +77,7 @@ export default function VideoCall() {
   const intentionalLeaveRef = useRef(false);
   const reconnectAttemptRef = useRef(0);
   const reconnectTimerRef = useRef(null);
+  const heartbeatRef = useRef(null);
 
   const sendWs = useCallback((data) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
@@ -117,6 +118,10 @@ export default function VideoCall() {
     if (reconnectTimerRef.current) {
       clearTimeout(reconnectTimerRef.current);
       reconnectTimerRef.current = null;
+    }
+    if (heartbeatRef.current) {
+      clearInterval(heartbeatRef.current);
+      heartbeatRef.current = null;
     }
     Object.values(pcRef.current).forEach(pc => pc.close());
     pcRef.current = {};
@@ -180,6 +185,10 @@ export default function VideoCall() {
           setParticipantNames({});
           participantNamesRef.current = {};
           sendWs({ type: 'join', user: user?.id });
+          if (heartbeatRef.current) clearInterval(heartbeatRef.current);
+          heartbeatRef.current = setInterval(() => {
+            sendWs({ type: 'heartbeat' });
+          }, 25000);
         };
 
         ws.onmessage = async (evt) => {
@@ -245,6 +254,7 @@ export default function VideoCall() {
         };
 
         ws.onclose = () => {
+          if (heartbeatRef.current) { clearInterval(heartbeatRef.current); heartbeatRef.current = null; }
           if (intentionalLeaveRef.current || unmounted) return;
           const attempt = reconnectAttemptRef.current;
           if (attempt >= 5) {
@@ -326,6 +336,10 @@ export default function VideoCall() {
       if (reconnectTimerRef.current) {
         clearTimeout(reconnectTimerRef.current);
         reconnectTimerRef.current = null;
+      }
+      if (heartbeatRef.current) {
+        clearInterval(heartbeatRef.current);
+        heartbeatRef.current = null;
       }
       Object.values(pcRef.current).forEach(pc => pc.close());
       pcRef.current = {};
