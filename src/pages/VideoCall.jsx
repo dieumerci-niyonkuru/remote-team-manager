@@ -60,6 +60,7 @@ export default function VideoCall() {
   const [chatMessages, setChatMessages] = useState([]);
   const [participants, setParticipants] = useState([]);
   const [showParticipants, setShowParticipants] = useState(false);
+  const [reconnecting, setReconnecting] = useState(false);
 
   const localStreamRef = useRef(null);
   const remoteStreamsRef = useRef({});
@@ -73,6 +74,9 @@ export default function VideoCall() {
 
   const participantNamesRef = useRef({});
   const [participantNames, setParticipantNames] = useState({});
+  const intentionalLeaveRef = useRef(false);
+  const reconnectAttemptRef = useRef(0);
+  const reconnectTimerRef = useRef(null);
 
   const sendWs = useCallback((data) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {
@@ -109,6 +113,11 @@ export default function VideoCall() {
   }, [chatInput, sendWs, user?.id, user?.first_name, user?.username]);
 
   const handleLeave = useCallback(() => {
+    intentionalLeaveRef.current = true;
+    if (reconnectTimerRef.current) {
+      clearTimeout(reconnectTimerRef.current);
+      reconnectTimerRef.current = null;
+    }
     Object.values(pcRef.current).forEach(pc => pc.close());
     pcRef.current = {};
     if (localStreamRef.current) {
@@ -124,12 +133,15 @@ export default function VideoCall() {
     setRemoteStreams({});
     setParticipants([]);
     setHandRaised(false);
+    setReconnecting(false);
     setJoined(false);
   }, []);
 
   useEffect(() => {
     if (!joined) return;
 
+    intentionalLeaveRef.current = false;
+    reconnectAttemptRef.current = 0;
     let unmounted = false;
 
     const setup = async () => {
@@ -149,87 +161,113 @@ export default function VideoCall() {
       const accessToken = localStorage.getItem('rtm_access');
       const wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
       const wsUrl = `${wsProtocol}://${window.location.host}/ws/call/${roomId}/?token=${accessToken}`;
-      const ws = new WebSocket(wsUrl);
-      wsRef.current = ws;
 
-      ws.onopen = () => {
-        sendWs({ type: 'join', user: user?.id });
-      };
+      const connectWebSocket = () => {
+        if (intentionalLeaveRef.current) return;
 
-      ws.onmessage = async (evt) => {
-        let msg;
-        try { msg = JSON.parse(evt.data); } catch { return; }
+        const ws = new WebSocket(wsUrl);
+        wsRef.current = ws;
 
-        // The channel layer echoes room messages back to the sender, and some
-        // frames arrive without a user id. Either one would otherwise be added
-        // as a phantom peer — rendering a "User undefined" tile with no React
-        // key. Drop anything that is not a real remote participant.
-        if (msg.user == null || msg.user === user?.id) return;
+        ws.onopen = () => {
+          intentionalLeaveRef.current = false;
+          reconnectAttemptRef.current = 0;
+          setReconnecting(false);
+          Object.values(pcRef.current).forEach(pc => pc.close());
+          pcRef.current = {};
+          remoteStreamsRef.current = {};
+          setRemoteStreams({});
+          setParticipants([]);
+          setParticipantNames({});
+          participantNamesRef.current = {};
+          sendWs({ type: 'join', user: user?.id });
+        };
 
-        if (msg.type === 'user_joined') {
-          const peerId = msg.user;
-          if (!participantNamesRef.current[peerId]) {
-            participantNamesRef.current[peerId] = msg.name || `User ${peerId}`;
-            setParticipantNames({ ...participantNamesRef.current });
-          }
-          setParticipants(prev => prev.includes(peerId) ? prev : [...prev, peerId]);
-          await createPeerConnection(peerId, true);
-        } else if (msg.type === 'user_left') {
-          const peerId = msg.user;
-          if (pcRef.current[peerId]) { pcRef.current[peerId].close(); delete pcRef.current[peerId]; }
-          delete remoteStreamsRef.current[peerId];
-          delete participantNamesRef.current[peerId];
-          setRemoteStreams({ ...remoteStreamsRef.current });
-          setParticipantNames({ ...participantNamesRef.current });
-          setParticipants(prev => prev.filter(p => p !== peerId));
-        } else if (msg.type === 'offer') {
-          const peerId = msg.user;
-          if (!participantNamesRef.current[peerId]) {
-            participantNamesRef.current[peerId] = msg.name || `User ${peerId}`;
-            setParticipantNames({ ...participantNamesRef.current });
-          }
-          setParticipants(prev => prev.includes(peerId) ? prev : [...prev, peerId]);
-          await handleOffer(peerId, msg.offer, msg.name);
-        } else if (msg.type === 'answer') {
-          const peerId = msg.user;
-          const pc = pcRef.current[peerId];
-          if (pc) await pc.setRemoteDescription(new RTCSessionDescription(msg.answer));
-        } else if (msg.type === 'ice_candidate') {
-          const peerId = msg.user;
-          const pc = pcRef.current[peerId];
-          if (pc && msg.candidate) {
-            await pc.addIceCandidate(new RTCIceCandidate(msg.candidate));
-          }
-        } else if (msg.type === 'raise_hand') {
-          const peerId = msg.user;
-          setRemoteStreams(prev => {
-            const updated = { ...prev };
-            if (updated[peerId]) {
-              updated[peerId] = { ...updated[peerId], handRaised: !updated[peerId].handRaised };
+        ws.onmessage = async (evt) => {
+          let msg;
+          try { msg = JSON.parse(evt.data); } catch { return; }
+
+          if (msg.user == null || msg.user === user?.id) return;
+
+          if (msg.type === 'user_joined') {
+            const peerId = msg.user;
+            if (!participantNamesRef.current[peerId]) {
+              participantNamesRef.current[peerId] = msg.name || `User ${peerId}`;
+              setParticipantNames({ ...participantNamesRef.current });
             }
-            return updated;
-          });
-        } else if (msg.type === 'chat_message') {
-          const peerId = msg.user;
-          const name = participantNamesRef.current[peerId] || `User ${peerId}`;
-          setChatMessages(prev => [...prev, { id: Date.now() + Math.random(), user: peerId, name, content: msg.content, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
-        } else if (msg.type === 'participant_info') {
-          const peerId = msg.user;
-          if (msg.name) {
-            participantNamesRef.current[peerId] = msg.name;
+            setParticipants(prev => prev.includes(peerId) ? prev : [...prev, peerId]);
+            await createPeerConnection(peerId, true);
+          } else if (msg.type === 'user_left') {
+            const peerId = msg.user;
+            if (pcRef.current[peerId]) { pcRef.current[peerId].close(); delete pcRef.current[peerId]; }
+            delete remoteStreamsRef.current[peerId];
+            delete participantNamesRef.current[peerId];
+            setRemoteStreams({ ...remoteStreamsRef.current });
             setParticipantNames({ ...participantNamesRef.current });
+            setParticipants(prev => prev.filter(p => p !== peerId));
+          } else if (msg.type === 'offer') {
+            const peerId = msg.user;
+            if (!participantNamesRef.current[peerId]) {
+              participantNamesRef.current[peerId] = msg.name || `User ${peerId}`;
+              setParticipantNames({ ...participantNamesRef.current });
+            }
+            setParticipants(prev => prev.includes(peerId) ? prev : [...prev, peerId]);
+            await handleOffer(peerId, msg.offer, msg.name);
+          } else if (msg.type === 'answer') {
+            const peerId = msg.user;
+            const pc = pcRef.current[peerId];
+            if (pc) await pc.setRemoteDescription(new RTCSessionDescription(msg.answer));
+          } else if (msg.type === 'ice_candidate') {
+            const peerId = msg.user;
+            const pc = pcRef.current[peerId];
+            if (pc && msg.candidate) {
+              await pc.addIceCandidate(new RTCIceCandidate(msg.candidate));
+            }
+          } else if (msg.type === 'raise_hand') {
+            const peerId = msg.user;
+            setRemoteStreams(prev => {
+              const updated = { ...prev };
+              if (updated[peerId]) {
+                updated[peerId] = { ...updated[peerId], handRaised: !updated[peerId].handRaised };
+              }
+              return updated;
+            });
+          } else if (msg.type === 'chat_message') {
+            const peerId = msg.user;
+            const name = participantNamesRef.current[peerId] || `User ${peerId}`;
+            setChatMessages(prev => [...prev, { id: Date.now() + Math.random(), user: peerId, name, content: msg.content, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
+          } else if (msg.type === 'participant_info') {
+            const peerId = msg.user;
+            if (msg.name) {
+              participantNamesRef.current[peerId] = msg.name;
+              setParticipantNames({ ...participantNamesRef.current });
+            }
           }
-        }
+        };
+
+        ws.onclose = () => {
+          if (intentionalLeaveRef.current || unmounted) return;
+          const attempt = reconnectAttemptRef.current;
+          if (attempt >= 5) {
+            toast.error('Call connection lost');
+            if (!unmounted) handleLeave();
+            return;
+          }
+          const delay = Math.min(1000 * 2 ** attempt, 30000);
+          reconnectAttemptRef.current = attempt + 1;
+          setReconnecting(true);
+          reconnectTimerRef.current = setTimeout(() => {
+            if (!unmounted && !intentionalLeaveRef.current) {
+              connectWebSocket();
+            }
+          }, delay);
+        };
+
+        ws.onerror = () => {};
+
+        return ws;
       };
 
-      ws.onclose = () => {
-        toast('Call connection closed');
-        if (!unmounted) handleLeave();
-      };
-
-      ws.onerror = () => {
-        toast.error('Call connection error');
-      };
+      connectWebSocket();
     };
 
     const createPeerConnection = async (peerId, initiator) => {
@@ -285,6 +323,10 @@ export default function VideoCall() {
 
     return () => {
       unmounted = true;
+      if (reconnectTimerRef.current) {
+        clearTimeout(reconnectTimerRef.current);
+        reconnectTimerRef.current = null;
+      }
       Object.values(pcRef.current).forEach(pc => pc.close());
       pcRef.current = {};
       if (localStreamRef.current) {
@@ -381,7 +423,10 @@ export default function VideoCall() {
           />
         </div>
 
-        <div style={{ position: 'fixed', bottom: 16, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 8, background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 12, padding: '8px 16px', boxShadow: '0 8px 32px rgba(0,0,0,0.3)', zIndex: 50 }}>
+        <div style={{ position: 'fixed', bottom: 16, left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: 8, background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 12, padding: '8px 16px', boxShadow: '0 8px 32px rgba(0,0,0,0.3)', zIndex: 50, alignItems: 'center' }}>
+          {reconnecting && (
+            <div style={{ fontSize: 12, color: '#eab308', fontWeight: 600, marginRight: 4, whiteSpace: 'nowrap' }}>Reconnecting...</div>
+          )}
           <button onClick={toggleAudio}
             style={{ width: 40, height: 40, borderRadius: 10, background: audioOn ? 'var(--bg3)' : 'var(--danger)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: audioOn ? 'var(--text)' : '#fff' }}>
             {audioOn ? <Mic size={16} /> : <MicOff size={16} />}
