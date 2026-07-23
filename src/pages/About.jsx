@@ -120,14 +120,26 @@ export default function About() {
             onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--brand)'; }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; }}
           >
+            {/* Founder portrait. The gradient + initials sit underneath, so if
+                the photo ever fails to load the avatar still renders cleanly. */}
             <div style={{
-              width: 72, height: 72, borderRadius: '50%',
+              width: 96, height: 96, borderRadius: '50%', position: 'relative',
               background: 'linear-gradient(135deg, var(--brand), var(--accent))',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 24, fontWeight: 800, color: '#fff', flexShrink: 0,
+              fontSize: 28, fontWeight: 800, color: '#fff', flexShrink: 0,
               boxShadow: '0 8px 24px rgba(51,102,255,0.3)',
+              border: '2px solid var(--brand)',
             }}>
               DN
+              <img
+                src="/founder.jpg"
+                alt="Dieu Merci Niyonkuru"
+                onError={e => { e.currentTarget.style.display = 'none'; }}
+                style={{
+                  position: 'absolute', inset: 0, width: '100%', height: '100%',
+                  objectFit: 'cover', borderRadius: '50%',
+                }}
+              />
             </div>
             <div style={{ flex: '1 1 200px' }}>
               <h3 style={{ fontSize: 'clamp(18px,2vw,20px)', fontWeight: 800, marginBottom: 4, color: 'var(--text)' }}>Dieu Merci Niyonkuru</h3>

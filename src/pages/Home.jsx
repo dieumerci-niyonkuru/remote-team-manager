@@ -92,23 +92,29 @@ function HeroVideoBackground() {
           autoPlay muted loop playsInline preload="metadata"
           poster="/hero-bg-poster.jpg"
           onError={() => setFailed(true)}
-          style={{ ...layer, opacity: 0.62 }}
+          style={{
+            ...layer,
+            opacity: 0.95,
+            // The recorded UI is dark navy and so is the page background, so
+            // the footage disappeared into it. Lifting brightness/saturation
+            // separates the product from the page behind it.
+            filter: 'brightness(1.5) saturate(1.35) contrast(1.06)',
+          }}
         >
           <source src="/hero-bg.mp4" type="video/mp4" />
         </video>
       ) : (
-        <img src="/hero-bg-poster.jpg" alt="" style={{ ...layer, opacity: 0.5 }} />
+        <img src="/hero-bg-poster.jpg" alt="" style={{ ...layer, opacity: 0.85, filter: 'brightness(1.4) saturate(1.3)' }} />
       )}
-      {/* Scrim keeps the headline readable over the footage, in both themes.
-          Tuned to stay light enough that the product is clearly visible. */}
+      {/* Light scrim: enough contrast for the copy, without hiding the video */}
       <div style={{
         position: 'absolute', inset: 0,
-        background: 'linear-gradient(to bottom, rgba(var(--bg-rgb),0.72) 0%, rgba(var(--bg-rgb),0.60) 40%, rgba(var(--bg-rgb),0.88) 82%, var(--bg) 100%)',
+        background: 'linear-gradient(to bottom, rgba(var(--bg-rgb),0.46) 0%, rgba(var(--bg-rgb),0.34) 38%, rgba(var(--bg-rgb),0.74) 80%, var(--bg) 100%)',
       }} />
-      {/* Soft vignette focuses the centre where the headline sits */}
+      {/* Vignette concentrated behind the headline block only */}
       <div style={{
         position: 'absolute', inset: 0,
-        background: 'radial-gradient(ellipse 62% 48% at 50% 42%, rgba(var(--bg-rgb),0.62), transparent 70%)',
+        background: 'radial-gradient(ellipse 56% 40% at 50% 45%, rgba(var(--bg-rgb),0.70), transparent 72%)',
       }} />
     </div>
   );
@@ -504,6 +510,8 @@ export default function Home() {
             fontSize: 'clamp(32px,7vw,76px)', fontWeight: 800, letterSpacing: '-0.04em',
             lineHeight: 1.05, margin: '0 0 24px', fontFamily: 'var(--font-display)',
             animation: 'heroTextIn 0.9s cubic-bezier(0.4,0,0.2,1) 0.1s both',
+            // keeps the headline crisp over the moving footage behind it
+            textShadow: '0 2px 28px rgba(0,0,0,0.55)',
           }}>
             {/* Explicit space survives when .hero-br is display:none on mobile,
                 otherwise "Platform" and "for" run together as "Platformfor". */}
