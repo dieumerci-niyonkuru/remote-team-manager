@@ -319,67 +319,6 @@ function FAQItem({ item, index }) {
   );
 }
 
-/* ─── Demo preview ─── */
-function DemoPreview() {
-  return (
-    <div className="demo-preview" style={{
-      position: 'relative', maxWidth: 900, margin: '0 auto',
-      background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 16,
-      overflow: 'hidden', boxShadow: 'var(--shadow-lg)',
-    }}>
-      <div style={{ background: 'var(--bg3)', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 8, borderBottom: '1px solid var(--border)' }}>
-        <div style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--danger)', opacity: 0.8 }} />
-        <div style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--warning)', opacity: 0.8 }} />
-        <div style={{ width: 10, height: 10, borderRadius: '50%', background: 'var(--success)', opacity: 0.8 }} />
-        <div style={{ flex: 1, height: 22, borderRadius: 6, background: 'var(--bg2)', marginLeft: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-          <span className="demo-url" style={{ fontSize: 11, color: 'var(--text3)', fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', padding: '0 8px' }}>app.remoteteam.io/dashboard</span>
-        </div>
-      </div>
-      <div style={{ display: 'flex', minHeight: 260 }}>
-        <div className="demo-sidebar" style={{ width: 140, background: 'var(--bg2)', borderRight: '1px solid var(--border)', padding: 12, display: 'flex', flexDirection: 'column', gap: 4 }}>
-          {['Dashboard', 'Tasks', 'Projects', 'Chat', 'Team', 'Analytics'].map((item, i) => (
-            <div key={item} style={{
-              padding: '6px 8px', borderRadius: 6,
-              background: i === 0 ? 'var(--brand-bg)' : 'transparent',
-              color: i === 0 ? 'var(--brand)' : 'var(--text3)',
-              fontSize: 11, fontWeight: 700, cursor: 'default',
-            }}>{item}</div>
-          ))}
-        </div>
-        <div style={{ flex: 1, padding: 'clamp(10px,2vw,16px)', display: 'flex', flexDirection: 'column', gap: 10, minWidth: 0 }}>
-          <div className="demo-kpis" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            {[
-              { label: 'Tasks', value: '42', color: 'var(--brand)' },
-              { label: 'Done', value: '9', color: 'var(--success)' },
-              { label: 'Projects', value: '7', color: 'var(--accent)' },
-              { label: 'Online', value: '12', color: 'var(--warning)' },
-            ].map(kpi => (
-              <div key={kpi.label} style={{ flex: '1 1 60px', background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 10, padding: '8px 10px', minWidth: 50 }}>
-                <p style={{ fontSize: 9, color: 'var(--text3)', margin: '0 0 2px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{kpi.label}</p>
-                <p style={{ fontSize: 'clamp(14px,2vw,18px)', fontWeight: 800, color: 'var(--text)', margin: 0 }}>{kpi.value}</p>
-              </div>
-            ))}
-          </div>
-          <div style={{ background: 'var(--bg3)', border: '1px solid var(--border)', borderRadius: 10, padding: 10, flex: 1 }}>
-            <p style={{ fontSize: 10, fontWeight: 700, color: 'var(--text3)', margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Progress</p>
-            {[{ name: 'Web App', pct: 72 }, { name: 'API', pct: 45 }, { name: 'Design', pct: 89 }].map(p => (
-              <div key={p.name} style={{ marginBottom: 6 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
-                  <span style={{ fontSize: 10, color: 'var(--text2)' }}>{p.name}</span>
-                  <span style={{ fontSize: 10, color: 'var(--brand)', fontWeight: 700 }}>{p.pct}%</span>
-                </div>
-                <div style={{ height: 3, background: 'var(--bg2)', borderRadius: 2 }}>
-                  <div style={{ height: '100%', width: `${p.pct}%`, background: 'var(--brand)', borderRadius: 2, transition: 'width 1s ease' }} />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 /* ─── CTA section ─── */
 function CTASection() {
   const navigate = useNavigate();
@@ -432,16 +371,14 @@ function CTASection() {
 export default function Home() {
   const { isAuth } = useStore();
   const navigate = useNavigate();
-  const [videoModalOpen, setVideoModalOpen] = useState(false);
   if (isAuth) return <Dashboard />;
 
   return (
     <div style={{ background: 'var(--bg)', color: 'var(--text)', overflowX: 'hidden', minHeight: '100vh', fontFamily: 'inherit' }}>
 
       {/* HERO */}
-      <section style={{ position: 'relative', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'clamp(80px,12vh,160px) clamp(16px,4vw,24px) clamp(40px,6vw,80px)', overflow: 'hidden', textAlign: 'center' }}>
-
-        <div style={{ position: 'relative', zIndex: 1, maxWidth: 840 }}>
+      <section style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 'clamp(80px,12vh,140px) clamp(16px,4vw,24px) clamp(40px,6vw,60px)', textAlign: 'center' }}>
+        <div style={{ maxWidth: 840 }}>
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: 8,
             background: 'var(--brand-bg)', border: '1px solid rgba(51,102,255,0.2)',
@@ -456,10 +393,7 @@ export default function Home() {
             fontSize: 'clamp(32px,7vw,76px)', fontWeight: 800, letterSpacing: '-0.04em',
             lineHeight: 1.05, margin: '0 0 24px', fontFamily: 'var(--font-display)',
             animation: 'heroTextIn 0.9s cubic-bezier(0.4,0,0.2,1) 0.1s both',
-
           }}>
-            {/* Explicit space survives when .hero-br is display:none on mobile,
-                otherwise "Platform" and "for" run together as "Platformfor". */}
             The All-in-One Platform{' '}
             <br className="hero-br" />
             for{' '}
@@ -490,7 +424,7 @@ export default function Home() {
             >
               Get Started Free
             </button>
-            <button onClick={() => setVideoModalOpen(true)} style={{
+            <button onClick={() => { const el = document.getElementById('demo-video'); el?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }} style={{
               padding: 'clamp(13px,2vw,15px) clamp(20px,3vw,28px)', borderRadius: 12,
               background: 'var(--bg2)', border: '1px solid var(--border)',
               color: 'var(--text)', fontWeight: 700, fontSize: 'clamp(14px,1.5vw,15px)', cursor: 'pointer',
@@ -505,22 +439,30 @@ export default function Home() {
               Watch Demo
             </button>
           </div>
+        </div>
+      </section>
 
-          {/* Stats */}
-          <div className="hero-stats" style={{
-            display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: 'clamp(16px,3vw,0)',
-            borderTop: '1px solid var(--border)', paddingTop: 'clamp(24px,3vw,36px)',
-            animation: 'heroTextIn 0.9s cubic-bezier(0.4,0,0.2,1) 0.55s both',
+      {/* VIDEO SHOWCASE */}
+      <section id="demo-video" style={{ padding: '0 clamp(16px,4vw,24px) clamp(48px,8vw,80px)', background: 'var(--bg)' }}>
+        <div style={{ maxWidth: 960, margin: '0 auto' }}>
+          <div style={{
+            position: 'relative', borderRadius: 16, overflow: 'hidden',
+            boxShadow: '0 24px 80px rgba(0,0,0,0.4), 0 0 0 1px var(--border)',
+            background: '#000',
           }}>
-            {STATS.map((stat, i) => (
-              <React.Fragment key={stat.label}>
-                <StatItem stat={stat} />
-                {i < STATS.length - 1 && (
-                  <div className="stat-divider" style={{ width: 1, background: 'var(--border)', margin: '0 4px', alignSelf: 'stretch' }} />
-                )}
-              </React.Fragment>
-            ))}
+            <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0 }}>
+              <iframe
+                src="https://www.youtube.com/embed/vkhkcfAuR8g?autoplay=1&mute=1&loop=1&playlist=vkhkcfAuR8g&rel=0&modestbranding=1"
+                title="See how RemoteTeam works"
+                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }}
+                allow="autoplay; encrypted-media"
+                allowFullScreen
+              />
+            </div>
           </div>
+          <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--text3)', marginTop: 16, fontWeight: 600 }}>
+            See how RemoteTeam unifies projects, chat, tasks, and analytics in one workspace.
+          </p>
         </div>
       </section>
 
@@ -558,11 +500,17 @@ export default function Home() {
         </div>
       </section>
 
-      {/* DEMO */}
-      <section style={{ padding: 'clamp(48px,8vw,100px) clamp(16px,4vw,24px)', background: 'var(--bg)', textAlign: 'center' }}>
-        <div style={{ maxWidth: 1000, margin: '0 auto' }}>
-          <SectionHeader eyebrow="See it in action" eyebrowColor="var(--accent)" title="Your whole operation, one screen." subtitle="Real-time data, zero context-switching." />
-          <DemoPreview />
+      {/* STATS */}
+      <section style={{ padding: 'clamp(32px,5vw,48px) clamp(16px,4vw,24px)', background: 'var(--bg2)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}>
+        <div className="hero-stats" style={{ maxWidth: 900, margin: '0 auto', display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: 'clamp(16px,3vw,0)' }}>
+          {STATS.map((stat, i) => (
+            <React.Fragment key={stat.label}>
+              <StatItem stat={stat} />
+              {i < STATS.length - 1 && (
+                <div className="stat-divider" style={{ width: 1, background: 'var(--border)', margin: '0 4px', alignSelf: 'stretch' }} />
+              )}
+            </React.Fragment>
+          ))}
         </div>
       </section>
 
@@ -599,33 +547,6 @@ export default function Home() {
       {/* CTA */}
       <CTASection />
 
-      {/* Video Modal */}
-      {videoModalOpen && (
-        <div
-          onClick={() => setVideoModalOpen(false)}
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'clamp(16px,4vw,24px)', backdropFilter: 'blur(8px)' }}>
-          <div onClick={e => e.stopPropagation()} style={{ position: 'relative', width: '100%', maxWidth: 800, borderRadius: 16, overflow: 'hidden', boxShadow: '0 24px 80px rgba(0,0,0,0.6)', animation: 'modalIn 0.3s ease' }}>
-            <button
-              onClick={() => setVideoModalOpen(false)}
-              style={{ position: 'absolute', top: 12, right: 12, zIndex: 2, width: 36, height: 36, borderRadius: '50%', background: 'rgba(0,0,0,0.6)', border: 'none', color: '#fff', fontSize: 18, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s' }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.8)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.6)'; }}
-            >
-              &#x2715;
-            </button>
-            <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0 }}>
-              <iframe
-                src="https://www.youtube.com/embed/vkhkcfAuR8g?autoplay=1&rel=0"
-                title="RemoteTeam Platform Demo"
-                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }}
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-            </div>
-          </div>
-        </div>
-      )}
-
       <style>{`
         @keyframes heroBadgeIn {
           from { opacity: 0; transform: translateY(-16px) scale(0.95); }
@@ -635,25 +556,15 @@ export default function Home() {
           from { opacity: 0; transform: translateY(24px); }
           to   { opacity: 1; transform: translateY(0); }
         }
-        @keyframes modalIn {
-          from { opacity: 0; transform: scale(0.95); }
-          to   { opacity: 1; transform: scale(1); }
-        }
         .hero-br { display: block; }
         @media (max-width: 768px) {
           .hero-br { display: none; }
           .stat-divider { display: none; }
-          .demo-sidebar { display: none !important; }
-          .demo-kpis { gap: 4px !important; }
-          /* 4 stats wrap to an unbalanced 3+1 when flexed; a 2x2 grid is even */
           .hero-stats {
             display: grid !important;
             grid-template-columns: repeat(2, 1fr);
             gap: 20px 12px;
           }
-        }
-        @media (max-width: 480px) {
-          .demo-url { font-size: 10px !important; }
         }
       `}</style>
     </div>
