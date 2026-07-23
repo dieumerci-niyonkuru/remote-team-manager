@@ -4,7 +4,7 @@ import { useStore } from '../store';
 import Dashboard from './Dashboard';
 import {
   Zap, Shield, Globe, MessageSquare, Video, BarChart2, Target,
-  Check, Star, ArrowRight, ChevronRight, Play, Users, Layers, Sparkles,
+  Check, Star, ArrowRight, ChevronRight, Users, Layers, Sparkles,
   ChevronDown
 } from 'lucide-react';
 
@@ -530,45 +530,7 @@ export default function Home() {
             >
               Get Started Free
             </button>
-            <button onClick={() => { const el = document.getElementById('demo-video'); el?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }} style={{
-              padding: 'clamp(13px,2vw,15px) clamp(20px,3vw,28px)', borderRadius: 12,
-              background: 'var(--bg2)', border: '1px solid var(--border)',
-              color: 'var(--text)', fontWeight: 700, fontSize: 'clamp(14px,1.5vw,15px)', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', gap: 10, transition: 'all 0.2s', fontFamily: 'var(--font-body)',
-            }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--brand)'; e.currentTarget.style.background = 'var(--bg3)'; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'var(--bg2)'; }}
-            >
-              <div style={{ width: 28, height: 28, borderRadius: '50%', background: 'var(--brand-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                <Play size={12} fill="var(--brand)" color="var(--brand)" style={{ marginLeft: 2 }} />
-              </div>
-              Watch Demo
-            </button>
           </div>
-        </div>
-      </section>
-
-      {/* VIDEO SHOWCASE */}
-      <section id="demo-video" style={{ padding: '0 clamp(16px,4vw,24px) clamp(48px,8vw,80px)', background: 'var(--bg)' }}>
-        <div style={{ maxWidth: 960, margin: '0 auto' }}>
-          <div style={{
-            position: 'relative', borderRadius: 16, overflow: 'hidden',
-            boxShadow: '0 24px 80px rgba(0,0,0,0.4), 0 0 0 1px var(--border)',
-            background: '#000',
-          }}>
-            <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0 }}>
-              <iframe
-                src="https://www.youtube.com/embed/vkhkcfAuR8g?autoplay=1&mute=1&loop=1&playlist=vkhkcfAuR8g&rel=0&modestbranding=1"
-                title="See how RemoteTeam works"
-                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }}
-                allow="autoplay; encrypted-media"
-                allowFullScreen
-              />
-            </div>
-          </div>
-          <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--text3)', marginTop: 16, fontWeight: 600 }}>
-            See how RemoteTeam unifies projects, chat, tasks, and analytics in one workspace.
-          </p>
         </div>
       </section>
 
