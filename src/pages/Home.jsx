@@ -65,60 +65,7 @@ function useReveal(threshold = 0.15) {
   return { visible, ref };
 }
 
-/* ─── Hero background video ───
-   A short, muted loop of the real product (one screen per second). Decorative
-   only, so it is aria-hidden and never blocks interaction. Falls back to a
-   static poster when the visitor prefers reduced motion or is on Data Saver,
-   and if the video cannot play at all. */
-function HeroVideoBackground() {
-  const [playVideo, setPlayVideo] = useState(false);
-  const [failed, setFailed] = useState(false);
 
-  useEffect(() => {
-    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
-    const saveData = navigator.connection?.saveData;
-    if (!reduced && !saveData) setPlayVideo(true);
-  }, []);
-
-  const layer = {
-    position: 'absolute', inset: 0, width: '100%', height: '100%',
-    objectFit: 'cover',
-  };
-
-  return (
-    <div aria-hidden="true" style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
-      {playVideo && !failed ? (
-        <video
-          autoPlay muted loop playsInline preload="metadata"
-          poster="/hero-bg-poster.jpg"
-          onError={() => setFailed(true)}
-          style={{
-            ...layer,
-            opacity: 0.95,
-            // The recorded UI is dark navy and so is the page background, so
-            // the footage disappeared into it. Lifting brightness/saturation
-            // separates the product from the page behind it.
-            filter: 'brightness(1.5) saturate(1.35) contrast(1.06)',
-          }}
-        >
-          <source src="/hero-bg.mp4" type="video/mp4" />
-        </video>
-      ) : (
-        <img src="/hero-bg-poster.jpg" alt="" style={{ ...layer, opacity: 0.85, filter: 'brightness(1.4) saturate(1.3)' }} />
-      )}
-      {/* Light scrim: enough contrast for the copy, without hiding the video */}
-      <div style={{
-        position: 'absolute', inset: 0,
-        background: 'linear-gradient(to bottom, rgba(var(--bg-rgb),0.46) 0%, rgba(var(--bg-rgb),0.34) 38%, rgba(var(--bg-rgb),0.74) 80%, var(--bg) 100%)',
-      }} />
-      {/* Vignette concentrated behind the headline block only */}
-      <div style={{
-        position: 'absolute', inset: 0,
-        background: 'radial-gradient(ellipse 56% 40% at 50% 45%, rgba(var(--bg-rgb),0.70), transparent 72%)',
-      }} />
-    </div>
-  );
-}
 
 /* ─── Section header ─── */
 function SectionHeader({ eyebrow, eyebrowColor, title, subtitle }) {
@@ -493,8 +440,7 @@ export default function Home() {
 
       {/* HERO */}
       <section style={{ position: 'relative', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'clamp(80px,12vh,160px) clamp(16px,4vw,24px) clamp(40px,6vw,80px)', overflow: 'hidden', textAlign: 'center' }}>
-        <HeroVideoBackground />
-        <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 70% 50% at 50% 30%, rgba(51,102,255,0.08), transparent)', pointerEvents: 'none' }} />
+
         <div style={{ position: 'relative', zIndex: 1, maxWidth: 840 }}>
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: 8,
@@ -510,8 +456,7 @@ export default function Home() {
             fontSize: 'clamp(32px,7vw,76px)', fontWeight: 800, letterSpacing: '-0.04em',
             lineHeight: 1.05, margin: '0 0 24px', fontFamily: 'var(--font-display)',
             animation: 'heroTextIn 0.9s cubic-bezier(0.4,0,0.2,1) 0.1s both',
-            // keeps the headline crisp over the moving footage behind it
-            textShadow: '0 2px 28px rgba(0,0,0,0.55)',
+
           }}>
             {/* Explicit space survives when .hero-br is display:none on mobile,
                 otherwise "Platform" and "for" run together as "Platformfor". */}
@@ -658,21 +603,25 @@ export default function Home() {
       {videoModalOpen && (
         <div
           onClick={() => setVideoModalOpen(false)}
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'clamp(16px,4vw,24px)', backdropFilter: 'blur(8px)' }}>
-          <div onClick={e => e.stopPropagation()} style={{ background: 'var(--bg2)', border: '1px solid var(--border)', borderRadius: 16, padding: 'clamp(28px,4vw,40px)', maxWidth: 440, width: '100%', textAlign: 'center', animation: 'modalIn 0.3s ease' }}>
-            <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'var(--brand-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-              <Play size={24} fill="var(--brand)" color="var(--brand)" style={{ marginLeft: 3 }} />
-            </div>
-            <h3 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text)', margin: '0 0 8px' }}>Demo Coming Soon</h3>
-            <p style={{ fontSize: 14, color: 'var(--text3)', margin: '0 0 24px' }}>Sign up to get early access and a live walkthrough with our team.</p>
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'clamp(16px,4vw,24px)', backdropFilter: 'blur(8px)' }}>
+          <div onClick={e => e.stopPropagation()} style={{ position: 'relative', width: '100%', maxWidth: 800, borderRadius: 16, overflow: 'hidden', boxShadow: '0 24px 80px rgba(0,0,0,0.6)', animation: 'modalIn 0.3s ease' }}>
             <button
-              onClick={() => { setVideoModalOpen(false); navigate('/register'); }}
-              style={{ padding: '12px 24px', borderRadius: 10, background: 'var(--brand)', color: '#fff', fontWeight: 700, fontSize: 14, border: 'none', cursor: 'pointer', transition: 'transform 0.2s' }}
-              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; }}
-              onMouseLeave={e => { e.currentTarget.style.transform = ''; }}
+              onClick={() => setVideoModalOpen(false)}
+              style={{ position: 'absolute', top: 12, right: 12, zIndex: 2, width: 36, height: 36, borderRadius: '50%', background: 'rgba(0,0,0,0.6)', border: 'none', color: '#fff', fontSize: 18, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.2s' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.8)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.6)'; }}
             >
-              Get Early Access
+              &#x2715;
             </button>
+            <div style={{ position: 'relative', paddingBottom: '56.25%', height: 0 }}>
+              <iframe
+                src="https://www.youtube.com/embed/vkhkcfAuR8g?autoplay=1&rel=0"
+                title="RemoteTeam Platform Demo"
+                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
           </div>
         </div>
       )}
