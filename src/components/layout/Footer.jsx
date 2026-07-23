@@ -19,8 +19,8 @@ const LinkedInIcon = () => (
 
 const SOCIALS = [
   { icon: <GithubIcon />, href: 'https://github.com/dieumerci-niyonkuru/remote-team-manager', label: 'GitHub' },
-  { icon: <TwitterIcon />, href: '#', label: 'Twitter / X' },
-  { icon: <LinkedInIcon />, href: '#', label: 'LinkedIn' },
+  { icon: <TwitterIcon />, href: 'https://x.com/dieumercin21', label: 'Twitter / X' },
+  { icon: <LinkedInIcon />, href: 'https://www.linkedin.com/in/dieu-merci-niyonkuru-7725b1363/', label: 'LinkedIn' },
 ];
 
 const YEAR = new Date().getFullYear();
