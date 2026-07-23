@@ -23,6 +23,7 @@ Demo login (all accounts share the same password, default "demo1234"):
 import random
 from datetime import timedelta
 
+from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from django.db import transaction
@@ -369,7 +370,11 @@ class Command(BaseCommand):
             u.email, u.first_name, u.last_name, u.role, u.bio = email, first, last, role, bio
             u.set_password(password)
             if uname == "demo":
-                u.is_staff = u.is_superuser = True
+                # Grant Django admin access only in local development. On a
+                # public deployment (DEBUG=False) the demo account stays a
+                # normal workspace owner, so the well-known demo password can
+                # never reach the Django admin at /admin/.
+                u.is_staff = u.is_superuser = bool(settings.DEBUG)
             u.save()
             users[uname] = u
         owner = users["demo"]

@@ -131,6 +131,18 @@ else:
     print(f"  ✓ Schema OK — {len(tables)} tables present, all critical tables verified")
 PYEOF
 
+# ── Seed demo data (idempotent) ───────────────────────────────────────────────
+# Populates the "Nexus Labs" demo workspace and its 7 demo users so the deployed
+# site is immediately loginnable (demo@nexuslabs.io / demo1234). Uses
+# get_or_create throughout, so it is safe to run on every boot. Disable by
+# setting SEED_DEMO_DATA=false in the environment.
+if [ "${SEED_DEMO_DATA:-true}" = "true" ]; then
+  echo "Seeding demo data..."
+  python manage.py seed_demo || echo "  WARNING: seed_demo failed (non-fatal)"
+else
+  echo "Skipping demo seed (SEED_DEMO_DATA is not 'true')"
+fi
+
 # ── Collect static files (Django admin / DRF UI — NOT the React build) ────────
 echo "Collecting Django static files..."
 python manage.py collectstatic --noinput --clear 2>&1 | tail -3 || \
