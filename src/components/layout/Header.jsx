@@ -146,15 +146,17 @@ export default function Header() {
           {/* Desktop Nav */}
           <nav ref={navRef} className="hdr-desktop" style={{ display: 'flex', alignItems: 'center', gap: 2, height: '100%' }}>
             <Link to="/" style={{
-              fontSize: 13, fontWeight: 700, padding: '8px 14px', borderRadius: 10,
-              textDecoration: 'none', color: pathname === '/' ? 'var(--brand)' : 'var(--text2)',
-              background: pathname === '/' ? 'var(--brand-bg)' : 'transparent',
-              transition: '0.2s', height: '100%', display: 'flex', alignItems: 'center',
+              fontSize: 13, fontWeight: 900, padding: '8px 16px', borderRadius: 10,
+              textDecoration: 'none',
+              color: pathname === '/' ? '#fff' : 'var(--brand)',
+              background: pathname === '/' ? 'var(--brand)' : 'var(--brand-bg)',
+              border: pathname === '/' ? '1px solid var(--brand)' : '1px solid var(--brand)',
+              transition: '0.2s', height: '100%', display: 'flex', alignItems: 'center', letterSpacing: '0.02em',
             }}
-              onMouseEnter={e => { e.currentTarget.style.color = 'var(--brand)'; e.currentTarget.style.background = 'var(--brand-bg)'; }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--brand)'; e.currentTarget.style.color = '#fff'; }}
               onMouseLeave={e => {
-                e.currentTarget.style.color = pathname === '/' ? 'var(--brand)' : 'var(--text2)';
-                e.currentTarget.style.background = pathname === '/' ? 'var(--brand-bg)' : 'transparent';
+                e.currentTarget.style.color = pathname === '/' ? '#fff' : 'var(--brand)';
+                e.currentTarget.style.background = pathname === '/' ? 'var(--brand)' : 'var(--brand-bg)';
               }}
             >
               {t('nav.home', 'Home')}
@@ -267,7 +269,10 @@ export default function Header() {
 
           {/* Simple links */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 20 }}>
-            <Link to="/" onClick={() => setShowMenu(false)} className="mobile-nav-link" style={{ textAlign: 'center' }}>{t('nav.home', 'Home')}</Link>
+            <Link to="/" onClick={() => setShowMenu(false)} className="mobile-nav-link mobile-nav-home" style={{
+              textAlign: 'center', fontWeight: 900,
+              background: 'var(--brand)', color: '#fff', border: '1px solid var(--brand)',
+            }}>{t('nav.home', 'Home')}</Link>
             <Link to="/about" onClick={() => setShowMenu(false)} className="mobile-nav-link" style={{ textAlign: 'center' }}>{t('nav.about', 'About Us')}</Link>
           </div>
 
@@ -321,6 +326,7 @@ export default function Header() {
           border-radius: 12px; background: var(--bg3); border: 1px solid var(--border); transition: 0.2s; display: block;
         }
         .mobile-nav-link:hover { background: var(--bg2); border-color: var(--brand); }
+        .mobile-nav-home:hover { background: var(--brand) !important; border-color: var(--brand) !important; color: #fff !important; }
         @keyframes hdr-dropdown {
           from { opacity: 0; transform: translateX(-50%) translateY(-4px); }
           to   { opacity: 1; transform: translateX(-50%) translateY(0); }
