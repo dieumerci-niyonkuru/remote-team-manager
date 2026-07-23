@@ -65,6 +65,49 @@ function useReveal(threshold = 0.15) {
   return { visible, ref };
 }
 
+/* ─── Hero background video ───
+   A short, muted loop of the real product (one screen per second). Decorative
+   only, so it is aria-hidden and never blocks interaction. Falls back to a
+   static poster when the visitor prefers reduced motion or is on Data Saver,
+   and if the video cannot play at all. */
+function HeroVideoBackground() {
+  const [playVideo, setPlayVideo] = useState(false);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+    const saveData = navigator.connection?.saveData;
+    if (!reduced && !saveData) setPlayVideo(true);
+  }, []);
+
+  const layer = {
+    position: 'absolute', inset: 0, width: '100%', height: '100%',
+    objectFit: 'cover',
+  };
+
+  return (
+    <div aria-hidden="true" style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
+      {playVideo && !failed ? (
+        <video
+          autoPlay muted loop playsInline preload="metadata"
+          poster="/hero-bg-poster.jpg"
+          onError={() => setFailed(true)}
+          style={{ ...layer, opacity: 0.34 }}
+        >
+          <source src="/hero-bg.mp4" type="video/mp4" />
+        </video>
+      ) : (
+        <img src="/hero-bg-poster.jpg" alt="" style={{ ...layer, opacity: 0.26 }} />
+      )}
+      {/* Scrim keeps the headline readable over the footage, in both themes */}
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: 'linear-gradient(to bottom, rgba(var(--bg-rgb),0.86) 0%, rgba(var(--bg-rgb),0.80) 45%, rgba(var(--bg-rgb),0.95) 85%, var(--bg) 100%)',
+      }} />
+    </div>
+  );
+}
+
 /* ─── Section header ─── */
 function SectionHeader({ eyebrow, eyebrowColor, title, subtitle }) {
   const { visible, ref } = useReveal();
@@ -438,6 +481,7 @@ export default function Home() {
 
       {/* HERO */}
       <section style={{ position: 'relative', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'clamp(80px,12vh,160px) clamp(16px,4vw,24px) clamp(40px,6vw,80px)', overflow: 'hidden', textAlign: 'center' }}>
+        <HeroVideoBackground />
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 70% 50% at 50% 30%, rgba(51,102,255,0.08), transparent)', pointerEvents: 'none' }} />
         <div style={{ position: 'relative', zIndex: 1, maxWidth: 840 }}>
           <div style={{
@@ -455,7 +499,10 @@ export default function Home() {
             lineHeight: 1.05, margin: '0 0 24px', fontFamily: 'var(--font-display)',
             animation: 'heroTextIn 0.9s cubic-bezier(0.4,0,0.2,1) 0.1s both',
           }}>
-            The All-in-One Platform<br className="hero-br" />
+            {/* Explicit space survives when .hero-br is display:none on mobile,
+                otherwise "Platform" and "for" run together as "Platformfor". */}
+            The All-in-One Platform{' '}
+            <br className="hero-br" />
             for{' '}
             <span style={{
               background: 'linear-gradient(135deg, var(--brand), var(--accent), #ec4899)',
@@ -501,7 +548,7 @@ export default function Home() {
           </div>
 
           {/* Stats */}
-          <div style={{
+          <div className="hero-stats" style={{
             display: 'flex', justifyContent: 'center', flexWrap: 'wrap', gap: 'clamp(16px,3vw,0)',
             borderTop: '1px solid var(--border)', paddingTop: 'clamp(24px,3vw,36px)',
             animation: 'heroTextIn 0.9s cubic-bezier(0.4,0,0.2,1) 0.55s both',
@@ -635,6 +682,12 @@ export default function Home() {
           .stat-divider { display: none; }
           .demo-sidebar { display: none !important; }
           .demo-kpis { gap: 4px !important; }
+          /* 4 stats wrap to an unbalanced 3+1 when flexed; a 2x2 grid is even */
+          .hero-stats {
+            display: grid !important;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px 12px;
+          }
         }
         @media (max-width: 480px) {
           .demo-url { font-size: 10px !important; }
