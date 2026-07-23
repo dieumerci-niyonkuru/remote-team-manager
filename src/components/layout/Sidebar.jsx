@@ -232,15 +232,6 @@ export default function Sidebar() {
         </button>
       </div>
 
-      {/* Desktop Collapse Toggle */}
-      <button 
-        onClick={() => setCollapsed(!collapsed)}
-        className="hidden md:flex absolute items-center justify-center transition-all"
-        style={{ right: -12, top: 40, zIndex: 110, width: 24, height: 24, borderRadius: '50%', background: 'var(--bg2)', border: '1px solid var(--border)', color: 'var(--text3)' }}
-      >
-        <ChevronLeft size={14} className={`transition-transform duration-300 ${collapsed ? 'rotate-180' : ''}`} />
-      </button>
-
       {/* Mobile Drawer Overlay */}
       {mobileOpen && (
         <div 
@@ -264,6 +255,19 @@ export default function Sidebar() {
           ) : (
             <SidebarContent />
           )}
+
+          {/* Desktop Collapse Toggle — lives inside the sidebar so `right: -12`
+              anchors to the sidebar's edge. As a sibling of <aside> it resolved
+              against the page instead, pushing 12px past the viewport and
+              causing horizontal overflow on every authenticated route. */}
+          <button
+            onClick={() => setCollapsed(!collapsed)}
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            className="hidden md:flex absolute items-center justify-center transition-all"
+            style={{ right: -12, top: 40, zIndex: 110, width: 24, height: 24, borderRadius: '50%', background: 'var(--bg2)', border: '1px solid var(--border)', color: 'var(--text3)' }}
+          >
+            <ChevronLeft size={14} className={`transition-transform duration-300 ${collapsed ? 'rotate-180' : ''}`} />
+          </button>
           <button 
             onClick={() => setMobileOpen(false)}
             className="md:hidden absolute top-3 right-3 p-1.5 rounded-lg transition-all"

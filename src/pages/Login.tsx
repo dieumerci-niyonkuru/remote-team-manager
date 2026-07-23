@@ -152,7 +152,7 @@ export default function Login() {
 
           <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--text3)', marginTop: 24 }}>
             {t('auth.login.no_account', "Don't have an account?")}{' '}
-            <Link to="/register" style={{ color: 'var(--brand)', fontWeight: 700, textDecoration: 'none', transition: 'opacity 0.2s' }}
+            <Link to="/register" style={{ color: 'var(--brand)', fontWeight: 700, textDecoration: 'none', transition: 'opacity 0.2s', display: 'inline-block', padding: '10px 6px', minHeight: 44, lineHeight: '24px' }}
               onMouseEnter={e => { (e.target as HTMLElement).style.opacity = '0.7'; }}
               onMouseLeave={e => { (e.target as HTMLElement).style.opacity = '1'; }}
             >
