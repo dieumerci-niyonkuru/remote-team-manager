@@ -78,7 +78,7 @@
   --bg: #f8fafc;
   --bg-rgb: 248, 250, 252;
   --bg2: #ffffff;
-  --bg3: #f1f5f9;
+  --bg3: #e8ecf2;
   --bg-card: rgba(255, 255, 255, 0.95);
 
   /* Brand (stays same, works on both) */
@@ -97,8 +97,8 @@
   --text3: #64748b;
 
   /* Borders */
-  --border: rgba(15, 23, 42, 0.09);
-  --border2: rgba(15, 23, 42, 0.14);
+  --border: rgba(15, 23, 42, 0.12);
+  --border2: rgba(15, 23, 42, 0.2);
 
   /* Semantic colours — slightly stronger on white */
   --success: #059669;
@@ -467,15 +467,25 @@ input[type="text"], input[type="email"], input[type="password"],
 input[type="search"], textarea, select {
   -webkit-appearance: none;
   appearance: none;
+  background: var(--bg3) !important;
+  color: var(--text) !important;
 }
 
 /* Prevent browser autofill from forcing white/yellow backgrounds */
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
-input:-webkit-autofill:focus {
-  -webkit-text-fill-color: var(--text);
-  -webkit-box-shadow: 0 0 0px 1000px var(--bg3) inset;
+input:-webkit-autofill:focus,
+input:autofill,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill {
+  -webkit-text-fill-color: var(--text) !important;
+  -webkit-box-shadow: 0 0 0px 1000px var(--bg3) inset !important;
+  box-shadow: 0 0 0px 1000px var(--bg3) inset !important;
+  background-color: var(--bg3) !important;
   transition: background-color 5000s ease-in-out 0s;
+  caret-color: var(--text);
 }
 
 /* Remove default outline on modals */

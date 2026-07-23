@@ -108,7 +108,7 @@ export default function Register() {
 
   const inputStyle = (hasError: boolean) => ({
     width: '100%' as const, padding: '12px 14px', borderRadius: 10, fontSize: 14,
-    background: 'transparent', border: `1.5px solid ${hasError ? 'var(--danger)' : 'var(--border2)'}`,
+    background: 'var(--bg3)', border: `1.5px solid ${hasError ? 'var(--danger)' : 'var(--border2)'}`,
     color: 'var(--text)', outline: 'none', boxSizing: 'border-box' as const,
     fontFamily: 'var(--font-body)', transition: 'border-color 0.2s, box-shadow 0.2s',
   });
@@ -122,8 +122,8 @@ export default function Register() {
         padding: 'clamp(24px,4vw,40px) clamp(16px,4vw,24px)',
       }}>
         <div style={{ width: '100%', maxWidth: 420 }}>
-          <div style={{ marginBottom: 28 }}>
-            <h1 style={{ fontSize: 'clamp(24px,4vw,28px)', fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.03em', margin: '0 0 8px' }}>
+          <div style={{ marginBottom: 20 }}>
+            <h1 style={{ fontSize: 'clamp(24px,4vw,28px)', fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.03em', margin: '0 0 6px' }}>
               {t('auth.register.title', 'Create your account')}
             </h1>
             <p style={{ color: 'var(--text3)', fontSize: 'clamp(13px,1.4vw,14px)', margin: 0 }}>
@@ -131,7 +131,7 @@ export default function Register() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
 
             {/* Avatar */}
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 4 }}>
@@ -243,7 +243,7 @@ export default function Register() {
             </button>
           </form>
 
-          <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--text3)', marginTop: 20 }}>
+          <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--text3)', marginTop: 14 }}>
             {t('auth.register.have_account', 'Already have an account?')}{' '}
             <Link to="/login" style={{ color: 'var(--brand)', fontWeight: 700, textDecoration: 'none', display: 'inline-block', padding: '10px 6px', minHeight: 44, lineHeight: '24px' }}>{t('auth.login.submit', 'Sign in')}</Link>
           </p>

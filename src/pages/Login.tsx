@@ -59,9 +59,9 @@ export default function Login() {
         position: 'relative', overflow: 'hidden',
       }}>
         <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 60% 50% at 50% 40%, rgba(51,102,255,0.06), transparent)', pointerEvents: 'none' }} />
-        <div style={{ width: '100%', maxWidth: 400, position: 'relative', zIndex: 1, animation: 'loginFadeIn 0.6s cubic-bezier(0.4,0,0.2,1) both' }}>
-          <div style={{ marginBottom: 32 }}>
-            <h1 style={{ fontSize: 'clamp(26px,5vw,32px)', fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.03em', margin: '0 0 8px', lineHeight: 1.15 }}>
+        <div style={{ width: '100%', maxWidth: 420, position: 'relative', zIndex: 1, animation: 'loginFadeIn 0.6s cubic-bezier(0.4,0,0.2,1) both' }}>
+          <div style={{ marginBottom: 20 }}>
+            <h1 style={{ fontSize: 'clamp(26px,5vw,32px)', fontWeight: 800, color: 'var(--text)', letterSpacing: '-0.03em', margin: '0 0 6px', lineHeight: 1.15 }}>
               {t('auth.login.title', 'Welcome back')}
             </h1>
             <p style={{ color: 'var(--text3)', fontSize: 'clamp(13px,1.4vw,14px)', margin: 0 }}>
@@ -69,7 +69,7 @@ export default function Login() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div>
               <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text2)', marginBottom: 6 }}>
                 {t('common.email', 'Email')}
@@ -80,7 +80,7 @@ export default function Login() {
                 placeholder="name@company.com"
                 style={{
                   width: '100%', padding: '12px 14px', borderRadius: 10, fontSize: 14,
-                  background: 'transparent', border: '1.5px solid var(--border2)',
+                  background: 'var(--bg3)', border: '1.5px solid var(--border2)',
                   color: 'var(--text)', outline: 'none', boxSizing: 'border-box',
                   transition: 'border-color 0.2s, box-shadow 0.2s', fontFamily: 'var(--font-body)',
                 }}
@@ -108,7 +108,7 @@ export default function Login() {
                   placeholder="Enter your password"
                   style={{
                     width: '100%', padding: '12px 40px 12px 14px', borderRadius: 10, fontSize: 14,
-                    background: 'transparent', border: '1.5px solid var(--border2)',
+                    background: 'var(--bg3)', border: '1.5px solid var(--border2)',
                     color: 'var(--text)', outline: 'none', boxSizing: 'border-box',
                     transition: 'border-color 0.2s, box-shadow 0.2s', fontFamily: 'var(--font-body)',
                   }}
@@ -132,7 +132,7 @@ export default function Login() {
                 color: loading ? 'var(--text3)' : '#fff', border: 'none',
                 cursor: loading ? 'default' : 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                fontFamily: 'var(--font-body)', marginTop: 4,
+                fontFamily: 'var(--font-body)', marginTop: 2,
                 transition: 'transform 0.2s, box-shadow 0.2s, background 0.2s',
                 boxShadow: loading ? 'none' : '0 8px 24px rgba(51,102,255,0.3)',
               }}
@@ -150,7 +150,7 @@ export default function Login() {
             </button>
           </form>
 
-          <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--text3)', marginTop: 24 }}>
+          <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--text3)', marginTop: 16 }}>
             {t('auth.login.no_account', "Don't have an account?")}{' '}
             <Link to="/register" style={{ color: 'var(--brand)', fontWeight: 700, textDecoration: 'none', transition: 'opacity 0.2s', display: 'inline-block', padding: '10px 6px', minHeight: 44, lineHeight: '24px' }}
               onMouseEnter={e => { (e.target as HTMLElement).style.opacity = '0.7'; }}
