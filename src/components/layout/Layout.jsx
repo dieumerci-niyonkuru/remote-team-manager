@@ -9,6 +9,7 @@ import CommandPalette from '../common/CommandPalette'
 import CreateWorkspaceModal from '../workspaces/CreateWorkspaceModal'
 
 import ErrorBoundary from '../ErrorBoundary'
+import ScrollToTopButton from '../common/ScrollToTopButton'
 import { ws } from '../../services/api'
 import { a11yStyles } from '../../styles/a11y'
 import { ChevronDown, Plus, Check } from 'lucide-react'
@@ -171,6 +172,7 @@ export default function Layout({ showFooter = true }) {
             </ErrorBoundary>
           </main>
           {showFooter && <Footer />}
+          <ScrollToTopButton />
         </div>
       )}
 

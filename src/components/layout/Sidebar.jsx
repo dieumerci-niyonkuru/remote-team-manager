@@ -198,6 +198,17 @@ export default function Sidebar() {
                 </button>
             </div>
           )}
+          {collapsed && (
+            <div className="flex flex-col items-center gap-2 mt-2">
+              <ThemeSwitcher />
+              <button onClick={logout} className="p-1.5 rounded-lg transition-all" style={{ color: 'var(--text3)' }}
+                onMouseEnter={e => { e.currentTarget.style.color = 'var(--danger)'; e.currentTarget.style.background = 'var(--danger-subtle)'; }}
+                onMouseLeave={e => { e.currentTarget.style.color = 'var(--text3)'; e.currentTarget.style.background = 'transparent'; }}
+                title="Logout">
+                <LogOut size={16} />
+              </button>
+            </div>
+          )}
           <CreateWorkspaceModal
             isOpen={showCreateWsModal} 
             onClose={() => setShowCreateWsModal(false)}
