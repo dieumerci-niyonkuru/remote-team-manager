@@ -27,6 +27,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
 from django.db import transaction
+from django.db.models.signals import post_save
 from django.utils import timezone
 
 from apps.workspaces.models import Workspace, WorkspaceMember, ActivityFeed
@@ -353,6 +354,49 @@ class Command(BaseCommand):
         """Bypass auto_now_add / auto_now so seeded history looks real."""
         model.objects.filter(pk=pk).update(**{field: dt})
 
+    @staticmethod
+    def _disconnect_broadcast_signals(write):
+        """
+        Task/Message post_save signals broadcast to the Channels layer with
+        async_to_sync(channel_layer.group_send). During a bulk seed that is
+        dozens of round-trips; against a real Redis (production) it is slow
+        enough to stall the boot process before Daphne starts. Disconnect
+        them for the duration of the seed — the running web/worker processes
+        keep their own connected copies. Returns the list to reconnect.
+        """
+        targets = []
+        try:
+            from apps.projects.models import Task
+            from apps.projects import signals as psig
+            targets.append((post_save, psig.broadcast_task_update, Task))
+        except Exception:
+            pass
+        try:
+            from apps.chat.models import Message
+            from apps.chat import signals as csig
+            targets.append((post_save, csig.create_mention_notifications, Message))
+        except Exception:
+            pass
+
+        disconnected = []
+        for signal, receiver, sender in targets:
+            try:
+                if signal.disconnect(receiver, sender=sender):
+                    disconnected.append((signal, receiver, sender))
+            except Exception:
+                pass
+        if disconnected:
+            write(f"(disabled {len(disconnected)} broadcast signal(s) during seed)")
+        return disconnected
+
+    @staticmethod
+    def _reconnect_signals(disconnected):
+        for signal, receiver, sender in disconnected:
+            try:
+                signal.connect(receiver, sender=sender)
+            except Exception:
+                pass
+
     @transaction.atomic
     def handle(self, *args, **options):
         password = options["password"]
@@ -360,6 +404,13 @@ class Command(BaseCommand):
         random.seed(7)
         write = self.stdout.write
 
+        disconnected = self._disconnect_broadcast_signals(write)
+        try:
+            self._seed(now, password, write)
+        finally:
+            self._reconnect_signals(disconnected)
+
+    def _seed(self, now, password, write):
         # ---- users ----------------------------------------------------------
         users = {}
         for uname, first, last, email, role, _wsrole, bio in PEOPLE:

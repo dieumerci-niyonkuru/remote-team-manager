@@ -138,7 +138,10 @@ PYEOF
 # setting SEED_DEMO_DATA=false in the environment.
 if [ "${SEED_DEMO_DATA:-true}" = "true" ]; then
   echo "Seeding demo data..."
-  python manage.py seed_demo || echo "  WARNING: seed_demo failed (non-fatal)"
+  # Hard cap the seed so it can never block Daphne startup or the healthcheck.
+  # `timeout` returns 124 on expiry; either way the seed is non-fatal to boot.
+  timeout "${SEED_DEMO_TIMEOUT:-90}" python manage.py seed_demo \
+    || echo "  WARNING: seed_demo failed or timed out (non-fatal — continuing boot)"
 else
   echo "Skipping demo seed (SEED_DEMO_DATA is not 'true')"
 fi
