@@ -85,15 +85,9 @@ export default function Header() {
         onMouseEnter={() => setActiveDropdown(label)}
         onMouseLeave={() => setActiveDropdown(null)}
       >
-        <button style={{
-          background: isActive ? 'var(--brand-bg)' : 'none', border: 'none',
-          color: isActive ? 'var(--brand)' : 'var(--text2)',
-          fontSize: 13, fontWeight: 700, cursor: 'pointer',
-          display: 'flex', alignItems: 'center', gap: 5, padding: '8px 14px',
-          borderRadius: 10, transition: '0.2s', fontFamily: 'inherit',
-        }}>
+        <button className={`nav-tab${isActive ? ' nav-tab-open' : ''}`}>
           {label}
-          <ChevronDown size={12} style={{ opacity: 0.5, transform: isActive ? 'rotate(180deg)' : 'none', transition: '0.2s' }} />
+          <ChevronDown size={12} className="nav-chevron" />
         </button>
 
         {isActive && (
@@ -105,15 +99,12 @@ export default function Header() {
             zIndex: 100, animation: 'hdr-dropdown 0.15s ease',
           }}>
             {items.map(item => (
-              <Link key={item.to} to={item.to} style={{
-                display: 'block', padding: '12px 14px', borderRadius: 12,
+              <Link key={item.to} to={item.to} className="nav-menu-item" style={{
+                display: 'block', padding: '11px 14px', borderRadius: 12,
                 textDecoration: 'none', transition: '0.15s',
-              }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg3)'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
-              >
-                <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 2 }}>{item.label}</div>
-                <div style={{ fontSize: 11, color: 'var(--text3)', lineHeight: 1.4 }}>{item.desc}</div>
+              }}>
+                <div className="nav-menu-item-title" style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 2, transition: '0.15s' }}>{item.label}</div>
+                <div style={{ fontSize: 11.5, color: 'var(--text3)', lineHeight: 1.4 }}>{item.desc}</div>
               </Link>
             ))}
           </div>
@@ -145,40 +136,16 @@ export default function Header() {
 
           {/* Desktop Nav */}
           <nav ref={navRef} className="hdr-desktop" style={{ display: 'flex', alignItems: 'center', gap: 2, height: '100%' }}>
-            <Link to="/" style={{
-              fontSize: 13, fontWeight: 900, padding: '8px 16px', borderRadius: 10,
-              textDecoration: 'none',
-              color: pathname === '/' ? '#fff' : 'var(--brand)',
-              background: pathname === '/' ? 'var(--brand)' : 'var(--brand-bg)',
-              border: pathname === '/' ? '1px solid var(--brand)' : '1px solid var(--brand)',
-              transition: '0.2s', height: '100%', display: 'flex', alignItems: 'center', letterSpacing: '0.02em',
-            }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'var(--brand)'; e.currentTarget.style.color = '#fff'; }}
-              onMouseLeave={e => {
-                e.currentTarget.style.color = pathname === '/' ? '#fff' : 'var(--brand)';
-                e.currentTarget.style.background = pathname === '/' ? 'var(--brand)' : 'var(--brand-bg)';
-              }}
-            >
+            <Link to="/" className={`nav-tab${pathname === '/' ? ' nav-tab-active' : ''}`}>
               {t('nav.home', 'Home')}
             </Link>
-            <Link to="/about" style={{
-              fontSize: 13, fontWeight: 700, padding: '8px 14px', borderRadius: 10,
-              textDecoration: 'none', color: pathname === '/about' ? 'var(--brand)' : 'var(--text2)',
-              background: pathname === '/about' ? 'var(--brand-bg)' : 'transparent',
-              transition: '0.2s', height: '100%', display: 'flex', alignItems: 'center',
-            }}
-              onMouseEnter={e => { e.currentTarget.style.color = 'var(--brand)'; e.currentTarget.style.background = 'var(--brand-bg)'; }}
-              onMouseLeave={e => {
-                e.currentTarget.style.color = pathname === '/about' ? 'var(--brand)' : 'var(--text2)';
-                e.currentTarget.style.background = pathname === '/about' ? 'var(--brand-bg)' : 'transparent';
-              }}
-            >
+            <Link to="/about" className={`nav-tab${pathname === '/about' ? ' nav-tab-active' : ''}`}>
               {t('nav.about', 'About Us')}
             </Link>
-            <NavDropdown label="Product" items={PRODUCT_MENU} />
-            <NavDropdown label="Solutions" items={SOLUTIONS_MENU} />
-            <NavDropdown label="Enterprise" items={ENTERPRISE_MENU} />
-            <NavDropdown label="Platform" items={PLATFORM_MENU} />
+            <NavDropdown label={t('nav.product', 'Product')} items={PRODUCT_MENU} />
+            <NavDropdown label={t('nav.solutions', 'Solutions')} items={SOLUTIONS_MENU} />
+            <NavDropdown label={t('nav.enterprise', 'Enterprise')} items={ENTERPRISE_MENU} />
+            <NavDropdown label={t('nav.platform', 'Platform')} items={PLATFORM_MENU} />
           </nav>
 
           {/* Actions */}
@@ -321,6 +288,32 @@ export default function Header() {
           .hdr-desktop { display: none !important; }
           .hdr-mobile { display: flex !important; }
         }
+        /* Unified top-level navigation tabs (Home, About, dropdowns) */
+        .nav-tab {
+          position: relative;
+          display: inline-flex; align-items: center; gap: 5px;
+          padding: 9px 15px;
+          font-family: inherit; font-size: 13.5px; font-weight: 700;
+          letter-spacing: -0.01em; line-height: 1; white-space: nowrap;
+          color: var(--text2);
+          background: transparent; border: none; border-radius: 11px;
+          text-decoration: none; cursor: pointer;
+          transition: color .18s ease, background .18s ease;
+        }
+        .nav-tab:hover { color: var(--brand); background: var(--brand-bg); }
+        .nav-tab:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+        .nav-tab-open { color: var(--brand); background: var(--brand-bg); }
+        .nav-tab-active { color: var(--brand); background: var(--brand-bg); font-weight: 800; }
+        .nav-tab-active::after {
+          content: ''; position: absolute; left: 50%; bottom: 3px;
+          width: 16px; height: 2px; border-radius: 2px;
+          background: var(--brand); transform: translateX(-50%);
+        }
+        .nav-chevron { opacity: .55; transition: transform .2s ease; }
+        .nav-tab-open .nav-chevron { transform: rotate(180deg); opacity: 1; }
+        /* Dropdown mega-menu items */
+        .nav-menu-item:hover { background: var(--brand-bg); }
+        .nav-menu-item:hover .nav-menu-item-title { color: var(--brand); }
         .mobile-nav-link {
           padding: 12px 16px; font-size: 13px; font-weight: 700; color: var(--text); text-decoration: none;
           border-radius: 12px; background: var(--bg3); border: 1px solid var(--border); transition: 0.2s; display: block;
