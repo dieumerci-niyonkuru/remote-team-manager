@@ -92,17 +92,23 @@ function HeroVideoBackground() {
           autoPlay muted loop playsInline preload="metadata"
           poster="/hero-bg-poster.jpg"
           onError={() => setFailed(true)}
-          style={{ ...layer, opacity: 0.34 }}
+          style={{ ...layer, opacity: 0.62 }}
         >
           <source src="/hero-bg.mp4" type="video/mp4" />
         </video>
       ) : (
-        <img src="/hero-bg-poster.jpg" alt="" style={{ ...layer, opacity: 0.26 }} />
+        <img src="/hero-bg-poster.jpg" alt="" style={{ ...layer, opacity: 0.5 }} />
       )}
-      {/* Scrim keeps the headline readable over the footage, in both themes */}
+      {/* Scrim keeps the headline readable over the footage, in both themes.
+          Tuned to stay light enough that the product is clearly visible. */}
       <div style={{
         position: 'absolute', inset: 0,
-        background: 'linear-gradient(to bottom, rgba(var(--bg-rgb),0.86) 0%, rgba(var(--bg-rgb),0.80) 45%, rgba(var(--bg-rgb),0.95) 85%, var(--bg) 100%)',
+        background: 'linear-gradient(to bottom, rgba(var(--bg-rgb),0.72) 0%, rgba(var(--bg-rgb),0.60) 40%, rgba(var(--bg-rgb),0.88) 82%, var(--bg) 100%)',
+      }} />
+      {/* Soft vignette focuses the centre where the headline sits */}
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: 'radial-gradient(ellipse 62% 48% at 50% 42%, rgba(var(--bg-rgb),0.62), transparent 70%)',
       }} />
     </div>
   );
