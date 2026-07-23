@@ -102,22 +102,23 @@ export default function ForgotPassword() {
                     placeholder="name@company.com"
                     style={{
                       width: '100%', padding: '11px 14px', borderRadius: 10, fontSize: 14,
-                      background: 'var(--bg3)', border: '1.5px solid var(--border)',
+                      background: 'transparent', border: '1.5px solid var(--border2)',
                       color: 'var(--text)', outline: 'none', boxSizing: 'border-box',
-                      fontFamily: 'var(--font-body)', transition: 'border-color 0.2s'
+                      fontFamily: 'var(--font-body)', transition: 'border-color 0.2s, box-shadow 0.2s'
                     }}
-                    onFocus={e => e.target.style.borderColor = 'var(--brand)'}
-                    onBlur={e => e.target.style.borderColor = 'var(--border)'}
+                    onFocus={e => { e.target.style.borderColor = 'var(--brand)'; e.target.style.boxShadow = '0 0 0 3px rgba(51,102,255,0.12)'; }}
+                    onBlur={e => { e.target.style.borderColor = 'var(--border2)'; e.target.style.boxShadow = 'none'; }}
                   />
                 </div>
 
                 <button type="submit" disabled={loading} style={{
                   width: '100%', padding: '12px', borderRadius: 10, fontSize: 14, fontWeight: 700,
-                  background: loading ? 'var(--bg3)' : 'var(--brand)',
+                  background: loading ? 'var(--bg3)' : 'linear-gradient(135deg, var(--brand), var(--accent))',
                   color: loading ? 'var(--text3)' : '#fff', border: 'none',
                   cursor: loading ? 'default' : 'pointer',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                  fontFamily: 'var(--font-body)', transition: 'all 0.2s'
+                  fontFamily: 'var(--font-body)', transition: 'all 0.2s',
+                  boxShadow: loading ? 'none' : '0 8px 24px rgba(51,102,255,0.3)'
                 }}>
                   {loading ? (
                     <>

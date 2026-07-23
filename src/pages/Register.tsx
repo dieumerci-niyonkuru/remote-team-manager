@@ -108,9 +108,9 @@ export default function Register() {
 
   const inputStyle = (hasError: boolean) => ({
     width: '100%' as const, padding: '12px 14px', borderRadius: 10, fontSize: 14,
-    background: 'var(--bg3)', border: `1.5px solid ${hasError ? 'var(--danger)' : 'var(--border)'}`,
+    background: 'transparent', border: `1.5px solid ${hasError ? 'var(--danger)' : 'var(--border2)'}`,
     color: 'var(--text)', outline: 'none', boxSizing: 'border-box' as const,
-    fontFamily: 'var(--font-body)', transition: 'border-color 0.2s',
+    fontFamily: 'var(--font-body)', transition: 'border-color 0.2s, box-shadow 0.2s',
   });
 
   return (
@@ -160,8 +160,8 @@ export default function Register() {
                   <input value={form[field as keyof typeof form]} onChange={e => updateForm(field, e.target.value)}
                     placeholder={label}
                     style={inputStyle(!!errors[field])}
-                    onFocus={e => { e.target.style.borderColor = 'var(--brand)'; }}
-                    onBlur={e => { e.target.style.borderColor = errors[field] ? 'var(--danger)' : 'var(--border)'; }}
+                    onFocus={e => { e.target.style.borderColor = 'var(--brand)'; e.target.style.boxShadow = '0 0 0 3px rgba(51,102,255,0.12)'; }}
+                    onBlur={e => { e.target.style.borderColor = errors[field] ? 'var(--danger)' : 'var(--border2)'; e.target.style.boxShadow = 'none'; }}
                   />
                   {errors[field] && <p style={{ fontSize: 11, color: 'var(--danger)', marginTop: 4 }}>{errors[field]}</p>}
                 </div>
@@ -174,8 +174,8 @@ export default function Register() {
               <input type="email" value={form.email} onChange={e => updateForm('email', e.target.value)}
                 placeholder="name@company.com"
                 style={inputStyle(!!errors.email)}
-                onFocus={e => { e.target.style.borderColor = 'var(--brand)'; }}
-                onBlur={e => { e.target.style.borderColor = errors.email ? 'var(--danger)' : 'var(--border)'; }}
+                onFocus={e => { e.target.style.borderColor = 'var(--brand)'; e.target.style.boxShadow = '0 0 0 3px rgba(51,102,255,0.12)'; }}
+                onBlur={e => { e.target.style.borderColor = errors.email ? 'var(--danger)' : 'var(--border2)'; e.target.style.boxShadow = 'none'; }}
               />
               {errors.email && <p style={{ fontSize: 11, color: 'var(--danger)', marginTop: 4 }}>{errors.email}</p>}
             </div>
@@ -189,8 +189,8 @@ export default function Register() {
                     onChange={e => updateForm('password', e.target.value)}
                     placeholder="Min 8 characters"
                     style={{ ...inputStyle(!!errors.password), padding: '12px 40px 12px 14px' }}
-                    onFocus={e => { e.target.style.borderColor = 'var(--brand)'; }}
-                    onBlur={e => { e.target.style.borderColor = errors.password ? 'var(--danger)' : 'var(--border)'; }}
+                    onFocus={e => { e.target.style.borderColor = 'var(--brand)'; e.target.style.boxShadow = '0 0 0 3px rgba(51,102,255,0.12)'; }}
+                    onBlur={e => { e.target.style.borderColor = errors.password ? 'var(--danger)' : 'var(--border2)'; e.target.style.boxShadow = 'none'; }}
                   />
                   <button type="button" onClick={() => setShowPass(!showPass)} tabIndex={-1}
                     style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer', padding: 4, display: 'flex' }}>
@@ -206,8 +206,8 @@ export default function Register() {
                     onChange={e => updateForm('password2', e.target.value)}
                     placeholder="Repeat password"
                     style={{ ...inputStyle(!!errors.password2), padding: '12px 40px 12px 14px' }}
-                    onFocus={e => { e.target.style.borderColor = 'var(--brand)'; }}
-                    onBlur={e => { e.target.style.borderColor = errors.password2 ? 'var(--danger)' : 'var(--border)'; }}
+                    onFocus={e => { e.target.style.borderColor = 'var(--brand)'; e.target.style.boxShadow = '0 0 0 3px rgba(51,102,255,0.12)'; }}
+                    onBlur={e => { e.target.style.borderColor = errors.password2 ? 'var(--danger)' : 'var(--border2)'; e.target.style.boxShadow = 'none'; }}
                   />
                   <button type="button" onClick={() => setShowPass2(!showPass2)} tabIndex={-1}
                     style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer', padding: 4, display: 'flex' }}>
@@ -221,12 +221,17 @@ export default function Register() {
             <button type="submit" disabled={loading}
               style={{
                 width: '100%', padding: '13px', borderRadius: 10, fontSize: 14, fontWeight: 700,
-                background: loading ? 'var(--bg3)' : 'var(--brand)',
+                background: loading ? 'var(--bg3)' : 'linear-gradient(135deg, var(--brand), var(--accent))',
                 color: loading ? 'var(--text3)' : '#fff', border: 'none',
                 cursor: loading ? 'default' : 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                fontFamily: 'var(--font-body)', marginTop: 4, transition: 'background 0.2s',
-              }}>
+                fontFamily: 'var(--font-body)', marginTop: 4,
+                transition: 'transform 0.2s, box-shadow 0.2s, background 0.2s',
+                boxShadow: loading ? 'none' : '0 8px 24px rgba(51,102,255,0.3)',
+              }}
+              onMouseEnter={e => { if (!loading) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 12px 32px rgba(51,102,255,0.45)'; } }}
+              onMouseLeave={e => { if (!loading) { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '0 8px 24px rgba(51,102,255,0.3)'; } }}
+            >
               {loading ? (
                 <>
                   <span style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTop: '2px solid #fff', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.7s linear infinite' }} />

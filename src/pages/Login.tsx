@@ -80,12 +80,12 @@ export default function Login() {
                 placeholder="name@company.com"
                 style={{
                   width: '100%', padding: '12px 14px', borderRadius: 10, fontSize: 14,
-                  background: 'var(--bg3)', border: '1.5px solid var(--border)',
+                  background: 'transparent', border: '1.5px solid var(--border2)',
                   color: 'var(--text)', outline: 'none', boxSizing: 'border-box',
                   transition: 'border-color 0.2s, box-shadow 0.2s', fontFamily: 'var(--font-body)',
                 }}
                 onFocus={e => { e.target.style.borderColor = 'var(--brand)'; e.target.style.boxShadow = '0 0 0 3px rgba(51,102,255,0.12)'; }}
-                onBlur={e => { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = 'none'; }}
+                onBlur={e => { e.target.style.borderColor = 'var(--border2)'; e.target.style.boxShadow = 'none'; }}
               />
             </div>
 
@@ -108,12 +108,12 @@ export default function Login() {
                   placeholder="Enter your password"
                   style={{
                     width: '100%', padding: '12px 40px 12px 14px', borderRadius: 10, fontSize: 14,
-                    background: 'var(--bg3)', border: '1.5px solid var(--border)',
+                    background: 'transparent', border: '1.5px solid var(--border2)',
                     color: 'var(--text)', outline: 'none', boxSizing: 'border-box',
                     transition: 'border-color 0.2s, box-shadow 0.2s', fontFamily: 'var(--font-body)',
                   }}
                   onFocus={e => { e.target.style.borderColor = 'var(--brand)'; e.target.style.boxShadow = '0 0 0 3px rgba(51,102,255,0.12)'; }}
-                  onBlur={e => { e.target.style.borderColor = 'var(--border)'; e.target.style.boxShadow = 'none'; }}
+                  onBlur={e => { e.target.style.borderColor = 'var(--border2)'; e.target.style.boxShadow = 'none'; }}
                 />
                 <button type="button" onClick={() => setShowPass(!showPass)}
                   style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text3)', cursor: 'pointer', padding: 4, display: 'flex', transition: 'color 0.2s' }}
