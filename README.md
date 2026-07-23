@@ -140,6 +140,9 @@ pip install -r requirements.txt
 python manage.py migrate
 python manage.py createsuperuser
 python manage.py collectstatic --noinput
+
+# Optional: load the full demo workspace (users, projects, tasks, chat, OKRs…)
+python manage.py seed_demo
 ```
 
 ### 4. Frontend setup
@@ -166,6 +169,32 @@ npm run dev
 ```
 
 Open [http://localhost:5173](http://localhost:5173) in your browser.
+
+---
+
+## Demo Data & Login
+
+Running `python manage.py seed_demo` populates a complete, ready-to-explore
+workspace — **Nexus Labs** — with 7 users, 4 projects, 28 tasks (with subtasks,
+comments and time logs), 3 chat channels, an activity feed, OKRs, wiki articles,
+notifications and HR records. The command is idempotent, so it is safe to re-run.
+
+All demo accounts share the password **`demo1234`**. Sign in with the email
+(or the username) plus that password:
+
+| Role in workspace | Email | Username | Password |
+|---|---|---|---|
+| Owner (admin) | `demo@nexuslabs.io` | `demo` | `demo1234` |
+| Manager | `amina@nexuslabs.io` | `amina` | `demo1234` |
+| Developer | `kevin@nexuslabs.io` | `kevin` | `demo1234` |
+| Developer | `sarah@nexuslabs.io` | `sarah` | `demo1234` |
+| Developer | `david@nexuslabs.io` | `david` | `demo1234` |
+| Developer | `grace@nexuslabs.io` | `grace` | `demo1234` |
+| Viewer (read-only) | `tom@nexuslabs.io` | `tom` | `demo1234` |
+
+> These are throwaway demo credentials for a local database. Set a different
+> password with `python manage.py seed_demo --password <your-password>`, and
+> never reuse them for a real deployment.
 
 ---
 
