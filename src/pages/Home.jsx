@@ -42,6 +42,16 @@ const TESTIMONIALS = [
   { quote: 'Best-in-class UI and incredible performance. My team refused to go back after the first week.', name: 'Elena Rodriguez', title: 'Product Lead', company: 'Quantum', initials: 'ER' },
 ];
 
+/* Real screens captured from the running product. */
+const SHOWCASE = [
+  { img: '/shots/dashboard.jpg', title: 'Dashboard', desc: 'Every metric, deadline and team update in a single view.' },
+  { img: '/shots/projects.jpg',  title: 'Projects',  desc: 'Track each project’s status, owners and progress at a glance.' },
+  { img: '/shots/tasks.jpg',     title: 'Tasks',     desc: 'Assign work with priorities, stages and clear ownership.' },
+  { img: '/shots/chat.jpg',      title: 'Team Chat', desc: 'Real-time channels that keep decisions where the work is.' },
+  { img: '/shots/call.jpg',      title: 'Video Calls', desc: 'Start an HD stand-up straight from your workspace.' },
+  { img: '/shots/ai.jpg',        title: 'AI Assistant', desc: 'Instant summaries and insights across your workspace.' },
+];
+
 const FAQ = [
   { q: 'Is RemoteTeam free to use?', a: 'Yes — the Starter plan is free for teams up to 5 members with no credit card required. Upgrade anytime for more features.' },
   { q: 'Can I migrate from other tools?', a: 'Absolutely. We offer one-click imports from Jira, Asana, Trello, Slack, and more. Our team can help with custom migrations.' },
@@ -367,6 +377,101 @@ function CTASection() {
   );
 }
 
+/* ─── Product screenshot card ─── */
+function ShowcaseCard({ item, index }) {
+  const [hovered, setHovered] = useState(false);
+  const { visible, ref } = useReveal(0.1);
+  return (
+    <div
+      ref={ref}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background: 'var(--bg-card)',
+        border: `1px solid ${hovered ? 'var(--brand)' : 'var(--border)'}`,
+        borderRadius: 16, overflow: 'hidden',
+        transform: visible ? (hovered ? 'translateY(-6px)' : 'translateY(0)') : 'translateY(24px)',
+        opacity: visible ? 1 : 0,
+        transition: `opacity .6s ease ${index * 0.07}s, transform .35s cubic-bezier(.4,0,.2,1)`,
+        boxShadow: hovered ? '0 20px 48px -12px rgba(51,102,255,0.35)' : '0 2px 12px rgba(0,0,0,0.18)',
+        display: 'flex', flexDirection: 'column',
+      }}
+    >
+      <div style={{ position: 'relative', overflow: 'hidden', borderBottom: '1px solid var(--border)', background: 'var(--bg2)' }}>
+        <img
+          src={item.img}
+          alt={`${item.title} screen in RemoteTeam Manager`}
+          loading="lazy"
+          style={{
+            display: 'block', width: '100%', aspectRatio: '16 / 10', objectFit: 'cover', objectPosition: 'top left',
+            transform: hovered ? 'scale(1.04)' : 'scale(1)', transition: 'transform .5s cubic-bezier(.4,0,.2,1)',
+          }}
+        />
+      </div>
+      <div style={{ padding: 'clamp(14px,2vw,18px)' }}>
+        <h3 style={{ fontSize: 'clamp(15px,1.7vw,17px)', fontWeight: 800, color: 'var(--text)', margin: '0 0 6px', letterSpacing: '-0.01em' }}>
+          {item.title}
+        </h3>
+        <p style={{ fontSize: 'clamp(12.5px,1.4vw,13.5px)', color: 'var(--text3)', lineHeight: 1.6, margin: 0 }}>
+          {item.desc}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Hero background video ───
+   Decorative looping footage behind the hero. Muted + playsInline so mobile
+   browsers allow autoplay, and it degrades to a static poster whenever motion
+   is unwanted (reduced-motion, Data Saver) or the file fails to load. */
+function HeroVideoBackground() {
+  const [play, setPlay] = useState(false);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    const saveData = navigator.connection?.saveData;
+    if (!reduced && !saveData) setPlay(true);
+  }, []);
+
+  const layer = {
+    position: 'absolute', inset: 0,
+    width: '100%', height: '100%', objectFit: 'cover',
+  };
+
+  return (
+    <div aria-hidden="true" style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 }}>
+      {play && !failed ? (
+        <video
+          autoPlay loop muted playsInline preload="metadata"
+          poster="/hero-bg-poster.jpg"
+          onError={() => setFailed(true)}
+          style={{ ...layer, opacity: 0.85, filter: 'saturate(1.2)' }}
+        >
+          <source src="/hero-bg.mp4" type="video/mp4" />
+        </video>
+      ) : (
+        <img src="/hero-bg-poster.jpg" alt="" style={{ ...layer, opacity: 0.7, filter: 'saturate(1.2)' }} />
+      )}
+      {/* Brand wash ties the stock footage into the product palette */}
+      <div style={{
+        position: 'absolute', inset: 0, mixBlendMode: 'multiply',
+        background: 'linear-gradient(135deg, rgba(51,102,255,0.55), rgba(139,92,246,0.42))',
+      }} />
+      {/* Scrim — bright particle footage needs solid cover for the copy */}
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: 'linear-gradient(to bottom, rgba(var(--bg-rgb),0.60) 0%, rgba(var(--bg-rgb),0.52) 38%, rgba(var(--bg-rgb),0.86) 82%, var(--bg) 100%)',
+      }} />
+      {/* Vignette concentrated behind the headline block */}
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: 'radial-gradient(ellipse 58% 44% at 50% 46%, rgba(var(--bg-rgb),0.62), transparent 74%)',
+      }} />
+    </div>
+  );
+}
+
 /* ─── Main ─── */
 export default function Home() {
   const { isAuth } = useStore();
@@ -377,8 +482,9 @@ export default function Home() {
     <div style={{ background: 'var(--bg)', color: 'var(--text)', overflowX: 'hidden', minHeight: '100vh', fontFamily: 'inherit' }}>
 
       {/* HERO */}
-      <section style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 'clamp(80px,12vh,140px) clamp(16px,4vw,24px) clamp(40px,6vw,60px)', textAlign: 'center' }}>
-        <div style={{ maxWidth: 840 }}>
+      <section style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 'clamp(80px,12vh,140px) clamp(16px,4vw,24px) clamp(40px,6vw,60px)', textAlign: 'center', overflow: 'hidden' }}>
+        <HeroVideoBackground />
+        <div style={{ maxWidth: 840, position: 'relative', zIndex: 1 }}>
           <div style={{
             display: 'inline-flex', alignItems: 'center', gap: 8,
             background: 'var(--brand-bg)', border: '1px solid rgba(51,102,255,0.2)',
@@ -463,6 +569,20 @@ export default function Home() {
           <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--text3)', marginTop: 16, fontWeight: 600 }}>
             See how RemoteTeam unifies projects, chat, tasks, and analytics in one workspace.
           </p>
+        </div>
+      </section>
+
+      {/* INSIDE THE PRODUCT — real screens */}
+      <section style={{ padding: 'clamp(48px,8vw,96px) clamp(16px,4vw,24px)', background: 'var(--bg2)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}>
+        <SectionHeader
+          eyebrow="Inside RemoteTeam"
+          title="See the actual product"
+          subtitle="Real screens from the live app — not mockups. This is exactly what your team works in every day."
+        />
+        <div className="showcase-grid" style={{ maxWidth: 1140, margin: '0 auto' }}>
+          {SHOWCASE.map((item, i) => (
+            <ShowcaseCard key={item.title} item={item} index={i} />
+          ))}
         </div>
       </section>
 
@@ -555,6 +675,18 @@ export default function Home() {
         @keyframes heroTextIn {
           from { opacity: 0; transform: translateY(24px); }
           to   { opacity: 1; transform: translateY(0); }
+        }
+        /* Product screenshot grid: 3 up on desktop, 2 on tablet, 1 on phones */
+        .showcase-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: clamp(14px, 2vw, 22px);
+        }
+        @media (max-width: 1024px) {
+          .showcase-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 640px) {
+          .showcase-grid { grid-template-columns: 1fr; }
         }
         .hero-br { display: block; }
         @media (max-width: 768px) {
